@@ -1,5 +1,7 @@
 import useSWR from "swr";
 import { useRef, useEffect, useState } from "react";
+import Footer from "../components/Footer";
+import Chatbot from "../components/Chatbot";
 import {
   FaWhatsapp,
   FaPhoneAlt,
@@ -217,9 +219,9 @@ export default function Home() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Upper Bar with extra links and social icons */}
-      <div className="bg-[#23272b] text-white text-xs w-full flex items-center px-2 md:px-10 py-1 font-medium border-b border-gray-800">
+      <div className="bg-[#23272b] text-white text-xs w-full flex flex-col sm:flex-row items-center px-2 md:px-10 py-1 font-medium border-b border-gray-800">
         {/* Left: All nav buttons */}
-        <div className="flex flex-1 items-center gap-2 md:gap-6 justify-start">
+        <div className="flex flex-wrap flex-1 items-center gap-2 md:gap-6 justify-start w-full sm:w-auto">
           {upperNavLinks.map((link) => (
             <a
               key={link.name}
@@ -232,7 +234,7 @@ export default function Home() {
           ))}
         </div>
         {/* Right: Social links (call, whatsapp, etc) */}
-        <div className="flex items-center gap-2 md:gap-3 justify-end">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 justify-end w-full sm:w-auto mt-2 sm:mt-0">
           {socialIcons.map((item) => (
             <a
               key={item.name}
@@ -248,8 +250,8 @@ export default function Home() {
         </div>
       </div>
       {/* Top Info Bar */}
-      <div className="bg-blue-900 text-white text-xs md:text-sm flex flex-col md:flex-row items-center justify-between px-2 md:px-8 py-1 font-medium">
-        <div className="flex flex-wrap items-center gap-2 md:gap-4">
+      <div className="bg-blue-900 text-white text-xs md:text-sm flex flex-col md:flex-row items-center justify-between px-2 md:px-8 py-1 font-medium w-full">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto justify-center md:justify-start">
           <span className="hidden md:inline">
             Register Now for BBIT Joint Campus Placement Programme
           </span>
@@ -257,10 +259,10 @@ export default function Home() {
             REGISTER NOW
           </button>
         </div>
-        <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 md:mt-0">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 md:mt-0 w-full md:w-auto justify-center md:justify-end">
           <span className="font-semibold">Admission Helpline</span>
           <span className="bg-blue-700 px-2 py-1 rounded ml-1 font-bold tracking-wide">
-            1800121288800
+            8420123333/9836888444
           </span>
         </div>
       </div>
@@ -280,21 +282,28 @@ export default function Home() {
         }}
       >
         <div
-          className="max-w-7xl mx-auto flex items-center justify-between px-2 md:px-8 py-2"
+          className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-2 md:px-8 py-2 w-full"
           style={{ boxSizing: "border-box", maxWidth: "100%" }}
         >
-          <div className="flex flex-row items-center gap-2 md:gap-3 min-w-0">
-            <img
-              src="/cropped_circle-image.png"
-              alt="BBIT Logo"
-              className="h-11 w-11 object-contain drop-shadow flex-shrink-0"
-            />
-            <span className="font-bold text-2xl text-white tracking-wide whitespace-nowrap flex-shrink-0">
-              BBIT
-            </span>
-            <span className="text-white font-semibold text-sm md:text-base ml-1 md:ml-2 whitespace-nowrap">
-              Research & Development
-            </span>
+          <div className="flex flex-row items-center gap-2 md:gap-3 min-w-0 w-full sm:w-auto justify-center sm:justify-start">
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 md:gap-3 focus:outline-none bg-transparent border-0 p-0 m-0"
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+              aria-label="Go to homepage"
+            >
+              <img
+                src="/cropped_circle-image.png"
+                alt="BBIT Logo"
+                className="h-11 w-11 object-contain drop-shadow flex-shrink-0"
+              />
+              <span className="font-bold text-2xl text-white tracking-wide whitespace-nowrap flex-shrink-0">
+                BBIT
+              </span>
+              <span className="text-white font-semibold text-sm md:text-base ml-1 md:ml-2 whitespace-nowrap">
+                Research & Development
+              </span>
+            </button>
           </div>
           {/* Desktop Nav */}
           <nav
@@ -317,7 +326,7 @@ export default function Home() {
           </nav>
           {/* Hamburger for mobile */}
           <button
-            className="md:hidden flex items-center px-3 py-2 border rounded text-white border-white hover:bg-blue-900/40 transition"
+            className="md:hidden flex items-center px-3 py-2 border rounded text-white border-white hover:bg-blue-900/40 transition w-full sm:w-auto mt-2 sm:mt-0"
             onClick={() => setShowMobileMenu((v) => !v)}
             aria-label="Open menu"
           >
@@ -339,7 +348,7 @@ export default function Home() {
         </div>
         {/* Mobile menu */}
         {showMobileMenu && (
-          <nav className="md:hidden bg-blue-900/95 backdrop-blur-md px-4 py-4 flex flex-col gap-2 transition-all duration-300 rounded-b-xl shadow-lg">
+          <nav className="md:hidden bg-blue-900/95 backdrop-blur-md px-4 py-4 flex flex-col gap-2 transition-all duration-300 rounded-b-xl shadow-lg w-full">
             {navLinks.map((link) => (
               <div key={link.name} className="mb-2 last:mb-0">
                 <button
@@ -383,7 +392,7 @@ export default function Home() {
       </header>
       {/* Hero Section as Carousel */}
       <section
-        className="relative bg-gradient-to-r from-blue-900 to-blue-600 text-white min-h-[350px] flex items-center justify-center overflow-hidden"
+        className="relative bg-gradient-to-r from-blue-900 to-blue-600 text-white min-h-[250px] sm:min-h-[350px] flex flex-col sm:flex-row items-center justify-center overflow-hidden w-full"
         style={{ maxWidth: "100%", boxSizing: "border-box" }}
       >
         <div
@@ -541,6 +550,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <Footer />
+      <Chatbot />
     </div>
   );
 }
