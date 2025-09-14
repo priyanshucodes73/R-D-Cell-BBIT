@@ -28,7 +28,7 @@ const socialIcons = [
     href: "#",
     icon: (
       <span className="flex items-center gap-1">
-        <FaWhatsapp className="w-5 h-5" />
+        <FaWhatsapp className="w-4 h-4" />
         <span>Whatsapp</span>
       </span>
     ),
@@ -38,7 +38,7 @@ const socialIcons = [
     href: "tel:1800121288800",
     icon: (
       <span className="flex items-center gap-1">
-        <FaPhoneAlt className="w-5 h-5" />
+        <FaPhoneAlt className="w-4 h-4" />
         <span>Call Us</span>
       </span>
     ),
@@ -49,15 +49,15 @@ const socialIcons = [
     icon: (
       <span className="flex items-center gap-1">
         <span>360°</span>
-        <FaCompass className="w-5 h-5 ml-1" />
+        <FaCompass className="w-4 h-4 ml-1" />
       </span>
     ),
   },
-  { name: "Facebook", href: "#", icon: <FaFacebookF className="w-5 h-5" /> },
-  { name: "Twitter", href: "#", icon: <FaTwitter className="w-5 h-5" /> },
-  { name: "LinkedIn", href: "#", icon: <FaLinkedinIn className="w-5 h-5" /> },
-  { name: "Instagram", href: "#", icon: <FaInstagram className="w-5 h-5" /> },
-  { name: "YouTube", href: "#", icon: <FaYoutube className="w-5 h-5" /> },
+  { name: "Facebook", href: "#", icon: <FaFacebookF className="w-4 h-4" /> },
+  { name: "Twitter", href: "#", icon: <FaTwitter className="w-4 h-4" /> },
+  { name: "LinkedIn", href: "#", icon: <FaLinkedinIn className="w-4 h-4" /> },
+  { name: "Instagram", href: "#", icon: <FaInstagram className="w-4 h-4" /> },
+  { name: "YouTube", href: "#", icon: <FaYoutube className="w-4 h-4" /> },
 ];
 
 const upperNavLinks = [
