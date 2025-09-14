@@ -234,7 +234,7 @@ export default function Home() {
           ))}
         </div>
         {/* Right: Social links (call, whatsapp, etc) */}
-        <div className="flex flex-wrap items-center gap-2 md:gap-3 justify-end w-full sm:w-auto mt-2 sm:mt-0">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 md:gap-3 justify-center sm:justify-end w-full sm:w-auto mt-2 sm:mt-0">
           {socialIcons.map((item) => (
             <a
               key={item.name}
