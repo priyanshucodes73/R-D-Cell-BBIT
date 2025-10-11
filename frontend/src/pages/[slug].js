@@ -1,5 +1,5 @@
-import Footer from "../../components/Footer";
-import Chatbot from "../../components/Chatbot";
+import Footer from "../components/Footer";
+import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FaHome, FaInfoCircle } from "react-icons/fa";
