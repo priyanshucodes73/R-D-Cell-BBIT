@@ -367,6 +367,13 @@ export default function Footer() {
             ))}
           </div>
         </div>
+
+        {/* Copyright Section */}
+        <div className="mt-6 pt-4 border-t border-white/10 text-center">
+          <p className="text-white/70 text-sm">
+            Copyright © 2025. BBIT. All Rights Reserved.
+          </p>
+        </div>
       </footer>
     </>
   );

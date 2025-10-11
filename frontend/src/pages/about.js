@@ -29,18 +29,29 @@ export default function About() {
           <h2 className="text-3xl font-bold text-blue-900 mb-6">Overview</h2>
           <div className="prose max-w-none">
             <p className="text-gray-700 text-lg mb-4">
-              BBIT (Budge Budge Institute of Technology) is a premier
-              institution committed to academic excellence, cutting-edge
-              research, and holistic development of students. Established with a
-              vision to create world-class professionals, we have consistently
-              maintained high standards in technical education.
+              Budge Budge Institute of Technology (BBIT) is a premier technical
+              institution located in Nischintapur, Budge Budge, Kolkata. We are
+              proud to be accredited by NBA (for CSE, EE, ECE, ME departments)
+              and NAAC, affiliated to MAKAUT (Maulana Abul Kalam Azad University
+              of Technology) and WBSCTVESD (West Bengal State Council of
+              Technical & Vocational Education and Skill Development), and
+              recognized by UGC.
             </p>
             <p className="text-gray-700 text-lg mb-4">
-              Our institution stands as a beacon of quality education, fostering
-              innovation, entrepreneurship, and research culture among students
-              and faculty. With state-of-the-art infrastructure, experienced
-              faculty, and industry partnerships, we prepare students for global
-              challenges.
+              With over 15,000+ students who have studied at BBIT and 10,500+
+              students successfully placed across 135 top recruiters, we have
+              established ourselves as a leading institution in technical
+              education. Our commitment to excellence is reflected in our
+              state-of-the-art infrastructure, including spacious multimedia
+              classrooms, well-equipped laboratories, modern library, high-speed
+              Wi-Fi campus, and dedicated training facilities.
+            </p>
+            <p className="text-gray-700 text-lg mb-4">
+              BBIT has promoted significant research and development activities
+              with a vision to continue and promote research excellence. We
+              maintain strong industry tie-ups for student training, ensuring
+              that knowledge gained in the institute is fruitfully utilized in
+              real-world applications.
             </p>
           </div>
         </div>
@@ -146,37 +157,39 @@ export default function About() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-4xl font-bold">
-                Dr
+              <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold">
+                JG
               </div>
-              <h3 className="font-bold text-xl mb-1">Dr. Rajesh Kumar</h3>
-              <p className="text-blue-600 font-semibold mb-2">Director</p>
+              <h3 className="font-bold text-xl mb-1">Shri Jagannath Gupta</h3>
+              <p className="text-blue-600 font-semibold mb-2">Chairman</p>
               <p className="text-sm text-gray-600">
-                Ph.D. in Computer Science, 25+ years experience
+                Visionary leader with extensive experience in education
+                management
               </p>
             </div>
             <div className="text-center">
-              <div className="w-32 h-32 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-4xl font-bold">
-                Dr
+              <div className="w-32 h-32 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold">
+                SG
               </div>
-              <h3 className="font-bold text-xl mb-1">Dr. Priya Sharma</h3>
+              <h3 className="font-bold text-xl mb-1">Dr. Shubhangi Gupta</h3>
               <p className="text-green-600 font-semibold mb-2">
-                Dean - Academics
+                Executive Director
               </p>
               <p className="text-sm text-gray-600">
-                Ph.D. in Electronics, 20+ years experience
+                Leading institution's strategic growth and academic excellence
               </p>
             </div>
             <div className="text-center">
-              <div className="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-4xl font-bold">
-                Dr
+              <div className="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold">
+                SM
               </div>
-              <h3 className="font-bold text-xl mb-1">Dr. Amit Verma</h3>
-              <p className="text-purple-600 font-semibold mb-2">
-                Dean - Research & Development
-              </p>
+              <h3 className="font-bold text-xl mb-1">
+                Prof. (Dr.) Sandeep Malik
+              </h3>
+              <p className="text-purple-600 font-semibold mb-2">Principal</p>
               <p className="text-sm text-gray-600">
-                Ph.D. in Mechanical Engineering, 18+ years experience
+                Dedicated to fostering academic excellence and student
+                development
               </p>
             </div>
           </div>
@@ -185,15 +198,43 @@ export default function About() {
         {/* Recognition & Approvals */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg p-8 mb-12">
           <h2 className="text-3xl font-bold text-blue-900 mb-8 text-center">
-            Recognition & Approvals
+            Recognition & Accreditations
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex items-center gap-4 bg-white p-4 rounded-lg">
-              <div className="text-4xl">✓</div>
+              <div className="text-4xl">🏆</div>
               <div>
-                <h3 className="font-bold text-lg">AICTE Approved</h3>
+                <h3 className="font-bold text-lg">NBA Accredited</h3>
                 <p className="text-sm text-gray-600">
-                  All India Council for Technical Education
+                  CSE, EE, ECE, ME departments accredited by National Board of
+                  Accreditation
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white p-4 rounded-lg">
+              <div className="text-4xl">⭐</div>
+              <div>
+                <h3 className="font-bold text-lg">NAAC Accredited</h3>
+                <p className="text-sm text-gray-600">
+                  National Assessment and Accreditation Council
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white p-4 rounded-lg">
+              <div className="text-4xl">🎓</div>
+              <div>
+                <h3 className="font-bold text-lg">MAKAUT Affiliated</h3>
+                <p className="text-sm text-gray-600">
+                  Maulana Abul Kalam Azad University of Technology
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white p-4 rounded-lg">
+              <div className="text-4xl">📜</div>
+              <div>
+                <h3 className="font-bold text-lg">WBSCTVESD Affiliated</h3>
+                <p className="text-sm text-gray-600">
+                  West Bengal State Council of Technical & Vocational Education
                 </p>
               </div>
             </div>
@@ -203,24 +244,6 @@ export default function About() {
                 <h3 className="font-bold text-lg">UGC Recognized</h3>
                 <p className="text-sm text-gray-600">
                   University Grants Commission
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 bg-white p-4 rounded-lg">
-              <div className="text-4xl">✓</div>
-              <div>
-                <h3 className="font-bold text-lg">NBA Accredited</h3>
-                <p className="text-sm text-gray-600">
-                  National Board of Accreditation
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 bg-white p-4 rounded-lg">
-              <div className="text-4xl">✓</div>
-              <div>
-                <h3 className="font-bold text-lg">NAAC A+ Grade</h3>
-                <p className="text-sm text-gray-600">
-                  National Assessment and Accreditation Council
                 </p>
               </div>
             </div>

@@ -530,27 +530,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Research Statistics Banner */}
+      {/* BBIT Achievements Banner */}
       <section className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-16 mt-0">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-5xl font-bold text-yellow-400 mb-2">
-                150+
+                15,000+
               </div>
-              <div className="text-lg opacity-90">Research Projects</div>
+              <div className="text-lg opacity-90">Students Studied</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">80+</div>
-              <div className="text-lg opacity-90">Publications</div>
+              <div className="text-5xl font-bold text-yellow-400 mb-2">
+                10,500+
+              </div>
+              <div className="text-lg opacity-90">Students Placed</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">25+</div>
-              <div className="text-lg opacity-90">Patents Filed</div>
+              <div className="text-5xl font-bold text-yellow-400 mb-2">135</div>
+              <div className="text-lg opacity-90">Our Recruiters</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">50+</div>
-              <div className="text-lg opacity-90">Industry Partners</div>
+              <div className="text-5xl font-bold text-yellow-400 mb-2">14</div>
+              <div className="text-lg opacity-90">Awards Won</div>
             </div>
           </div>
         </div>
@@ -567,18 +569,20 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <p className="text-gray-700 text-lg mb-4 leading-relaxed">
-              The Research & Development Cell at BBIT is the epicenter of
-              innovation and academic excellence. We foster a vibrant research
-              culture that encourages faculty and students to pursue
-              groundbreaking projects across multiple disciplines including
-              Computer Science, Engineering, Management, and Applied Sciences.
+              Budge Budge Institute of Technology (BBIT) has promoted
+              significant research and development activities with a vision and
+              mission to continue and promote research excellence. Our R&D Cell
+              is at the forefront of fostering innovation across our
+              NBA-accredited departments (CSE, EE, ECE, ME) and other
+              engineering disciplines.
             </p>
             <p className="text-gray-700 text-lg mb-4 leading-relaxed">
-              Our R&D cell is dedicated to advancing knowledge, supporting
-              startups through our Technology Business Incubator, and
-              collaborating with leading industry partners and academic
-              institutions worldwide for impactful outcomes that address
-              real-world challenges.
+              As a NAAC-accredited and MAKAUT-affiliated institution, we
+              maintain strong industry tie-ups for student training and research
+              collaboration. Our modern infrastructure includes well-equipped
+              laboratories, spacious multimedia classrooms, and dedicated
+              research facilities that enable cutting-edge work in technology
+              and engineering.
             </p>
             <div className="flex gap-4 mt-6">
               <a
