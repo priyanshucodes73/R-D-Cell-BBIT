@@ -4,77 +4,86 @@ const footerLinks = [
   {
     title: "Apply Here",
     links: [
-      "BBIT Admissions",
-      "BBIT Education Loan",
-      "How to Apply?",
-      "BBIT Scholarship",
-      "BBIT Admission Office",
-      "BBIT Student Feedback",
-      "BBIT Student Facilitation",
-      "BBIT International Student Facilitation",
-      "BBIT Alumni Membership",
-      "eSanad",
-      "Guinness World Records",
+      { name: "BBIT Admissions", href: "/admissions" },
+      { name: "BBIT Education Loan", href: "/education-loan" },
+      { name: "How to Apply?", href: "/how-to-apply" },
+      { name: "BBIT Scholarship", href: "/scholarship" },
+      { name: "BBIT Admission Office", href: "/admission-office" },
+      { name: "BBIT Student Feedback", href: "/student-feedback" },
+      { name: "BBIT Student Facilitation", href: "/student-services" },
+      {
+        name: "BBIT International Student Facilitation",
+        href: "/international",
+      },
+      { name: "BBIT Alumni Membership", href: "/alumni" },
+      { name: "eSanad", href: "/esanad" },
+      { name: "Guinness World Records", href: "/guinness" },
     ],
   },
   {
     title: "Learn Here",
     links: [
-      "IQAC",
-      "Organogram",
-      "Other Committees",
-      "Pay Fee Online",
-      "BBIT Institutes",
-      "Teaching Practices",
-      "System of Evaluation",
-      "BBIT Placements",
-      "BBIT Edge",
-      "QS Asia Rankings 2024",
-      "NIRF Rankings 2025",
-      "BBIT Unnao Campus",
+      { name: "IQAC", href: "/iqac" },
+      { name: "Organogram", href: "/organogram" },
+      { name: "Other Committees", href: "/committees" },
+      { name: "Pay Fee Online", href: "/pay-fee" },
+      { name: "BBIT Institutes", href: "/institutes" },
+      { name: "Teaching Practices", href: "/teaching-practices" },
+      { name: "System of Evaluation", href: "/evaluation" },
+      { name: "BBIT Placements", href: "/placements" },
+      { name: "BBIT Edge", href: "/bbit-edge" },
+      { name: "QS Asia Rankings 2024", href: "/qs-rankings" },
+      { name: "NIRF Rankings 2025", href: "/nirf-rankings" },
+      { name: "BBIT Unnao Campus", href: "/campuses" },
     ],
   },
   {
     title: "Visit Here",
     links: [
-      "RTI",
-      "Grievance",
-      "BBIT News",
-      "BBIT Blog",
-      "Alumni",
-      "Maps",
-      "Distance Calculator",
-      "About Budge Budge",
-      "QS World University Rankings",
-      "ABET Accreditation",
-      "QS World University Rankings by Subject 2025",
+      { name: "RTI", href: "/rti" },
+      { name: "Grievance", href: "/grievance" },
+      { name: "BBIT News", href: "/news" },
+      { name: "BBIT Blog", href: "/blog" },
+      { name: "Alumni", href: "/alumni" },
+      { name: "Maps", href: "/maps" },
+      { name: "Distance Calculator", href: "/distance-calculator" },
+      { name: "About Budge Budge", href: "/about-budge-budge" },
+      { name: "QS World University Rankings", href: "/qs-world-rankings" },
+      { name: "ABET Accreditation", href: "/abet" },
+      {
+        name: "QS World University Rankings by Subject 2025",
+        href: "/qs-subject-rankings",
+      },
     ],
   },
   {
     title: "Live Here",
     links: [
-      "BBIT Hostels",
-      "BBIT Transport",
-      "BBIT Sports",
-      "Cultural Activities",
-      "BBIT Student Welfare",
-      "BBIT Libraries",
-      "e-Samadhan",
-      "Discipline & Student Conduct",
+      { name: "BBIT Hostels", href: "/hostels" },
+      { name: "BBIT Transport", href: "/transport" },
+      { name: "BBIT Sports", href: "/sports" },
+      { name: "Cultural Activities", href: "/cultural" },
+      { name: "BBIT Student Welfare", href: "/student-welfare" },
+      { name: "BBIT Libraries", href: "/library" },
+      { name: "e-Samadhan", href: "/e-samadhan" },
+      { name: "Discipline & Student Conduct", href: "/discipline" },
     ],
   },
   {
     title: "Others",
     links: [
-      "Courses Fee Details",
-      "Student Grievance Redressal Cell",
-      "Ombudsperson",
-      "Procedures And Policies",
-      "PPCB Report",
-      "Mandatory Disclosure",
-      "Disclaimer",
-      "UGC - Public Self Disclosure document",
-      "e-SCR Report",
+      { name: "Courses Fee Details", href: "/fee-details" },
+      { name: "Student Grievance Redressal Cell", href: "/grievance-cell" },
+      { name: "Ombudsperson", href: "/ombudsperson" },
+      { name: "Procedures And Policies", href: "/policies" },
+      { name: "PPCB Report", href: "/ppcb-report" },
+      { name: "Mandatory Disclosure", href: "/mandatory-disclosure" },
+      { name: "Disclaimer", href: "/disclaimer" },
+      {
+        name: "UGC - Public Self Disclosure document",
+        href: "/ugc-disclosure",
+      },
+      { name: "e-SCR Report", href: "/escr-report" },
     ],
   },
 ];
@@ -139,10 +148,13 @@ export default function Footer() {
             </div>
             <ul className="space-y-1">
               {col.links.map((link) => (
-                <li key={link}>
-                  <button className="text-left text-white/90 hover:text-yellow-400 transition-colors w-full">
-                    {link}
-                  </button>
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    className="text-left text-white/90 hover:text-yellow-400 transition-colors block py-1"
+                  >
+                    {link.name}
+                  </a>
                 </li>
               ))}
             </ul>
