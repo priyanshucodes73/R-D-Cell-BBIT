@@ -73,34 +73,7 @@ const upperNavLinks = [
 const fetcher = (url) => fetch(url).then((r) => r.json());
 
 const navLinks = [
-  {
-    name: "ABOUT",
-    menu: [
-      {
-        title: "WHO WE ARE",
-        links: [
-          { name: "Overview", href: "#overview" },
-          { name: "Our Identity", href: "#identity" },
-          { name: "Vision & Mission", href: "#vision" },
-          { name: "Leadership", href: "#leadership" },
-          { name: "Core Values", href: "#values" },
-          { name: "Recognition & Approvals", href: "#recognition" },
-          { name: "Awards & Rankings", href: "#awards" },
-          { name: "Social Responsibility", href: "#social" },
-        ],
-      },
-      {
-        title: "RELATED LINKS",
-        links: [
-          { name: "Institutes & Departments", href: "#institutes" },
-          { name: "Admissions", href: "#admissions" },
-          { name: "Scholarships", href: "#scholarships" },
-          { name: "Hostel Facility", href: "#hostel" },
-          { name: "Student Services", href: "#services" },
-        ],
-      },
-    ],
-  },
+  { name: "ABOUT", href: "/about", menu: [] },
   { name: "PROGRAMS", href: "/programs", menu: [] },
   { name: "ACADEMICS", href: "/academics", menu: [] },
   { name: "ADMISSIONS", href: "/register", menu: [] },
@@ -233,190 +206,245 @@ export default function Home() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Upper Bar with extra links and social icons */}
-      <div className="bg-[#23272b] text-white text-xs w-full flex flex-col sm:flex-row items-center px-2 md:px-10 py-1 font-medium border-b border-gray-800">
-        {/* Left: All nav buttons */}
-        <div className="flex flex-wrap flex-1 items-center gap-2 md:gap-6 justify-start w-full sm:w-auto">
-          {upperNavLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="px-2 py-1 rounded hover:bg-[#2d3237] transition font-semibold tracking-wide uppercase text-[13px]"
-              style={{ letterSpacing: "0.04em" }}
-            >
-              {link.name}
-            </Link>
-          ))}
-        </div>
-        {/* Right: Social links (call, whatsapp, etc) */}
-        <div className="flex flex-wrap items-center gap-1 sm:gap-2 md:gap-3 justify-center sm:justify-end w-full sm:w-auto mt-2 sm:mt-0">
-          {socialIcons.map((item) => (
-            <a
-              key={item.name}
-              href={item.href}
-              className="hover:text-yellow-400 p-1 rounded-full transition"
-              aria-label={item.name}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {item.icon}
-            </a>
-          ))}
-        </div>
-      </div>
-      {/* Top Info Bar */}
-      <div className="bg-blue-900 text-white text-xs md:text-sm flex flex-col md:flex-row items-center justify-between px-2 md:px-8 py-1 font-medium w-full">
-        <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto justify-center md:justify-start">
-          <span className="hidden md:inline">
-            Register Now for BBIT Joint Campus Placement Programme
-          </span>
-          <Link href="/register">
-            <span className="bg-yellow-400 text-blue-900 font-bold px-3 py-1 rounded ml-2 hover:bg-yellow-300 transition cursor-pointer inline-block">
-              REGISTER NOW
-            </span>
-          </Link>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 md:mt-0 w-full md:w-auto justify-center md:justify-end">
-          <span className="font-semibold">Admission Helpline</span>
-          <span className="bg-blue-700 px-2 py-1 rounded ml-1 font-bold tracking-wide">
-            8420123333/9836888444
-          </span>
+      {/* 1st Top Bar - Upper Bar with extra links and social icons */}
+      <div className="bg-gradient-to-r from-[#1a1f24] via-[#23272b] to-[#1a1f24] text-white text-xs w-full shadow-md border-b border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 md:px-8 py-2.5">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-3 lg:gap-0">
+            {/* Left: Navigation Links */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 lg:gap-5">
+              {upperNavLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="group relative px-3 py-1.5 rounded-md hover:bg-[#2d3539] transition-all duration-300 font-semibold tracking-wide uppercase text-[11px] md:text-[12px] hover:text-yellow-400 whitespace-nowrap"
+                  style={{ letterSpacing: "0.05em" }}
+                >
+                  <span className="relative z-10">{link.name}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/20 to-blue-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-md"></div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Right: Social Links */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
+              {socialIcons.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="group relative p-2 rounded-full hover:bg-[#2d3539] transition-all duration-300 hover:scale-110 hover:text-yellow-400"
+                  aria-label={item.name}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="relative z-10">{item.icon}</span>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/30 group-hover:to-purple-500/30 rounded-full transition-all duration-300"></div>
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-      {/* Main Navigation Bar */}
+
+      {/* 2nd Top Bar - Info Bar with Registration */}
+      <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white shadow-lg border-b border-blue-700">
+        <div className="max-w-7xl mx-auto px-3 md:px-8 py-3">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            {/* Left: Registration Info */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-start">
+              <span className="text-center sm:text-left text-xs md:text-sm font-medium px-2 py-1 bg-blue-800/50 rounded-md backdrop-blur-sm">
+                Register Now for BBIT Joint Campus Placement Programme
+              </span>
+              <Link href="/register">
+                <span className="group relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 font-bold px-5 py-2 rounded-lg hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 cursor-pointer inline-block shadow-md hover:shadow-xl transform hover:-translate-y-0.5 text-sm whitespace-nowrap">
+                  <span className="relative z-10 flex items-center gap-2">
+                    REGISTER NOW
+                    <span className="text-lg group-hover:translate-x-1 transition-transform duration-300">
+                      →
+                    </span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
+                </span>
+              </Link>
+            </div>
+
+            {/* Right: Helpline */}
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 md:gap-3 w-full md:w-auto">
+              <span className="font-semibold text-xs md:text-sm flex items-center gap-2 bg-blue-800/50 px-3 py-1.5 rounded-md backdrop-blur-sm">
+                <FaPhoneAlt className="w-3 h-3 animate-pulse" />
+                Admission Helpline
+              </span>
+              <span className="bg-gradient-to-r from-blue-700 to-blue-600 px-4 py-1.5 rounded-lg font-bold tracking-wide text-sm md:text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 border border-blue-500/30">
+                8420123333/9836888444
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* 3rd Top Bar - Main Navigation Bar */}
       <header
-        className={`shadow sticky top-0 z-40 transition-all duration-300 ${
+        className={`shadow-lg sticky top-0 z-40 transition-all duration-500 border-b border-blue-700/30 ${
           scrollingUp
-            ? "bg-blue-900/60 backdrop-blur-md"
+            ? "bg-gradient-to-r from-blue-900/70 via-blue-800/70 to-blue-900/70 backdrop-blur-lg"
             : scrolled
-            ? "bg-blue-900/90"
-            : "bg-blue-800"
+            ? "bg-gradient-to-r from-blue-900/95 via-blue-800/95 to-blue-900/95 backdrop-blur-md"
+            : "bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900"
         }`}
         style={{
           boxSizing: "border-box",
           maxWidth: "100%",
-          transition: "background 0.3s, backdrop-filter 0.3s",
+          transition: "all 0.5s ease-in-out",
         }}
       >
-        <div
-          className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-2 md:px-8 py-2 w-full"
-          style={{ boxSizing: "border-box", maxWidth: "100%" }}
-        >
-          <div className="flex flex-row items-center gap-2 md:gap-3 min-w-0 w-full sm:w-auto justify-center sm:justify-start">
+        <div className="max-w-7xl mx-auto px-3 md:px-8">
+          <div className="flex items-center justify-between py-3 md:py-4">
+            {/* Logo Section */}
+            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-shrink-0">
+              <button
+                onClick={() => window.location.reload()}
+                className="group flex items-center gap-2 md:gap-3 focus:outline-none bg-transparent border-0 p-0 m-0 hover:scale-105 transition-transform duration-300"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+                aria-label="Go to homepage"
+              >
+                <div className="relative">
+                  <img
+                    src="/cropped_circle-image.png"
+                    alt="BBIT Logo"
+                    className="h-12 w-12 md:h-14 md:w-14 object-contain drop-shadow-xl flex-shrink-0 group-hover:drop-shadow-2xl transition-all duration-300"
+                  />
+                  <div className="absolute inset-0 bg-yellow-400/0 group-hover:bg-yellow-400/20 rounded-full blur-xl transition-all duration-300"></div>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-extrabold text-2xl md:text-3xl text-white tracking-wider whitespace-nowrap flex-shrink-0 group-hover:text-yellow-400 transition-colors duration-300">
+                    BBIT
+                  </span>
+                  <span className="text-white/90 font-semibold text-[10px] md:text-xs whitespace-nowrap -mt-1 tracking-wide group-hover:text-yellow-300 transition-colors duration-300">
+                    Research & Development
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center flex-1 justify-end">
+              <div className="flex items-center gap-1 xl:gap-2">
+                {navLinks.map((link) => (
+                  <div key={link.name}>
+                    <DropdownMenu link={link} />
+                  </div>
+                ))}
+              </div>
+            </nav>
+
+            {/* Mobile Menu Button */}
             <button
-              onClick={() => window.location.reload()}
-              className="flex items-center gap-2 md:gap-3 focus:outline-none bg-transparent border-0 p-0 m-0"
-              style={{ background: "none", border: "none", cursor: "pointer" }}
-              aria-label="Go to homepage"
+              className="lg:hidden relative group flex items-center justify-center p-2.5 border-2 rounded-lg text-white border-white/30 hover:border-yellow-400 hover:bg-blue-900/50 transition-all duration-300 backdrop-blur-sm"
+              onClick={() => setShowMobileMenu((v) => !v)}
+              aria-label="Toggle menu"
             >
-              <img
-                src="/cropped_circle-image.png"
-                alt="BBIT Logo"
-                className="h-11 w-11 object-contain drop-shadow flex-shrink-0"
-              />
-              <span className="font-bold text-2xl text-white tracking-wide whitespace-nowrap flex-shrink-0">
-                BBIT
-              </span>
-              <span className="text-white font-semibold text-sm md:text-base ml-1 md:ml-2 whitespace-nowrap">
-                Research & Development
-              </span>
+              <div className="flex flex-col gap-1.5">
+                <span
+                  className={`block h-0.5 w-6 bg-white transition-all duration-300 ${
+                    showMobileMenu ? "rotate-45 translate-y-2" : ""
+                  }`}
+                ></span>
+                <span
+                  className={`block h-0.5 w-6 bg-white transition-all duration-300 ${
+                    showMobileMenu ? "opacity-0" : ""
+                  }`}
+                ></span>
+                <span
+                  className={`block h-0.5 w-6 bg-white transition-all duration-300 ${
+                    showMobileMenu ? "-rotate-45 -translate-y-2" : ""
+                  }`}
+                ></span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 to-yellow-400/0 group-hover:from-yellow-400/20 group-hover:to-orange-400/20 rounded-lg transition-all duration-300"></div>
             </button>
           </div>
-          {/* Desktop Nav */}
-          <nav
-            className="hidden md:flex flex-wrap items-center justify-end w-full"
-            style={{ maxWidth: "100%", boxSizing: "border-box" }}
-          >
-            <div
-              className="flex flex-wrap items-center justify-end gap-2 md:gap-4 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-blue-200 w-full pr-2"
-              style={{ maxWidth: "100%", boxSizing: "border-box" }}
-            >
-              {navLinks.map((link, idx) => (
-                <div
-                  key={link.name}
-                  className={idx === navLinks.length - 1 ? "last:mr-0" : ""}
-                >
-                  <DropdownMenu link={link} />
-                </div>
-              ))}
-            </div>
-          </nav>
-          {/* Hamburger for mobile */}
-          <button
-            className="md:hidden flex items-center px-3 py-2 border rounded text-white border-white hover:bg-blue-900/40 transition w-full sm:w-auto mt-2 sm:mt-0"
-            onClick={() => setShowMobileMenu((v) => !v)}
-            aria-label="Open menu"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
         </div>
-        {/* Mobile menu */}
+
+        {/* Mobile Menu */}
         {showMobileMenu && (
-          <nav className="md:hidden bg-blue-900/95 backdrop-blur-md px-4 py-4 flex flex-col gap-2 transition-all duration-300 rounded-b-xl shadow-lg w-full">
-            {navLinks.map((link) => (
-              <div key={link.name} className="mb-2 last:mb-0">
-                {link.href && (!link.menu || link.menu.length === 0) ? (
-                  <Link href={link.href}>
-                    <span
-                      className="w-full block text-left text-white font-bold uppercase tracking-wide px-4 py-2 rounded-md bg-blue-800/80 hover:bg-blue-900/80 transition cursor-pointer"
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      {link.name}
-                    </span>
-                  </Link>
-                ) : (
-                  <>
-                    <button
-                      className="w-full text-left text-white font-bold uppercase tracking-wide px-4 py-2 rounded-md bg-blue-800/80 hover:bg-blue-900/80 transition flex justify-between items-center"
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      {link.name}
-                      {link.menu && link.menu.length > 0 && (
-                        <span className="ml-2">▼</span>
-                      )}
-                    </button>
-                    {/* Dropdown for mobile */}
-                    {link.menu && link.menu.length > 0 && (
-                      <div className="pl-4 py-2">
-                        {link.menu.map((col) => (
-                          <div key={col.title} className="mb-2">
-                            <div className="text-yellow-300 font-semibold text-xs mb-1 uppercase tracking-wide">
-                              {col.title}
-                            </div>
-                            <ul>
-                              {col.links.map((item) => (
-                                <li key={item.name}>
-                                  <a
-                                    href={item.href}
-                                    className="block py-1 px-2 rounded text-white/90 hover:text-yellow-400 hover:bg-blue-700 text-sm font-medium transition-colors"
-                                    onClick={() => setShowMobileMenu(false)}
-                                  >
-                                    {item.name}
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
+          <nav className="lg:hidden bg-gradient-to-b from-blue-900/98 via-blue-800/98 to-blue-900/98 backdrop-blur-xl border-t border-blue-700/50 shadow-2xl animate-fade-in">
+            <div className="max-w-7xl mx-auto px-4 py-6">
+              <div className="flex flex-col gap-2">
+                {navLinks.map((link, index) => (
+                  <div
+                    key={link.name}
+                    className="animate-slide-in"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    {link.href && (!link.menu || link.menu.length === 0) ? (
+                      <Link href={link.href}>
+                        <span
+                          className="group relative w-full block text-left text-white font-bold uppercase tracking-wide px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-800/60 to-blue-700/60 hover:from-blue-700/80 hover:to-blue-600/80 transition-all duration-300 cursor-pointer border border-blue-600/30 hover:border-yellow-400/50 overflow-hidden"
+                          onClick={() => setShowMobileMenu(false)}
+                        >
+                          <span className="relative z-10 flex items-center justify-between">
+                            <span className="text-sm">{link.name}</span>
+                            <span className="text-yellow-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+                              →
+                            </span>
+                          </span>
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-500/30 to-purple-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </span>
+                      </Link>
+                    ) : (
+                      <>
+                        <button
+                          className="group relative w-full text-left text-white font-bold uppercase tracking-wide px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-800/60 to-blue-700/60 hover:from-blue-700/80 hover:to-blue-600/80 transition-all duration-300 flex justify-between items-center border border-blue-600/30 hover:border-yellow-400/50 overflow-hidden"
+                          onClick={() => setShowMobileMenu(false)}
+                        >
+                          <span className="relative z-10 text-sm">
+                            {link.name}
+                          </span>
+                          {link.menu && link.menu.length > 0 && (
+                            <span className="relative z-10 ml-2 text-yellow-400 group-hover:rotate-180 transition-transform duration-300">
+                              ▼
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-500/30 to-purple-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </button>
+                        {/* Dropdown for mobile */}
+                        {link.menu && link.menu.length > 0 && (
+                          <div className="pl-4 py-2 mt-2 space-y-2">
+                            {link.menu.map((col) => (
+                              <div
+                                key={col.title}
+                                className="bg-blue-800/30 rounded-lg p-3 backdrop-blur-sm border border-blue-600/20"
+                              >
+                                <div className="text-yellow-400 font-bold text-xs mb-2 uppercase tracking-wider flex items-center gap-2">
+                                  <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span>
+                                  {col.title}
+                                </div>
+                                <ul className="space-y-1">
+                                  {col.links.map((item) => (
+                                    <li key={item.name}>
+                                      <a
+                                        href={item.href}
+                                        className="group flex items-center gap-2 py-2 px-3 rounded-lg text-white/90 hover:text-yellow-400 hover:bg-blue-700/50 text-sm font-medium transition-all duration-300 border border-transparent hover:border-blue-600/30"
+                                        onClick={() => setShowMobileMenu(false)}
+                                      >
+                                        <span className="w-1 h-1 bg-blue-400 rounded-full group-hover:bg-yellow-400 transition-colors duration-300"></span>
+                                        {item.name}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </nav>
         )}
       </header>
