@@ -1,3 +1,13 @@
 node_modules
 .env
 .DS_Store
+
+# Next.js build output
+frontend/.next/
+frontend/out/
+frontend/.next
+.next
+
+# SQLite databases
+*.sqlite
+dev.sqlite

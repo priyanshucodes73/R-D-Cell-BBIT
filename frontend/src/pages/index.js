@@ -1,5 +1,6 @@
 import useSWR from "swr";
 import { useRef, useEffect, useState } from "react";
+import Link from "next/link";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import {
@@ -61,12 +62,12 @@ const socialIcons = [
 ];
 
 const upperNavLinks = [
-  { name: "CAMPUSES", href: "#" },
-  { name: "INTERNATIONAL", href: "#" },
-  { name: "LIBRARY", href: "#" },
-  { name: "STUDENT SERVICES", href: "#" },
-  { name: "CAREER", href: "#" },
-  { name: "CONTACT US", href: "#" },
+  { name: "CAMPUSES", href: "/campuses" },
+  { name: "INTERNATIONAL", href: "/international" },
+  { name: "LIBRARY", href: "/library" },
+  { name: "STUDENT SERVICES", href: "/student-services" },
+  { name: "CAREER", href: "/career" },
+  { name: "CONTACT US", href: "/contact-us" },
 ];
 
 const fetcher = (url) => fetch(url).then((r) => r.json());
@@ -100,12 +101,12 @@ const navLinks = [
       },
     ],
   },
-  { name: "PROGRAMS", menu: [] },
-  { name: "ACADEMICS", menu: [] },
-  { name: "ADMISSIONS", menu: [] },
-  { name: "CAMPUS LIFE", menu: [] },
-  { name: "PLACEMENTS", menu: [] },
-  { name: "RESEARCH & INNOVATION", menu: [] },
+  { name: "PROGRAMS", href: "/programs", menu: [] },
+  { name: "ACADEMICS", href: "/academics", menu: [] },
+  { name: "ADMISSIONS", href: "/register", menu: [] },
+  { name: "CAMPUS LIFE", href: "/campus-life", menu: [] },
+  { name: "PLACEMENTS", href: "/placements", menu: [] },
+  { name: "RESEARCH & INNOVATION", href: "/research-innovation", menu: [] },
 ];
 
 function DropdownMenu({ link }) {
@@ -131,6 +132,20 @@ function DropdownMenu({ link }) {
   }, [open]);
 
   // Open on hover (desktop) and click (all devices)
+  // If link has href and no menu, render as Link, otherwise as dropdown button
+  if (link.href && (!link.menu || link.menu.length === 0)) {
+    return (
+      <Link href={link.href}>
+        <span
+          className="text-white hover:text-yellow-400 font-bold transition-colors uppercase tracking-wide px-4 py-2 rounded-md focus:outline-none text-[15px] shadow-sm hover:bg-blue-900/40 whitespace-nowrap min-w-max cursor-pointer inline-block"
+          style={{ letterSpacing: "0.04em" }}
+        >
+          {link.name}
+        </span>
+      </Link>
+    );
+  }
+
   return (
     <div className="relative">
       <button
@@ -223,14 +238,14 @@ export default function Home() {
         {/* Left: All nav buttons */}
         <div className="flex flex-wrap flex-1 items-center gap-2 md:gap-6 justify-start w-full sm:w-auto">
           {upperNavLinks.map((link) => (
-            <a
+            <Link
               key={link.name}
               href={link.href}
               className="px-2 py-1 rounded hover:bg-[#2d3237] transition font-semibold tracking-wide uppercase text-[13px]"
               style={{ letterSpacing: "0.04em" }}
             >
               {link.name}
-            </a>
+            </Link>
           ))}
         </div>
         {/* Right: Social links (call, whatsapp, etc) */}
@@ -255,9 +270,11 @@ export default function Home() {
           <span className="hidden md:inline">
             Register Now for BBIT Joint Campus Placement Programme
           </span>
-          <button className="bg-yellow-400 text-blue-900 font-bold px-3 py-1 rounded ml-2 hover:bg-yellow-300 transition">
-            REGISTER NOW
-          </button>
+          <Link href="/register">
+            <span className="bg-yellow-400 text-blue-900 font-bold px-3 py-1 rounded ml-2 hover:bg-yellow-300 transition cursor-pointer inline-block">
+              REGISTER NOW
+            </span>
+          </Link>
         </div>
         <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 md:mt-0 w-full md:w-auto justify-center md:justify-end">
           <span className="font-semibold">Admission Helpline</span>
@@ -351,39 +368,52 @@ export default function Home() {
           <nav className="md:hidden bg-blue-900/95 backdrop-blur-md px-4 py-4 flex flex-col gap-2 transition-all duration-300 rounded-b-xl shadow-lg w-full">
             {navLinks.map((link) => (
               <div key={link.name} className="mb-2 last:mb-0">
-                <button
-                  className="w-full text-left text-white font-bold uppercase tracking-wide px-4 py-2 rounded-md bg-blue-800/80 hover:bg-blue-900/80 transition flex justify-between items-center"
-                  onClick={() => setShowMobileMenu(false)}
-                >
-                  {link.name}
-                  {link.menu && link.menu.length > 0 && (
-                    <span className="ml-2">▼</span>
-                  )}
-                </button>
-                {/* Dropdown for mobile */}
-                {link.menu && link.menu.length > 0 && (
-                  <div className="pl-4 py-2">
-                    {link.menu.map((col) => (
-                      <div key={col.title} className="mb-2">
-                        <div className="text-yellow-300 font-semibold text-xs mb-1 uppercase tracking-wide">
-                          {col.title}
-                        </div>
-                        <ul>
-                          {col.links.map((item) => (
-                            <li key={item.name}>
-                              <a
-                                href={item.href}
-                                className="block py-1 px-2 rounded text-white/90 hover:text-yellow-400 hover:bg-blue-700 text-sm font-medium transition-colors"
-                                onClick={() => setShowMobileMenu(false)}
-                              >
-                                {item.name}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
+                {link.href && (!link.menu || link.menu.length === 0) ? (
+                  <Link href={link.href}>
+                    <span
+                      className="w-full block text-left text-white font-bold uppercase tracking-wide px-4 py-2 rounded-md bg-blue-800/80 hover:bg-blue-900/80 transition cursor-pointer"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      {link.name}
+                    </span>
+                  </Link>
+                ) : (
+                  <>
+                    <button
+                      className="w-full text-left text-white font-bold uppercase tracking-wide px-4 py-2 rounded-md bg-blue-800/80 hover:bg-blue-900/80 transition flex justify-between items-center"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      {link.name}
+                      {link.menu && link.menu.length > 0 && (
+                        <span className="ml-2">▼</span>
+                      )}
+                    </button>
+                    {/* Dropdown for mobile */}
+                    {link.menu && link.menu.length > 0 && (
+                      <div className="pl-4 py-2">
+                        {link.menu.map((col) => (
+                          <div key={col.title} className="mb-2">
+                            <div className="text-yellow-300 font-semibold text-xs mb-1 uppercase tracking-wide">
+                              {col.title}
+                            </div>
+                            <ul>
+                              {col.links.map((item) => (
+                                <li key={item.name}>
+                                  <a
+                                    href={item.href}
+                                    className="block py-1 px-2 rounded text-white/90 hover:text-yellow-400 hover:bg-blue-700 text-sm font-medium transition-colors"
+                                    onClick={() => setShowMobileMenu(false)}
+                                  >
+                                    {item.name}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}
@@ -392,7 +422,7 @@ export default function Home() {
       </header>
       {/* Hero Section as Carousel */}
       <section
-        className="relative bg-gradient-to-r from-blue-900 to-blue-600 text-white min-h-[250px] sm:min-h-[350px] flex flex-col sm:flex-row items-center justify-center overflow-hidden w-full"
+        className="relative bg-gradient-to-r from-blue-900 to-blue-600 text-white min-h-[500px] sm:min-h-[600px] md:min-h-[700px] flex flex-col sm:flex-row items-center justify-center overflow-hidden w-full"
         style={{ maxWidth: "100%", boxSizing: "border-box" }}
       >
         <div
@@ -422,7 +452,7 @@ export default function Home() {
                       : i === 2
                       ? `url(/campus-slide-3.jpg) center/cover no-repeat`
                       : `url(/students-slide-4.jpg) center/cover no-repeat`,
-                  minHeight: 350,
+                  minHeight: 700,
                   maxWidth: "100%",
                   boxSizing: "border-box",
                 }}
@@ -471,82 +501,956 @@ export default function Home() {
           ))}
         </div>
       </section>
-      {/* Highlights/Stats Section removed as requested */}
-      {/* About Section */}
-      <section className="max-w-4xl mx-auto mt-16 px-4">
-        <h2 className="text-2xl font-bold mb-4 text-blue-900">
-          About Research at BBIT
-        </h2>
-        <p className="text-gray-700 text-lg mb-4">
-          BBIT fosters a vibrant research culture, encouraging faculty and
-          students to pursue innovative projects across disciplines. Our R&D
-          cell is dedicated to advancing knowledge, supporting startups, and
-          collaborating with industry and academia for impactful outcomes.
-        </p>
-      </section>
-      {/* Publications Section */}
-      <section className="max-w-4xl mx-auto mt-12 px-4">
-        <h2 className="text-2xl font-bold mb-6 text-blue-900">
-          Recent Publications
-        </h2>
-        {error && <div className="p-8">Failed to load</div>}
-        {!data && <div className="p-8">Loading...</div>}
-        {data && (
-          <ul className="space-y-4">
-            {data.map((pub) => (
-              <li
-                key={pub.id}
-                className="p-6 bg-white rounded-lg shadow border-l-4 border-blue-700"
-              >
-                <div className="text-lg font-semibold text-blue-900">
-                  {pub.title}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {pub.authors} — {pub.year}
-                </div>
-                <p className="mt-2 text-gray-700">
-                  {pub.abstract?.slice(0, 250)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      {/* News/Highlights Section */}
-      <section className="max-w-4xl mx-auto mt-16 px-4 pb-16">
-        <h2 className="text-2xl font-bold mb-6 text-blue-900">
-          Latest Research News
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col">
-            <div className="font-semibold text-blue-800 mb-2">
-              BBIT Startup Incubation
+
+      {/* Research Statistics Banner */}
+      <section className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-16 mt-0">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-5xl font-bold text-yellow-400 mb-2">
+                150+
+              </div>
+              <div className="text-lg opacity-90">Research Projects</div>
             </div>
-            <p className="text-gray-700 flex-1">
-              Our Technology Business Incubator supports student and faculty
-              startups, providing mentorship and funding for innovative ideas.
+            <div>
+              <div className="text-5xl font-bold text-yellow-400 mb-2">80+</div>
+              <div className="text-lg opacity-90">Publications</div>
+            </div>
+            <div>
+              <div className="text-5xl font-bold text-yellow-400 mb-2">25+</div>
+              <div className="text-lg opacity-90">Patents Filed</div>
+            </div>
+            <div>
+              <div className="text-5xl font-bold text-yellow-400 mb-2">50+</div>
+              <div className="text-lg opacity-90">Industry Partners</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section className="max-w-6xl mx-auto mt-20 px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-blue-900">
+            About BBIT R&D Cell
+          </h2>
+          <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <p className="text-gray-700 text-lg mb-4 leading-relaxed">
+              The Research & Development Cell at BBIT is the epicenter of
+              innovation and academic excellence. We foster a vibrant research
+              culture that encourages faculty and students to pursue
+              groundbreaking projects across multiple disciplines including
+              Computer Science, Engineering, Management, and Applied Sciences.
             </p>
+            <p className="text-gray-700 text-lg mb-4 leading-relaxed">
+              Our R&D cell is dedicated to advancing knowledge, supporting
+              startups through our Technology Business Incubator, and
+              collaborating with leading industry partners and academic
+              institutions worldwide for impactful outcomes that address
+              real-world challenges.
+            </p>
+            <div className="flex gap-4 mt-6">
+              <a
+                href="#"
+                className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
+              >
+                Explore Research
+              </a>
+              <a
+                href="#"
+                className="border-2 border-blue-900 text-blue-900 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition"
+              >
+                Join Our Team
+              </a>
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl">
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              Our Vision
+            </h3>
+            <p className="text-gray-700 mb-6">
+              To be recognized as a premier research institution fostering
+              innovation, entrepreneurship, and sustainable development through
+              cutting-edge research and industry collaboration.
+            </p>
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              Our Mission
+            </h3>
+            <p className="text-gray-700">
+              To create an ecosystem that nurtures research excellence, promotes
+              interdisciplinary collaboration, and transforms innovative ideas
+              into tangible solutions for societal benefit.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Research Focus Areas */}
+      <section className="bg-gray-50 py-20 mt-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-blue-900">
+              Research Focus Areas
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+            <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+              Our research spans multiple cutting-edge domains, addressing
+              critical challenges in technology, healthcare, sustainability, and
+              social innovation.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: "🤖",
+                title: "Artificial Intelligence & Machine Learning",
+                desc: "Deep Learning, Natural Language Processing, Computer Vision, and AI Ethics",
+              },
+              {
+                icon: "🌐",
+                title: "Internet of Things & Smart Systems",
+                desc: "Smart Cities, Industrial IoT, Wearable Technology, and Edge Computing",
+              },
+              {
+                icon: "🔒",
+                title: "Cybersecurity & Blockchain",
+                desc: "Network Security, Cryptography, Blockchain Applications, and Data Privacy",
+              },
+              {
+                icon: "☁️",
+                title: "Cloud Computing & Big Data",
+                desc: "Distributed Systems, Data Analytics, Cloud Architecture, and Scalability",
+              },
+              {
+                icon: "🏥",
+                title: "Healthcare Technology",
+                desc: "Medical Imaging, Telemedicine, Health Informatics, and Biomedical Devices",
+              },
+              {
+                icon: "🌱",
+                title: "Sustainable Technology",
+                desc: "Renewable Energy, Environmental Monitoring, Green Computing, and Climate Tech",
+              },
+              {
+                icon: "🚀",
+                title: "Robotics & Automation",
+                desc: "Autonomous Systems, Industrial Automation, Drone Technology, and Human-Robot Interaction",
+              },
+              {
+                icon: "📊",
+                title: "Data Science & Analytics",
+                desc: "Predictive Modeling, Statistical Analysis, Business Intelligence, and Data Visualization",
+              },
+              {
+                icon: "💡",
+                title: "Innovation & Entrepreneurship",
+                desc: "Startup Incubation, Product Development, Business Models, and Market Research",
+              },
+            ].map((area, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+              >
+                <div className="text-5xl mb-4">{area.icon}</div>
+                <h3 className="text-xl font-bold text-blue-900 mb-3">
+                  {area.title}
+                </h3>
+                <p className="text-gray-600">{area.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Ongoing Projects */}
+      <section className="max-w-6xl mx-auto mt-20 px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-blue-900">
+            Ongoing Research Projects
+          </h2>
+          <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8">
+          {[
+            {
+              title: "AI-Powered Healthcare Diagnosis System",
+              pi: "Dr. Priya Sharma",
+              funding: "DST-SERB Grant",
+              duration: "2024-2026",
+              desc: "Developing an AI-based diagnostic tool for early detection of cardiovascular diseases using deep learning and medical imaging.",
+              status: "Active",
+            },
+            {
+              title: "Smart Campus IoT Infrastructure",
+              pi: "Dr. Rajesh Kumar",
+              funding: "Industry Collaboration",
+              duration: "2023-2025",
+              desc: "Implementing IoT sensors and analytics for energy optimization, security monitoring, and resource management across campus.",
+              status: "Active",
+            },
+            {
+              title: "Blockchain for Supply Chain Transparency",
+              pi: "Dr. Anita Verma",
+              funding: "AICTE Research Grant",
+              duration: "2024-2025",
+              desc: "Creating a blockchain-based platform for tracking and verifying product authenticity in pharmaceutical supply chains.",
+              status: "Active",
+            },
+            {
+              title: "Natural Language Processing for Regional Languages",
+              pi: "Dr. Vikram Singh",
+              funding: "ICSSR Funding",
+              duration: "2023-2026",
+              desc: "Building NLP models and datasets for low-resource Indian languages to enable better digital accessibility.",
+              status: "Active",
+            },
+          ].map((project, idx) => (
+            <div
+              key={idx}
+              className="bg-white border-l-4 border-blue-700 p-6 rounded-lg shadow-lg hover:shadow-xl transition"
+            >
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="text-xl font-bold text-blue-900 flex-1">
+                  {project.title}
+                </h3>
+                <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+                  {project.status}
+                </span>
+              </div>
+              <div className="text-sm text-gray-600 mb-2">
+                <strong>Principal Investigator:</strong> {project.pi}
+              </div>
+              <div className="text-sm text-gray-600 mb-2">
+                <strong>Funding:</strong> {project.funding} |{" "}
+                <strong>Duration:</strong> {project.duration}
+              </div>
+              <p className="text-gray-700 mt-3">{project.desc}</p>
+              <a
+                href="#"
+                className="text-blue-700 font-semibold hover:underline mt-4 inline-block"
+              >
+                View Details →
+              </a>
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-8">
+          <a
+            href="#"
+            className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
+          >
+            View All Projects
+          </a>
+        </div>
+      </section>
+      {/* Faculty Researchers */}
+      <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-20 mt-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-blue-900">
+              Leading Faculty Researchers
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+          </div>
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              {
+                name: "Dr. Priya Sharma",
+                dept: "Computer Science",
+                field: "AI & Machine Learning",
+                pubs: 45,
+              },
+              {
+                name: "Dr. Rajesh Kumar",
+                dept: "Electronics",
+                field: "IoT Systems",
+                pubs: 38,
+              },
+              {
+                name: "Dr. Anita Verma",
+                dept: "IT",
+                field: "Blockchain Tech",
+                pubs: 32,
+              },
+              {
+                name: "Dr. Vikram Singh",
+                dept: "CSE",
+                field: "NLP & Deep Learning",
+                pubs: 41,
+              },
+              {
+                name: "Dr. Sneha Gupta",
+                dept: "Mechanical",
+                field: "Robotics",
+                pubs: 29,
+              },
+              {
+                name: "Dr. Amit Patel",
+                dept: "Civil",
+                field: "Smart Infrastructure",
+                pubs: 25,
+              },
+              {
+                name: "Dr. Neha Reddy",
+                dept: "MBA",
+                field: "Innovation Management",
+                pubs: 22,
+              },
+              {
+                name: "Dr. Karan Mehta",
+                dept: "Biotechnology",
+                field: "Healthcare Tech",
+                pubs: 36,
+              },
+            ].map((faculty, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-2xl transition transform hover:-translate-y-2"
+              >
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                  {faculty.name.split(" ")[1][0]}
+                  {faculty.name.split(" ")[2][0]}
+                </div>
+                <h3 className="text-lg font-bold text-blue-900 mb-1">
+                  {faculty.name}
+                </h3>
+                <div className="text-sm text-gray-600 mb-2">{faculty.dept}</div>
+                <div className="text-sm text-blue-700 font-semibold mb-2">
+                  {faculty.field}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {faculty.pubs} Publications
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Student Innovation Hub */}
+      <section className="max-w-6xl mx-auto mt-20 px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-blue-900">
+            Student Innovation & Startups
+          </h2>
+          <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+          <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+            Empowering students to transform innovative ideas into successful
+            ventures through our Technology Business Incubator and Innovation
+            Lab.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-xl shadow-lg">
+            <div className="text-4xl mb-4">🚀</div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-3">
+              Startup Incubator
+            </h3>
+            <p className="text-gray-700 mb-4">
+              Pre-incubation and incubation support with mentorship, seed
+              funding, and workspace for student startups.
+            </p>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>✓ Mentorship by Industry Experts</li>
+              <li>✓ Seed Funding up to ₹10 Lakhs</li>
+              <li>✓ Co-working Space & Resources</li>
+              <li>✓ Legal & Accounting Support</li>
+            </ul>
+          </div>
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-8 rounded-xl shadow-lg">
+            <div className="text-4xl mb-4">💡</div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-3">
+              Innovation Lab
+            </h3>
+            <p className="text-gray-700 mb-4">
+              State-of-the-art makerspaces equipped with 3D printers,
+              electronics kits, and prototyping tools.
+            </p>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>✓ 3D Printing & Rapid Prototyping</li>
+              <li>✓ Electronics & Hardware Labs</li>
+              <li>✓ Software Development Tools</li>
+              <li>✓ 24/7 Access for Registered Members</li>
+            </ul>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-teal-50 p-8 rounded-xl shadow-lg">
+            <div className="text-4xl mb-4">🏆</div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-3">
+              Hackathons & Competitions
+            </h3>
+            <p className="text-gray-700 mb-4">
+              Regular hackathons, innovation challenges, and competitions with
+              prizes and recognition.
+            </p>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>✓ Annual Innovation Challenge</li>
+              <li>✓ National Level Hackathons</li>
+              <li>✓ Industry-Sponsored Competitions</li>
+              <li>✓ International Collaboration Events</li>
+            </ul>
+          </div>
+        </div>
+        <div className="bg-white p-8 rounded-xl shadow-lg">
+          <h3 className="text-2xl font-bold text-blue-900 mb-6">
+            Recent Student Startups
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                name: "EduTech Solutions",
+                founders: "Rahul Verma, Priya Singh",
+                desc: "AI-powered personalized learning platform for K-12 students",
+                funding: "Seed Funded",
+              },
+              {
+                name: "AgriSense",
+                founders: "Amit Kumar, Sneha Patel",
+                desc: "IoT-based crop monitoring and precision agriculture system",
+                funding: "Pre-Incubation",
+              },
+              {
+                name: "HealthConnect",
+                founders: "Neha Sharma, Vikram Reddy",
+                desc: "Telemedicine platform connecting rural patients with doctors",
+                funding: "Angel Investment",
+              },
+              {
+                name: "GreenEnergy Tech",
+                founders: "Karan Mehta, Anjali Gupta",
+                desc: "Smart energy management system for residential buildings",
+                funding: "Seed Funded",
+              },
+            ].map((startup, idx) => (
+              <div key={idx} className="border-l-4 border-yellow-400 pl-4">
+                <h4 className="text-lg font-bold text-blue-900">
+                  {startup.name}
+                </h4>
+                <div className="text-sm text-gray-600 mb-2">
+                  Founded by: {startup.founders}
+                </div>
+                <p className="text-gray-700 text-sm mb-2">{startup.desc}</p>
+                <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+                  {startup.funding}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Research Facilities */}
+      <section className="bg-gray-900 text-white py-20 mt-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">
+              World-Class Research Facilities
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: "🖥️",
+                name: "AI & ML Lab",
+                desc: "High-performance computing cluster with GPU servers",
+              },
+              {
+                icon: "🌐",
+                name: "IoT Center",
+                desc: "Sensors, microcontrollers, and networking equipment",
+              },
+              {
+                icon: "🔬",
+                name: "Research Labs",
+                desc: "Specialized labs for each engineering domain",
+              },
+              {
+                icon: "📚",
+                name: "Digital Library",
+                desc: "Access to 10,000+ journals and research databases",
+              },
+              {
+                icon: "🏢",
+                name: "Incubation Center",
+                desc: "Office spaces and meeting rooms for startups",
+              },
+              {
+                icon: "⚡",
+                name: "Fabrication Lab",
+                desc: "PCB design, 3D printing, and prototyping tools",
+              },
+              {
+                icon: "🤝",
+                name: "Collaboration Spaces",
+                desc: "Modern meeting rooms with video conferencing",
+              },
+              {
+                icon: "☁️",
+                name: "Cloud Infrastructure",
+                desc: "AWS, Azure, and GCP credits for research projects",
+              },
+            ].map((facility, idx) => (
+              <div
+                key={idx}
+                className="bg-gray-800 p-6 rounded-xl text-center hover:bg-gray-700 transition"
+              >
+                <div className="text-5xl mb-3">{facility.icon}</div>
+                <h3 className="text-lg font-bold mb-2">{facility.name}</h3>
+                <p className="text-sm text-gray-400">{facility.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Patents & IP */}
+      <section className="max-w-6xl mx-auto mt-20 px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-blue-900">
+            Patents & Intellectual Property
+          </h2>
+          <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center">
+            <div className="text-6xl font-bold text-blue-900 mb-2">25+</div>
+            <div className="text-xl text-gray-700">Patents Filed</div>
+          </div>
+          <div className="text-center">
+            <div className="text-6xl font-bold text-blue-900 mb-2">12</div>
+            <div className="text-xl text-gray-700">Patents Granted</div>
+          </div>
+          <div className="text-center">
+            <div className="text-6xl font-bold text-blue-900 mb-2">8</div>
+            <div className="text-xl text-gray-700">Copyrights Registered</div>
+          </div>
+        </div>
+        <div className="mt-12 bg-blue-50 p-8 rounded-xl">
+          <h3 className="text-2xl font-bold text-blue-900 mb-6">
+            Recent Patents
+          </h3>
+          <div className="space-y-4">
+            {[
+              "Smart IoT-based Water Quality Monitoring System - Patent No. 202401234",
+              "AI-Powered Crop Disease Detection using Computer Vision - Patent No. 202401156",
+              "Blockchain-based Secure Voting System - Patent No. 202301987",
+              "Energy-Efficient Routing Protocol for Wireless Sensor Networks - Patent No. 202301845",
+            ].map((patent, idx) => (
+              <div
+                key={idx}
+                className="flex items-start gap-3 bg-white p-4 rounded-lg"
+              >
+                <div className="text-yellow-500 text-xl">🏆</div>
+                <div className="text-gray-700">{patent}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Industry Collaborations */}
+      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20 mt-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">
+              Industry Collaborations & Partnerships
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+            <p className="text-lg opacity-90 max-w-3xl mx-auto">
+              Collaborating with leading companies and research institutions to
+              drive innovation and create industry-ready solutions.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-5 gap-6 mb-12">
+            {[
+              "TCS",
+              "Infosys",
+              "Microsoft",
+              "Google",
+              "IBM",
+              "Amazon",
+              "Intel",
+              "NVIDIA",
+              "Adobe",
+              "SAP",
+            ].map((company, idx) => (
+              <div
+                key={idx}
+                className="bg-white/10 backdrop-blur-sm p-6 rounded-xl text-center font-bold text-xl hover:bg-white/20 transition"
+              >
+                {company}
+              </div>
+            ))}
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+              <h3 className="text-xl font-bold mb-3">
+                Joint Research Projects
+              </h3>
+              <p className="text-sm opacity-90">
+                Collaborative research with industry partners on cutting-edge
+                technologies
+              </p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+              <h3 className="text-xl font-bold mb-3">Internship Programs</h3>
+              <p className="text-sm opacity-90">
+                Industry internships and project opportunities for students
+              </p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+              <h3 className="text-xl font-bold mb-3">Knowledge Transfer</h3>
+              <p className="text-sm opacity-90">
+                Workshops, seminars, and training programs by industry experts
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Funding Opportunities */}
+      <section className="max-w-6xl mx-auto mt-20 px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-blue-900">
+            Research Funding & Grants
+          </h2>
+          <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-xl shadow-lg">
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              Internal Grants
+            </h3>
+            <ul className="space-y-3">
+              {[
+                {
+                  title: "Seed Grant for Young Researchers",
+                  amount: "₹50,000 - ₹2 Lakhs",
+                },
+                {
+                  title: "Faculty Research Development Grant",
+                  amount: "₹1 - ₹5 Lakhs",
+                },
+                {
+                  title: "Student Innovation Project Grant",
+                  amount: "₹25,000 - ₹1 Lakh",
+                },
+                { title: "Conference Travel Support", amount: "Up to ₹1 Lakh" },
+              ].map((grant, idx) => (
+                <li
+                  key={idx}
+                  className="flex justify-between items-center bg-white p-4 rounded-lg"
+                >
+                  <span className="text-gray-700 font-semibold">
+                    {grant.title}
+                  </span>
+                  <span className="text-blue-700 font-bold">
+                    {grant.amount}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-xl shadow-lg">
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              External Funding Sources
+            </h3>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <div>
+                  <strong>DST-SERB:</strong> Department of Science & Technology
+                  grants for basic research
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <div>
+                  <strong>AICTE:</strong> Research Promotion Scheme and
+                  Collaborative Research
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <div>
+                  <strong>ICSSR:</strong> Social science research grants and
+                  fellowships
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <div>
+                  <strong>Industry Sponsored:</strong> Research contracts from
+                  corporate partners
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <div>
+                  <strong>Startup India:</strong> Seed funding for technology
+                  startups
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Publications Section */}
+      <section className="max-w-6xl mx-auto mt-20 px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-blue-900">
+            Recent Publications
+          </h2>
+          <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+        </div>
+        {error && (
+          <div className="p-8 text-center text-red-600">
+            Failed to load publications
+          </div>
+        )}
+        {!data && (
+          <div className="p-8 text-center text-gray-600">
+            Loading publications...
+          </div>
+        )}
+        {data && (
+          <div className="space-y-6">
+            {data.map((pub) => (
+              <div
+                key={pub.id}
+                className="p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-700 hover:shadow-2xl transition"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-xl font-semibold text-blue-900 flex-1 pr-4">
+                    {pub.title}
+                  </h3>
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                    {pub.type || "Journal"}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600 mb-3">
+                  <strong>Authors:</strong> {pub.authors} |{" "}
+                  <strong>Year:</strong> {pub.year}
+                </div>
+                <p className="text-gray-700 leading-relaxed">
+                  {pub.abstract?.slice(0, 300)}
+                  {pub.abstract?.length > 300 ? "..." : ""}
+                </p>
+                <a
+                  href="#"
+                  className="text-blue-700 font-semibold hover:underline mt-4 inline-block"
+                >
+                  Read Full Paper →
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="text-center mt-8">
+          <a
+            href="#"
+            className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
+          >
+            View All Publications
+          </a>
+        </div>
+      </section>
+      {/* News & Events Section */}
+      <section className="bg-gradient-to-br from-yellow-50 to-orange-50 py-20 mt-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-blue-900">
+              Latest News & Events
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                date: "March 15, 2025",
+                category: "Award",
+                title: "BBIT Wins National Innovation Challenge",
+                desc: "Our student team secured first place at the National Level Innovation Challenge with their AI-powered healthcare solution.",
+                image: "🏆",
+              },
+              {
+                date: "March 10, 2025",
+                category: "Event",
+                title: "International Research Symposium 2025",
+                desc: "Join us for our annual research symposium featuring keynote speakers from MIT, Stanford, and IITs.",
+                image: "🎤",
+              },
+              {
+                date: "March 5, 2025",
+                category: "Achievement",
+                title: "₹50 Lakhs Research Grant Awarded",
+                desc: "Dr. Priya Sharma receives DST-SERB grant for groundbreaking AI research in medical diagnostics.",
+                image: "💰",
+              },
+              {
+                date: "Feb 28, 2025",
+                category: "Publication",
+                title: "Paper Published in IEEE Transactions",
+                desc: "Faculty research on quantum computing applications accepted in top-tier IEEE journal.",
+                image: "📄",
+              },
+              {
+                date: "Feb 20, 2025",
+                category: "Startup",
+                title: "Student Startup Raises Angel Investment",
+                desc: "EduTech Solutions, incubated at BBIT, secures ₹25 lakhs in angel funding from industry veterans.",
+                image: "🚀",
+              },
+              {
+                date: "Feb 15, 2025",
+                category: "Collaboration",
+                title: "New Partnership with Microsoft Research",
+                desc: "BBIT signs MoU with Microsoft Research for collaborative AI and cloud computing projects.",
+                image: "🤝",
+              },
+            ].map((news, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-2"
+              >
+                <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
+                  <div className="text-4xl text-center mb-2">{news.image}</div>
+                  <div className="text-xs text-center opacity-90">
+                    {news.date}
+                  </div>
+                </div>
+                <div className="p-6">
+                  <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                    {news.category}
+                  </span>
+                  <h3 className="text-lg font-bold text-blue-900 mb-3">
+                    {news.title}
+                  </h3>
+                  <p className="text-gray-700 text-sm mb-4">{news.desc}</p>
+                  <a
+                    href="#"
+                    className="text-blue-700 font-semibold hover:underline text-sm"
+                  >
+                    Read More →
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-12">
             <a
               href="#"
-              className="mt-4 text-blue-700 font-semibold hover:underline"
+              className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
             >
-              Read More
+              View All News & Events
             </a>
           </div>
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col">
-            <div className="font-semibold text-blue-800 mb-2">
-              Recent Patent Success
-            </div>
-            <p className="text-gray-700 flex-1">
-              BBIT has recently filed multiple patents in the field of IoT and
-              AI, showcasing our commitment to cutting-edge research.
-            </p>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white py-20 mt-20">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-6">
+            Join Our Research Community
+          </h2>
+          <p className="text-xl opacity-90 mb-8">
+            Be part of groundbreaking research and innovation. Whether you're a
+            prospective student, faculty member, or industry partner, we welcome
+            you to collaborate with us.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
             <a
               href="#"
-              className="mt-4 text-blue-700 font-semibold hover:underline"
+              className="bg-yellow-400 text-blue-900 px-8 py-4 rounded-lg font-bold hover:bg-yellow-300 transition transform hover:scale-105"
             >
-              Read More
+              Apply for Research Programs
             </a>
+            <a
+              href="#"
+              className="bg-white/10 backdrop-blur-sm border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white/20 transition transform hover:scale-105"
+            >
+              Partner With Us
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact & Quick Links */}
+      <section className="max-w-6xl mx-auto mt-20 px-4 pb-20">
+        <div className="grid md:grid-cols-3 gap-8">
+          <div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              Contact R&D Cell
+            </h3>
+            <div className="space-y-3 text-gray-700">
+              <div className="flex items-start gap-3">
+                <span className="text-blue-700 text-xl">📍</span>
+                <div>
+                  BBIT Campus, Research Block
+                  <br />
+                  Sector 15, New Delhi - 110001
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-blue-700 text-xl">📧</span>
+                <div>research@bbit.edu.in</div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-blue-700 text-xl">📞</span>
+                <div>+91-11-2345-6789</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              Quick Links
+            </h3>
+            <ul className="space-y-2">
+              {[
+                "Research Guidelines",
+                "Ethics Committee",
+                "IPR Policy",
+                "Publication Support",
+                "Research Funding",
+                "Collaboration Opportunities",
+              ].map((link, idx) => (
+                <li key={idx}>
+                  <a
+                    href="#"
+                    className="text-blue-700 hover:underline hover:text-blue-900"
+                  >
+                    → {link}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">Resources</h3>
+            <ul className="space-y-2">
+              {[
+                "Digital Library Access",
+                "Research Tools & Software",
+                "Grant Application Forms",
+                "Conference Calendar",
+                "Journal Access",
+                "Research Blog",
+              ].map((link, idx) => (
+                <li key={idx}>
+                  <a
+                    href="#"
+                    className="text-blue-700 hover:underline hover:text-blue-900"
+                  >
+                    → {link}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>

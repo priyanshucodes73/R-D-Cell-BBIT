@@ -8,13 +8,33 @@ app.use(bodyParser.json());
 app.use(cors());
 
 require("dotenv").config();
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
-const sequelize = new Sequelize(DATABASE_URL, {
-  dialect: "postgres",
-  logging: false,
-});
+
+// Prefer a full DATABASE_URL (production). If not provided, fall back to a
+// local SQLite database for easy local development.
+let sequelize;
+if (process.env.DATABASE_URL) {
+  const DATABASE_URL = process.env.DATABASE_URL;
+  sequelize = new Sequelize(DATABASE_URL, {
+    dialect: "postgres",
+    logging: false,
+  });
+} else if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
+  // If individual DB_* vars are provided, build a Postgres URL.
+  const DATABASE_URL = `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+  sequelize = new Sequelize(DATABASE_URL, {
+    dialect: "postgres",
+    logging: false,
+  });
+} else {
+  // SQLite fallback for local dev when no Postgres is configured.
+  const storage = process.env.SQLITE_STORAGE || "dev.sqlite";
+  console.log(`No DATABASE_URL found — using SQLite fallback: ${storage}`);
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage,
+    logging: false,
+  });
+}
 
 const Publication = sequelize.define(
   "Publication",
