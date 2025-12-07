@@ -503,28 +503,28 @@ export default function Home() {
                   boxSizing: "border-box",
                 }}
               >
-                {/* Placeholder for video or image */}
-                {/* Image/video placeholder removed as requested */}
+                {/* Dark overlay for better text visibility */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 z-0"></div>
+                
                 {/* Text overlay only on first slide for now */}
                 {i === 0 && (
-                  <div className="flex-1 text-center md:text-left z-10 px-4">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                  <div className="flex-1 text-center md:text-left z-10 px-4 relative">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white drop-shadow-2xl">
                       Innovation &{" "}
                       <span className="text-yellow-400">Entrepreneurship</span>
                     </h1>
-                    <p className="max-w-xl text-lg md:text-xl opacity-90 mb-6">
+                    <p className="max-w-xl text-lg md:text-xl mb-6 text-white drop-shadow-lg">
                       Firmly established as a rapidly rising hub of excellence
                       for innovation and entrepreneurship, BBIT actively
                       nurtures and empowers creative ideas across diverse
                       fields, transforming them into valuable and viable
                       business opportunities.
                     </p>
-                    <a
-                      href="#"
-                      className="inline-block bg-yellow-400 text-blue-900 font-bold px-6 py-2 rounded shadow hover:bg-yellow-300 transition"
-                    >
-                      Read More
-                    </a>
+                    <Link href="/innovation-entrepreneurship">
+                      <span className="inline-block bg-yellow-400 text-blue-900 font-bold px-6 py-3 rounded-lg shadow-xl hover:bg-yellow-300 transition transform hover:scale-105 cursor-pointer">
+                        Read More
+                      </span>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -603,18 +603,16 @@ export default function Home() {
               and engineering.
             </p>
             <div className="flex gap-4 mt-6">
-              <a
-                href="#"
-                className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
-              >
-                Explore Research
-              </a>
-              <a
-                href="#"
-                className="border-2 border-blue-900 text-blue-900 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition"
-              >
-                Join Our Team
-              </a>
+              <Link href="/explore-research">
+                <span className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer inline-block">
+                  Explore Research
+                </span>
+              </Link>
+              <Link href="/join-our-team">
+                <span className="border-2 border-blue-900 text-blue-900 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition cursor-pointer inline-block">
+                  Join Our Team
+                </span>
+              </Link>
             </div>
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl">
@@ -727,7 +725,7 @@ export default function Home() {
           {[
             {
               title: "AI-Powered Healthcare Diagnosis System",
-              pi: "Dr. Priya Sharma",
+              pi: "Dr. Jayanta Basak",
               funding: "DST-SERB Grant",
               duration: "2024-2026",
               desc: "Developing an AI-based diagnostic tool for early detection of cardiovascular diseases using deep learning and medical imaging.",
@@ -735,7 +733,7 @@ export default function Home() {
             },
             {
               title: "Smart Campus IoT Infrastructure",
-              pi: "Dr. Rajesh Kumar",
+              pi: "Dr. Sandeep Malik",
               funding: "Industry Collaboration",
               duration: "2023-2025",
               desc: "Implementing IoT sensors and analytics for energy optimization, security monitoring, and resource management across campus.",
@@ -743,7 +741,7 @@ export default function Home() {
             },
             {
               title: "Blockchain for Supply Chain Transparency",
-              pi: "Dr. Anita Verma",
+              pi: "Dr. Munsi Yusuf Alam",
               funding: "AICTE Research Grant",
               duration: "2024-2025",
               desc: "Creating a blockchain-based platform for tracking and verifying product authenticity in pharmaceutical supply chains.",
@@ -751,7 +749,7 @@ export default function Home() {
             },
             {
               title: "Natural Language Processing for Regional Languages",
-              pi: "Dr. Vikram Singh",
+              pi: "Dr. Uddyalok Chakraborty",
               funding: "ICSSR Funding",
               duration: "2023-2026",
               desc: "Building NLP models and datasets for low-resource Indian languages to enable better digital accessibility.",
@@ -788,12 +786,11 @@ export default function Home() {
           ))}
         </div>
         <div className="text-center mt-8">
-          <a
-            href="#"
-            className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
-          >
-            View All Projects
-          </a>
+          <Link href="/all-projects">
+            <span className="inline-block bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer">
+              View All Projects
+            </span>
+          </Link>
         </div>
       </section>
       {/* Faculty Researchers */}
@@ -808,49 +805,49 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-6">
             {[
               {
-                name: "Dr. Priya Sharma",
+                name: "Dr. Jayanta Basak",
                 dept: "Computer Science",
                 field: "AI & Machine Learning",
                 pubs: 45,
               },
               {
-                name: "Dr. Rajesh Kumar",
+                name: "Dr. Sandeep Malik",
                 dept: "Electronics",
                 field: "IoT Systems",
                 pubs: 38,
               },
               {
-                name: "Dr. Anita Verma",
+                name: "Dr. Munsi Yusuf Alam",
                 dept: "IT",
                 field: "Blockchain Tech",
                 pubs: 32,
               },
               {
-                name: "Dr. Vikram Singh",
+                name: "Dr. Uddyalok Chakraborty",
                 dept: "CSE",
                 field: "NLP & Deep Learning",
                 pubs: 41,
               },
               {
-                name: "Dr. Sneha Gupta",
+                name: "Dr. Moumita Paul",
                 dept: "Mechanical",
                 field: "Robotics",
                 pubs: 29,
               },
               {
-                name: "Dr. Amit Patel",
+                name: "Dr. Arindom Mitra",
                 dept: "Civil",
                 field: "Smart Infrastructure",
                 pubs: 25,
               },
               {
-                name: "Dr. Neha Reddy",
+                name: "Dr. Ashok Shaw",
                 dept: "MBA",
                 field: "Innovation Management",
                 pubs: 22,
               },
               {
-                name: "Dr. Karan Mehta",
+                name: "Dr. Sagar Chakraborty",
                 dept: "Biotechnology",
                 field: "Healthcare Tech",
                 pubs: 36,
@@ -1257,56 +1254,81 @@ export default function Home() {
           </h2>
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
         </div>
-        {error && (
-          <div className="p-8 text-center text-red-600">
-            Failed to load publications
-          </div>
-        )}
-        {!data && (
-          <div className="p-8 text-center text-gray-600">
-            Loading publications...
-          </div>
-        )}
-        {data && (
-          <div className="space-y-6">
-            {data.map((pub) => (
-              <div
-                key={pub.id}
-                className="p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-700 hover:shadow-2xl transition"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-semibold text-blue-900 flex-1 pr-4">
-                    {pub.title}
-                  </h3>
+        <div className="space-y-6">
+          {[
+            {
+              id: 1,
+              title: "Deep Learning Approaches for Early Detection of Cardiovascular Diseases Using ECG Analysis",
+              authors: "Dr. Jayanta Basak, Dr. Moumita Paul, Dr. Sagar Chakraborty",
+              year: 2024,
+              type: "Journal",
+              journal: "IEEE Transactions on Medical Imaging",
+              impactFactor: "10.5",
+              abstract: "This paper presents a novel deep learning framework for early detection of cardiovascular diseases through automated ECG analysis. We propose a hybrid CNN-LSTM architecture that achieves 97.2% accuracy in identifying cardiac abnormalities.",
+            },
+            {
+              id: 2,
+              title: "IoT-Based Smart Campus Infrastructure for Sustainable Energy Management",
+              authors: "Dr. Sandeep Malik, Dr. Uddyalok Chakraborty, Priya Sharma",
+              year: 2024,
+              type: "Journal",
+              journal: "Journal of Network and Computer Applications",
+              impactFactor: "7.2",
+              abstract: "This research presents a comprehensive IoT-based infrastructure for campus-wide energy management. The system integrates 500+ sensors for real-time monitoring and control, reducing energy usage by 28%.",
+            },
+            {
+              id: 3,
+              title: "Blockchain-Enabled Secure Pharmaceutical Supply Chain Management",
+              authors: "Dr. Munsi Yusuf Alam, Dr. Ashok Shaw, Sneha Patel",
+              year: 2024,
+              type: "Journal",
+              journal: "Computers & Security",
+              impactFactor: "5.8",
+              abstract: "We propose a blockchain-based framework for pharmaceutical supply chain management that ensures product authenticity and prevents counterfeiting using Hyperledger Fabric with 99.7% traceability accuracy.",
+            },
+          ].map((pub) => (
+            <div
+              key={pub.id}
+              className="p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-700 hover:shadow-2xl transition"
+            >
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="text-xl font-semibold text-blue-900 flex-1 pr-4">
+                  {pub.title}
+                </h3>
+                <div className="flex gap-2 flex-shrink-0">
                   <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
-                    {pub.type || "Journal"}
+                    {pub.type}
                   </span>
+                  {pub.impactFactor && (
+                    <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                      IF: {pub.impactFactor}
+                    </span>
+                  )}
                 </div>
-                <div className="text-sm text-gray-600 mb-3">
-                  <strong>Authors:</strong> {pub.authors} |{" "}
-                  <strong>Year:</strong> {pub.year}
-                </div>
-                <p className="text-gray-700 leading-relaxed">
-                  {pub.abstract?.slice(0, 300)}
-                  {pub.abstract?.length > 300 ? "..." : ""}
-                </p>
-                <a
-                  href="#"
-                  className="text-blue-700 font-semibold hover:underline mt-4 inline-block"
-                >
-                  Read Full Paper →
-                </a>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="text-sm text-gray-600 mb-2">
+                <strong>Authors:</strong> {pub.authors}
+              </div>
+              <div className="text-sm text-gray-600 mb-3">
+                <strong>Journal:</strong> {pub.journal} | <strong>Year:</strong> {pub.year}
+              </div>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                {pub.abstract}
+              </p>
+              <Link href="/all-publications">
+                <span className="text-blue-700 font-semibold hover:underline cursor-pointer">
+                  Read Full Paper →
+                </span>
+              </Link>
+            </div>
+          ))}
+        </div>
         <div className="text-center mt-8">
-          <a
-            href="#"
-            className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
-          >
-            View All Publications
-          </a>
+          <Link href="/all-publications">
+            <span className="inline-block bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer">
+              View All Publications
+            </span>
+          </Link>
         </div>
       </section>
       {/* News & Events Section */}
@@ -1392,118 +1414,15 @@ export default function Home() {
             ))}
           </div>
           <div className="text-center mt-12">
-            <a
-              href="#"
-              className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
-            >
-              View All News & Events
-            </a>
+            <Link href="/all-news-events">
+              <span className="inline-block bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer">
+                View All News & Events
+              </span>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white py-20 mt-20">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">
-            Join Our Research Community
-          </h2>
-          <p className="text-xl opacity-90 mb-8">
-            Be part of groundbreaking research and innovation. Whether you're a
-            prospective student, faculty member, or industry partner, we welcome
-            you to collaborate with us.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href="#"
-              className="bg-yellow-400 text-blue-900 px-8 py-4 rounded-lg font-bold hover:bg-yellow-300 transition transform hover:scale-105"
-            >
-              Apply for Research Programs
-            </a>
-            <a
-              href="#"
-              className="bg-white/10 backdrop-blur-sm border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white/20 transition transform hover:scale-105"
-            >
-              Partner With Us
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact & Quick Links */}
-      <section className="max-w-6xl mx-auto mt-20 px-4 pb-20">
-        <div className="grid md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="text-2xl font-bold text-blue-900 mb-4">
-              Contact R&D Cell
-            </h3>
-            <div className="space-y-3 text-gray-700">
-              <div className="flex items-start gap-3">
-                <span className="text-blue-700 text-xl">📍</span>
-                <div>
-                  BBIT Campus, Research Block
-                  <br />
-                  Sector 15, New Delhi - 110001
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-blue-700 text-xl">📧</span>
-                <div>research@bbit.edu.in</div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-blue-700 text-xl">📞</span>
-                <div>+91-11-2345-6789</div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-blue-900 mb-4">
-              Quick Links
-            </h3>
-            <ul className="space-y-2">
-              {[
-                "Research Guidelines",
-                "Ethics Committee",
-                "IPR Policy",
-                "Publication Support",
-                "Research Funding",
-                "Collaboration Opportunities",
-              ].map((link, idx) => (
-                <li key={idx}>
-                  <a
-                    href="#"
-                    className="text-blue-700 hover:underline hover:text-blue-900"
-                  >
-                    → {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-blue-900 mb-4">Resources</h3>
-            <ul className="space-y-2">
-              {[
-                "Digital Library Access",
-                "Research Tools & Software",
-                "Grant Application Forms",
-                "Conference Calendar",
-                "Journal Access",
-                "Research Blog",
-              ].map((link, idx) => (
-                <li key={idx}>
-                  <a
-                    href="#"
-                    className="text-blue-700 hover:underline hover:text-blue-900"
-                  >
-                    → {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
       <Footer />
       <Chatbot />
     </div>
