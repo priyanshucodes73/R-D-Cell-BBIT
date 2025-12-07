@@ -206,8 +206,8 @@ export default function Home() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* 1st Top Bar - Upper Bar with extra links and social icons */}
-      <div className="bg-gradient-to-r from-[#1a1f24] via-[#23272b] to-[#1a1f24] text-white text-xs w-full shadow-md border-b border-gray-700">
+      {/* 1st Top Bar - Upper Bar with extra links and social icons - Desktop Only */}
+      <div className="hidden lg:block bg-gradient-to-r from-[#1a1f24] via-[#23272b] to-[#1a1f24] text-white text-xs w-full shadow-md border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-3 md:px-8 py-2.5">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-3 lg:gap-0">
             {/* Left: Navigation Links */}
@@ -245,8 +245,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 2nd Top Bar - Info Bar with Registration */}
-      <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white shadow-lg border-b border-blue-700">
+      {/* 2nd Top Bar - Info Bar with Registration - Desktop Only */}
+      <div className="hidden lg:block bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white shadow-lg border-b border-blue-700">
         <div className="max-w-7xl mx-auto px-3 md:px-8 py-3">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             {/* Left: Registration Info */}
