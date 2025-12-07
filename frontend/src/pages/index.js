@@ -336,11 +336,28 @@ export default function Home() {
                     <DropdownMenu link={link} />
                   </div>
                 ))}
+                
+                {/* Login Button */}
+                <Link href="/login">
+                  <span className="ml-4 w-12 h-12 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-blue-900 font-bold text-sm cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110 border-2 border-blue-200">
+                    Login
+                  </span>
+                </Link>
               </div>
             </nav>
 
-            {/* Mobile Menu Button */}
-            <button
+            {/* Mobile Menu Button & Login */}
+            <div className="lg:hidden flex items-center gap-3">
+              {/* Login Button Mobile */}
+              <Link href="/login">
+                <span className="w-10 h-10 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-blue-900 font-bold text-xs cursor-pointer transition-all duration-300 shadow-lg">
+                  Login
+                </span>
+              </Link>
+              
+                
+              {/* Mobile Menu Button */}
+              <button
               className="lg:hidden relative group flex items-center justify-center p-2.5 border-2 rounded-lg text-white border-white/30 hover:border-yellow-400 hover:bg-blue-900/50 transition-all duration-300 backdrop-blur-sm"
               onClick={() => setShowMobileMenu((v) => !v)}
               aria-label="Toggle menu"
@@ -364,6 +381,7 @@ export default function Home() {
               </div>
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 to-yellow-400/0 group-hover:from-yellow-400/20 group-hover:to-orange-400/20 rounded-lg transition-all duration-300"></div>
             </button>
+            </div>
           </div>
         </div>
 
