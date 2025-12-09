@@ -633,6 +633,25 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
+// ===== ROOT ENDPOINT =====
+app.get("/", (req, res) => {
+  res.json({
+    message: "BBIT R&D Cell API",
+    version: "1.0.0",
+    status: "running",
+    endpoints: {
+      publications: "/api/publications",
+      projects: "/api/projects",
+      faculty: "/api/faculty",
+      newsEvents: "/api/news-events",
+      patents: "/api/patents",
+      contacts: "/api/contacts",
+      registrations: "/api/registrations",
+      stats: "/api/stats"
+    }
+  });
+});
+
 const port = process.env.PORT || 4000;
 init().then(() => {
   app.listen(port, () => console.log(`API listening on ${port}`));

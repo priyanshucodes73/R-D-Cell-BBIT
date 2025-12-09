@@ -8,73 +8,51 @@ export default function Campuses() {
 
   const campuses = [
     {
-      name: "Main Campus - Delhi",
-      location: "Sector 15, New Delhi - 110001",
-      area: "150 Acres",
-      established: "1995",
+      name: "BBIT Campus - Kolkata",
+      location: "Nischintapur, Budge Budge, Kolkata - 700138, West Bengal, India",
+      area: "Spacious Campus",
+      established: "Affiliated to MAKAUT",
       students: "15,000+",
       image: "🏛️",
       description:
-        "Our flagship campus in the heart of Delhi features state-of-the-art infrastructure, including modern laboratories, libraries, sports facilities, and student amenities.",
+        "Budge Budge Institute of Technology (BBIT) is a premier engineering institution located in Budge Budge, Kolkata. The institute is accredited by NBA (CSE, EE, ECE, ME) & NAAC, affiliated to MAKAUT & WBSCTVESD and recognized by UGC. Our campus features state-of-the-art infrastructure with modern facilities designed for comprehensive technical education and research.",
       facilities: [
-        "Central Library with 100,000+ books",
-        "50+ Advanced Research Labs",
-        "Olympic-size Swimming Pool",
-        "Indoor Sports Complex",
-        "300-seater Auditorium",
-        "24/7 Wi-Fi Campus",
-        "Food Court with Multiple Cuisines",
-        "On-campus Hospital",
+        "Fully Wi-Fi Campus with High-Speed Connectivity",
+        "Central Library with Extensive Collection",
+        "Well-equipped Laboratories for All Departments",
+        "Audio-Visual Classrooms",
+        "Computing Center with Latest Technology",
+        "Central Workshop",
+        "Seminar Hall",
+        "Air-Conditioned Conference Hall",
+        "Placement Assistance Cell",
+        "Sports Facilities",
+        "Campus Security 24/7",
+        "Hostel Accommodation",
       ],
       departments: [
-        "Engineering",
-        "Management",
-        "Sciences",
-        "Architecture",
-        "Design",
+        "Computer Science & Engineering (CSE)",
+        "Electrical Engineering (EE)",
+        "Electronics & Communication Engineering (ECE)",
+        "Mechanical Engineering (ME)",
+        "Information Technology (IT)",
+        "Civil Engineering",
+        "MBA Program",
+        "M.Tech Programs",
+        "Polytechnic Courses",
       ],
-    },
-    {
-      name: "Greater Noida Campus",
-      location: "Knowledge Park, Greater Noida - 201310",
-      area: "75 Acres",
-      established: "2008",
-      students: "8,000+",
-      image: "🏫",
-      description:
-        "Modern campus with focus on technology and innovation, featuring cutting-edge facilities and collaborative learning spaces.",
-      facilities: [
-        "Innovation & Startup Hub",
-        "30+ Specialized Labs",
-        "Digital Library",
-        "Cafeteria & Food Courts",
-        "Sports Ground",
-        "Smart Classrooms",
-        "Co-working Spaces",
-        "Transportation Facility",
+      accreditations: [
+        "NBA Accredited (CSE, EE, ECE, ME)",
+        "NAAC Accredited",
+        "Affiliated to MAKAUT (Maulana Abul Kalam Azad University of Technology)",
+        "Affiliated to WBSCTVESD",
+        "Recognized by UGC (University Grants Commission)",
       ],
-      departments: ["Computer Science", "IT", "Electronics", "Biotechnology"],
-    },
-    {
-      name: "Gurgaon Campus",
-      location: "Golf Course Road, Gurgaon - 122001",
-      area: "50 Acres",
-      established: "2015",
-      students: "5,000+",
-      image: "🌆",
-      description:
-        "Contemporary campus designed for executive education and management programs with strong industry connections.",
-      facilities: [
-        "Executive MBA Center",
-        "Business Incubation Hub",
-        "Conference Facilities",
-        "Industry Interface Center",
-        "Lounge & Recreation",
-        "Premium Dining",
-        "Fitness Center",
-        "Guest House",
-      ],
-      departments: ["MBA", "Executive Programs", "Corporate Training"],
+      contact: {
+        phone: "033 2482 0641",
+        mobile: "8420123333 / 9836888444",
+        email: "contact@bbit.edu.in",
+      },
     },
   ];
 
@@ -90,9 +68,9 @@ export default function Campuses() {
             <span className="mx-2">/</span>
             <span>Campuses</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Our Campuses</h1>
+          <h1 className="text-5xl font-bold mb-4">Our Campus</h1>
           <p className="text-xl opacity-90">
-            World-class infrastructure spread across strategic locations
+            Premier Engineering Institute in Kolkata - NBA & NAAC Accredited
           </p>
         </div>
       </section>
@@ -102,56 +80,40 @@ export default function Campuses() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-blue-900 mb-2">3</div>
-              <div className="text-gray-600">Campuses</div>
+              <div className="text-4xl font-bold text-blue-900 mb-2">15,000+</div>
+              <div className="text-gray-600">Students Studied</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-900 mb-2">275+</div>
-              <div className="text-gray-600">Acres</div>
+              <div className="text-4xl font-bold text-blue-900 mb-2">10,500+</div>
+              <div className="text-gray-600">Students Placed</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-blue-900 mb-2">
-                28,000+
+                135+
               </div>
-              <div className="text-gray-600">Students</div>
+              <div className="text-gray-600">Recruiters</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-900 mb-2">150+</div>
-              <div className="text-gray-600">Labs & Facilities</div>
+              <div className="text-4xl font-bold text-blue-900 mb-2">14+</div>
+              <div className="text-gray-600">Awards</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Campus Selector */}
+      {/* Campus Details */}
       <section className="max-w-6xl mx-auto px-4 py-16">
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {campuses.map((campus, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedCampus(idx)}
-              className={`px-8 py-4 rounded-lg font-bold text-lg transition transform hover:scale-105 ${
-                selectedCampus === idx
-                  ? "bg-blue-900 text-white shadow-xl"
-                  : "bg-white text-blue-900 border-2 border-blue-900 hover:bg-blue-50"
-              }`}
-            >
-              {campus.name}
-            </button>
-          ))}
-        </div>
-
         {/* Selected Campus Details */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-12 text-center">
             <div className="text-8xl mb-4">
-              {campuses[selectedCampus].image}
+              {campuses[0].image}
             </div>
             <h2 className="text-4xl font-bold mb-2">
-              {campuses[selectedCampus].name}
+              {campuses[0].name}
             </h2>
             <p className="text-xl opacity-90">
-              📍 {campuses[selectedCampus].location}
+              📍 {campuses[0].location}
             </p>
           </div>
 
@@ -159,41 +121,56 @@ export default function Campuses() {
             <div className="grid md:grid-cols-4 gap-6 mb-8">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-900 mb-1">
-                  {campuses[selectedCampus].area}
+                  {campuses[0].area}
                 </div>
-                <div className="text-sm text-gray-600">Total Area</div>
+                <div className="text-sm text-gray-600">Campus Area</div>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-900 mb-1">
-                  {campuses[selectedCampus].established}
+                  {campuses[0].established}
                 </div>
-                <div className="text-sm text-gray-600">Established</div>
+                <div className="text-sm text-gray-600">Affiliation</div>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-900 mb-1">
-                  {campuses[selectedCampus].students}
+                  {campuses[0].students}
                 </div>
-                <div className="text-sm text-gray-600">Students</div>
+                <div className="text-sm text-gray-600">Students Studied</div>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-900 mb-1">
-                  {campuses[selectedCampus].departments.length}
+                  {campuses[0].departments.length}
                 </div>
-                <div className="text-sm text-gray-600">Departments</div>
+                <div className="text-sm text-gray-600">Programs</div>
               </div>
             </div>
 
             <p className="text-gray-700 text-lg mb-8 leading-relaxed">
-              {campuses[selectedCampus].description}
+              {campuses[0].description}
             </p>
+
+            {/* Accreditations Section */}
+            <div className="mb-8 bg-green-50 p-6 rounded-lg border-l-4 border-green-600">
+              <h3 className="text-2xl font-bold text-green-900 mb-4">
+                Accreditations & Recognition
+              </h3>
+              <ul className="space-y-3">
+                {campuses[0].accreditations.map((accr, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <span className="text-green-600 text-xl">🏆</span>
+                    <span className="text-gray-700 font-semibold">{accr}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               <div>
                 <h3 className="text-2xl font-bold text-blue-900 mb-4">
-                  Key Facilities
+                  Campus Facilities
                 </h3>
                 <ul className="space-y-3">
-                  {campuses[selectedCampus].facilities.map((facility, idx) => (
+                  {campuses[0].facilities.map((facility, idx) => (
                     <li key={idx} className="flex items-start gap-3">
                       <span className="text-green-600 text-xl">✓</span>
                       <span className="text-gray-700">{facility}</span>
@@ -203,10 +180,10 @@ export default function Campuses() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-blue-900 mb-4">
-                  Academic Departments
+                  Academic Programs
                 </h3>
                 <div className="space-y-3">
-                  {campuses[selectedCampus].departments.map((dept, idx) => (
+                  {campuses[0].departments.map((dept, idx) => (
                     <div
                       key={idx}
                       className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-600"
@@ -218,19 +195,46 @@ export default function Campuses() {
               </div>
             </div>
 
+            {/* Contact Information */}
+            <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-600 mb-8">
+              <h3 className="text-2xl font-bold text-blue-900 mb-4">
+                Contact Information
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Phone</p>
+                  <p className="text-lg font-semibold text-blue-900">
+                    {campuses[0].contact.phone}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Mobile</p>
+                  <p className="text-lg font-semibold text-blue-900">
+                    {campuses[0].contact.mobile}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Email</p>
+                  <p className="text-lg font-semibold text-blue-900">
+                    {campuses[0].contact.email}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="mt-8 flex gap-4 justify-center">
-              <a
-                href="#"
+              <Link
+                href="/contact-us"
                 className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
               >
-                Schedule Campus Visit
-              </a>
-              <a
-                href="#"
+                Contact Us
+              </Link>
+              <Link
+                href="/admissions"
                 className="border-2 border-blue-900 text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition"
               >
-                Virtual Tour
-              </a>
+                Apply for Admission
+              </Link>
             </div>
           </div>
         </div>

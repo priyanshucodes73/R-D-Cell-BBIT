@@ -29,29 +29,31 @@ export default function About() {
           <h2 className="text-3xl font-bold text-blue-900 mb-6">Overview</h2>
           <div className="prose max-w-none">
             <p className="text-gray-700 text-lg mb-4">
-              Budge Budge Institute of Technology (BBIT) is a premier technical
-              institution located in Nischintapur, Budge Budge, Kolkata. We are
-              proud to be accredited by NBA (for CSE, EE, ECE, ME departments)
-              and NAAC, affiliated to MAKAUT (Maulana Abul Kalam Azad University
-              of Technology) and WBSCTVESD (West Bengal State Council of
-              Technical & Vocational Education and Skill Development), and
-              recognized by UGC.
+              Budge Budge Institute of Technology (BBIT) is a technical
+              institute whose main objective is to produce result-oriented and
+              skilled professionals to meet the ever-growing demands of
+              industries. The success story of an institution weaves around its
+              pillars, which supports and facilitates the growth of individuals.
+              These pillars are students, parents, teachers, and administration.
+              The Institute seeks to set up a supportive environment the essence
+              of which is "care".
             </p>
             <p className="text-gray-700 text-lg mb-4">
-              With over 15,000+ students who have studied at BBIT and 10,500+
-              students successfully placed across 135 top recruiters, we have
-              established ourselves as a leading institution in technical
-              education. Our commitment to excellence is reflected in our
-              state-of-the-art infrastructure, including spacious multimedia
-              classrooms, well-equipped laboratories, modern library, high-speed
-              Wi-Fi campus, and dedicated training facilities.
+              We care for each one who enters the portal of our institution for
+              we know the power of a gentle touch, a friendly smile, a kind
+              word, a listening ear, and an honest compliment – all of which
+              embody parental care. With nurturing philosophy, it views each one
+              of you as unique and is committed to grooming you into a strong
+              individual, a global citizen with your feet firmly rooted in
+              values and traditions that embody a true BBITian.
             </p>
             <p className="text-gray-700 text-lg mb-4">
-              BBIT has promoted significant research and development activities
-              with a vision to continue and promote research excellence. We
-              maintain strong industry tie-ups for student training, ensuring
-              that knowledge gained in the institute is fruitfully utilized in
-              real-world applications.
+              In a larger context the BBIT intends to provide quality education
+              on which the country can depend. The curriculum is up to date to
+              effectively fulfill the technological requirement of India. It is
+              tuned to the requirements of research institutes and industries so
+              that the benefits of your education can find application in
+              improving the people's quality of life.
             </p>
           </div>
         </div>
@@ -64,10 +66,9 @@ export default function About() {
               Our Vision
             </h3>
             <p className="text-gray-700">
-              To be a globally recognized institution of higher learning,
-              fostering innovation, research excellence, and holistic
-              development, producing leaders who contribute positively to
-              society and drive technological advancement.
+              To realize the full potential of knowledge through universal
+              education and research so as to foster a new era of development
+              and growth through innovations.
             </p>
           </div>
 
@@ -80,23 +81,74 @@ export default function About() {
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-1">✓</span>
                 <span>
-                  Provide quality education with emphasis on practical learning
+                  To open new horizons of knowledge and to promote academic
+                  growth by offering state-of-the-art undergraduate,
+                  postgraduate and research programmes
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-1">✓</span>
-                <span>Foster research and innovation culture</span>
+                <span>To keep pace with regional, national and global needs</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-1">✓</span>
-                <span>Develop industry-ready professionals</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>Promote ethical values and social responsibility</span>
+                <span>
+                  To play a pioneering role in shaping future generations
+                  through collaboration between academia and industry as well as
+                  between different national and international institutions
+                </span>
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Aims and Objectives */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
+          <h2 className="text-3xl font-bold text-blue-900 mb-8 text-center">
+            Aims and Objectives
+          </h2>
+          <ul className="space-y-3 text-gray-700">
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Latest technology to meet the demands of front-end industries.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>High teacher-student ratio to ensure better interface</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Impart personality traits in students to ensure bright career</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Expose the students to industrial climate and practical problems</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Improve communication skills, creativity and leadership qualities among students</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Encourage participation in co-curricular activities</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Develop social awareness</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Provide facilities for faculty upgradation</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Encourage in subsequent publication of research papers in National and International Journals.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-blue-600 mt-1">◦</span>
+              <span>Establish a close bond between the teachers and the students</span>
+            </li>
+          </ul>
         </div>
 
         {/* Core Values */}

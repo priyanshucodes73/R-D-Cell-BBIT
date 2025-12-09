@@ -44,26 +44,26 @@ export default function ContactUs() {
             {
               icon: "📞",
               title: "Call Us",
-              content: "+91-11-2345-6789",
+              content: "(033) 2482 0641",
               subtext: "Mon-Sat: 9 AM - 6 PM",
             },
             {
               icon: "📧",
               title: "Email Us",
-              content: "info@bbit.edu.in",
+              content: "contact@bbit.edu.in",
               subtext: "Response within 24 hours",
             },
             {
               icon: "📍",
               title: "Visit Us",
-              content: "Sector 15, New Delhi",
-              subtext: "Main Campus",
+              content: "Nischintapur, Budge Budge",
+              subtext: "Kolkata - 700138, West Bengal",
             },
             {
               icon: "💬",
-              title: "Live Chat",
-              content: "Chat with us now",
-              subtext: "Available 24/7",
+              title: "Admission Helpline",
+              content: "8420123333 / 9836888444",
+              subtext: "B.Tech & Polytechnic",
             },
           ].map((item, idx) => (
             <div
@@ -207,24 +207,24 @@ export default function ContactUs() {
                       Main Campus
                     </div>
                     <div className="text-gray-700">
-                      Bhagwan Parshuram Institute of Technology
+                      Budge Budge Institute of Technology (BBIT)
                       <br />
-                      PSP-4, Sector 17, Rohini
+                      Nischintapur, Budge Budge
                       <br />
-                      New Delhi - 110089, India
+                      Kolkata - 700138, West Bengal, India
                     </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="text-blue-700 text-2xl">🚇</span>
+                  <span className="text-blue-700 text-2xl">📞</span>
                   <div>
                     <div className="font-bold text-blue-900 mb-1">
-                      Metro Access
+                      Contact Numbers
                     </div>
                     <div className="text-gray-700">
-                      Nearest Metro: Rithala Station (Red Line)
+                      Phone: (033) 2482 0641
                       <br />
-                      10 minutes walk from metro station
+                      Admission: 8420123333 / 9836888444
                     </div>
                   </div>
                 </div>
@@ -270,65 +270,44 @@ export default function ContactUs() {
               {
                 dept: "Admissions Office",
                 icon: "🎓",
-                email: "admissions@bbit.edu.in",
-                phone: "+91-11-2345-6790",
-                timing: "Mon-Sat: 9 AM - 5 PM",
+                email: "admission@bbit.edu.in",
+                phone: "B.Tech: 8420123333",
+                timing: "Polytechnic: 9836888444",
               },
               {
                 dept: "Academic Office",
                 icon: "📚",
-                email: "academics@bbit.edu.in",
-                phone: "+91-11-2345-6791",
-                timing: "Mon-Fri: 9 AM - 6 PM",
+                email: "contact@bbit.edu.in",
+                phone: "(033) 2482 0641",
+                timing: "Mon-Sat: 9 AM - 6 PM",
               },
               {
-                dept: "Examination Cell",
+                dept: "MBA Admissions",
                 icon: "📝",
-                email: "exams@bbit.edu.in",
-                phone: "+91-11-2345-6792",
-                timing: "Mon-Fri: 10 AM - 4 PM",
+                email: "admission.mba@bbit.edu.in",
+                phone: "9007118943",
+                timing: "Mon-Sat: 9 AM - 5 PM",
               },
               {
                 dept: "Placement Cell",
                 icon: "💼",
-                email: "placements@bbit.edu.in",
-                phone: "+91-11-2345-6793",
+                email: "placement@bbit.edu.in",
+                phone: "(033) 2482 0641",
                 timing: "Mon-Fri: 9 AM - 6 PM",
               },
               {
                 dept: "R&D Cell",
                 icon: "🔬",
-                email: "research@bbit.edu.in",
-                phone: "+91-11-2345-6794",
+                email: "contact@bbit.edu.in",
+                phone: "(033) 2482 0641",
                 timing: "Mon-Fri: 9 AM - 5 PM",
               },
               {
-                dept: "International Office",
+                dept: "General Inquiries",
                 icon: "🌍",
-                email: "international@bbit.edu.in",
-                phone: "+91-11-2345-6795",
+                email: "contact@bbit.edu.in",
+                phone: "(033) 2482 0670/0676",
                 timing: "Mon-Fri: 10 AM - 5 PM",
-              },
-              {
-                dept: "Student Services",
-                icon: "🤝",
-                email: "studentservices@bbit.edu.in",
-                phone: "+91-11-2345-6796",
-                timing: "Mon-Sat: 9 AM - 6 PM",
-              },
-              {
-                dept: "IT Support",
-                icon: "💻",
-                email: "itsupport@bbit.edu.in",
-                phone: "+91-11-2345-6797",
-                timing: "Mon-Sat: 8 AM - 8 PM",
-              },
-              {
-                dept: "Library",
-                icon: "📖",
-                email: "library@bbit.edu.in",
-                phone: "+91-11-2345-6798",
-                timing: "Mon-Sat: 8 AM - 10 PM",
               },
             ].map((dept, idx) => (
               <div

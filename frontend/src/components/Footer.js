@@ -112,7 +112,7 @@ const footerSocialLinks = [
   },
   {
     name: "Call",
-    href: "tel:1800121288800",
+    href: "tel:03324820641",
     icon: (
       <span className="flex items-center gap-1">
         <FaPhoneAlt className="w-4 h-4" />
@@ -130,11 +130,11 @@ const footerSocialLinks = [
       </span>
     ),
   },
-  { name: "Facebook", href: "#", icon: <FaFacebookF className="w-4 h-4" /> },
-  { name: "Twitter", href: "#", icon: <FaTwitter className="w-4 h-4" /> },
+  { name: "Facebook", href: "https://www.facebook.com/bbitofficial", icon: <FaFacebookF className="w-4 h-4" /> },
+  { name: "Twitter", href: "https://x.com/BbitCollege", icon: <FaTwitter className="w-4 h-4" /> },
   { name: "LinkedIn", href: "#", icon: <FaLinkedinIn className="w-4 h-4" /> },
-  { name: "Instagram", href: "#", icon: <FaInstagram className="w-4 h-4" /> },
-  { name: "YouTube", href: "#", icon: <FaYoutube className="w-4 h-4" /> },
+  { name: "Instagram", href: "https://www.instagram.com/bbitofficials/", icon: <FaInstagram className="w-4 h-4" /> },
+  { name: "YouTube", href: "https://www.youtube.com/@bbitengg", icon: <FaYoutube className="w-4 h-4" /> },
 ];
 
 export default function Footer() {

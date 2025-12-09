@@ -36,7 +36,7 @@ const socialIcons = [
   },
   {
     name: "Call",
-    href: "tel:1800121288800",
+    href: "tel:03324820641",
     icon: (
       <span className="flex items-center gap-1">
         <FaPhoneAlt className="w-4 h-4" />
@@ -54,11 +54,11 @@ const socialIcons = [
       </span>
     ),
   },
-  { name: "Facebook", href: "#", icon: <FaFacebookF className="w-4 h-4" /> },
-  { name: "Twitter", href: "#", icon: <FaTwitter className="w-4 h-4" /> },
-  { name: "LinkedIn", href: "#", icon: <FaLinkedinIn className="w-4 h-4" /> },
-  { name: "Instagram", href: "#", icon: <FaInstagram className="w-4 h-4" /> },
-  { name: "YouTube", href: "#", icon: <FaYoutube className="w-4 h-4" /> },
+  { name: "Facebook", href: "https://www.facebook.com/bbitofficial", icon: <FaFacebookF className="w-4 h-4" /> },
+  { name: "Twitter", href: "https://x.com/BbitCollege", icon: <FaTwitter className="w-4 h-4" /> },
+  { name: "LinkedIn", href: "https://www.linkedin.com/school/budge-budge-institute-of-technology/", icon: <FaLinkedinIn className="w-4 h-4" /> },
+  { name: "Instagram", href: "https://www.instagram.com/bbitofficials/", icon: <FaInstagram className="w-4 h-4" /> },
+  { name: "YouTube", href: "https://www.youtube.com/@bbitengg", icon: <FaYoutube className="w-4 h-4" /> },
 ];
 
 const upperNavLinks = [
@@ -252,7 +252,7 @@ export default function Home() {
             {/* Left: Registration Info */}
             <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-start">
               <span className="text-center sm:text-left text-xs md:text-sm font-medium px-2 py-1 bg-blue-800/50 rounded-md backdrop-blur-sm">
-                Register Now for BBIT Joint Campus Placement Programme
+                Register Now for Admission at BBIT - Budge Budge Institute of Technology
               </span>
               <Link href="/register">
                 <span className="group relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 font-bold px-5 py-2 rounded-lg hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 cursor-pointer inline-block shadow-md hover:shadow-xl transform hover:-translate-y-0.5 text-sm whitespace-nowrap">
