@@ -604,12 +604,12 @@ export default function Home() {
             </p>
             <div className="flex gap-4 mt-6">
               <Link href="/explore-research">
-                <span className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer inline-block">
+                <span className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-400 hover:text-blue-900 transition-all duration-300 cursor-pointer inline-block">
                   Explore Research
                 </span>
               </Link>
               <Link href="/join-our-team">
-                <span className="border-2 border-blue-900 text-blue-900 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition cursor-pointer inline-block">
+                <span className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-400 hover:text-blue-900 transition-all duration-300 cursor-pointer inline-block">
                   Join Our Team
                 </span>
               </Link>
@@ -653,17 +653,17 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                icon: "🤖",
+                icon: "🧠",
                 title: "Artificial Intelligence & Machine Learning",
                 desc: "Deep Learning, Natural Language Processing, Computer Vision, and AI Ethics",
               },
               {
-                icon: "🌐",
+                icon: "📡",
                 title: "Internet of Things & Smart Systems",
                 desc: "Smart Cities, Industrial IoT, Wearable Technology, and Edge Computing",
               },
               {
-                icon: "🔒",
+                icon: "🔐",
                 title: "Cybersecurity & Blockchain",
                 desc: "Network Security, Cryptography, Blockchain Applications, and Data Privacy",
               },
@@ -673,27 +673,27 @@ export default function Home() {
                 desc: "Distributed Systems, Data Analytics, Cloud Architecture, and Scalability",
               },
               {
-                icon: "🏥",
+                icon: "⚕️",
                 title: "Healthcare Technology",
                 desc: "Medical Imaging, Telemedicine, Health Informatics, and Biomedical Devices",
               },
               {
-                icon: "🌱",
+                icon: "🌿",
                 title: "Sustainable Technology",
                 desc: "Renewable Energy, Environmental Monitoring, Green Computing, and Climate Tech",
               },
               {
-                icon: "🚀",
+                icon: "🤖",
                 title: "Robotics & Automation",
                 desc: "Autonomous Systems, Industrial Automation, Drone Technology, and Human-Robot Interaction",
               },
               {
-                icon: "📊",
+                icon: "📈",
                 title: "Data Science & Analytics",
                 desc: "Predictive Modeling, Statistical Analysis, Business Intelligence, and Data Visualization",
               },
               {
-                icon: "💡",
+                icon: "💼",
                 title: "Innovation & Entrepreneurship",
                 desc: "Startup Incubation, Product Development, Business Models, and Market Research",
               },
@@ -892,7 +892,7 @@ export default function Home() {
         </div>
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-xl shadow-lg">
-            <div className="text-4xl mb-4">🚀</div>
+            <div className="text-4xl mb-4">🏭</div>
             <h3 className="text-2xl font-bold text-blue-900 mb-3">
               Startup Incubator
             </h3>
@@ -908,7 +908,7 @@ export default function Home() {
             </ul>
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-8 rounded-xl shadow-lg">
-            <div className="text-4xl mb-4">💡</div>
+            <div className="text-4xl mb-4">🔬</div>
             <h3 className="text-2xl font-bold text-blue-900 mb-3">
               Innovation Lab
             </h3>
@@ -1000,22 +1000,22 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                icon: "🖥️",
+                icon: "💻",
                 name: "AI & ML Lab",
                 desc: "High-performance computing cluster with GPU servers",
               },
               {
-                icon: "🌐",
+                icon: "📡",
                 name: "IoT Center",
                 desc: "Sensors, microcontrollers, and networking equipment",
               },
               {
-                icon: "🔬",
+                icon: "🧪",
                 name: "Research Labs",
                 desc: "Specialized labs for each engineering domain",
               },
               {
-                icon: "📚",
+                icon: "📖",
                 name: "Digital Library",
                 desc: "Access to 10,000+ journals and research databases",
               },
@@ -1025,12 +1025,12 @@ export default function Home() {
                 desc: "Office spaces and meeting rooms for startups",
               },
               {
-                icon: "⚡",
+                icon: "🛠️",
                 name: "Fabrication Lab",
                 desc: "PCB design, 3D printing, and prototyping tools",
               },
               {
-                icon: "🤝",
+                icon: "👥",
                 name: "Collaboration Spaces",
                 desc: "Modern meeting rooms with video conferencing",
               },
@@ -1090,7 +1090,7 @@ export default function Home() {
                 key={idx}
                 className="flex items-start gap-3 bg-white p-4 rounded-lg"
               >
-                <div className="text-yellow-500 text-xl">🏆</div>
+                <div className="text-yellow-500 text-xl">📜</div>
                 <div className="text-gray-700">{patent}</div>
               </div>
             ))}

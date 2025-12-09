@@ -36,7 +36,7 @@ export default function CampusLife() {
       members: 150,
       description:
         "Startup mentorship, business plan competitions, investor connects",
-      icon: "🚀",
+      icon: "💼",
       events: "15+ workshops/year",
     },
     {
@@ -52,7 +52,7 @@ export default function CampusLife() {
       members: 200,
       description:
         "Community service, blood donation drives, environmental campaigns",
-      icon: "🤝",
+      icon: "🫶",
       events: "40+ drives/year",
     },
     {

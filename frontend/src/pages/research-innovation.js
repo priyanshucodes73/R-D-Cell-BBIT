@@ -7,10 +7,10 @@ export default function ResearchInnovation() {
   const [activeTab, setActiveTab] = useState("overview");
 
   const researchStats = [
-    { label: "Research Projects", value: "150+", icon: "🔬" },
-    { label: "Publications (2024)", value: "250+", icon: "📄" },
-    { label: "Patents Filed", value: "35", icon: "⚖️" },
-    { label: "Research Grants", value: "₹50Cr+", icon: "💰" },
+    { label: "Research Projects", value: "150+", icon: "🧪" },
+    { label: "Publications (2024)", value: "250+", icon: "📝" },
+    { label: "Patents Filed", value: "35", icon: "📜" },
+    { label: "Research Grants", value: "₹50Cr+", icon: "💵" },
   ];
 
   const researchCenters = [
@@ -21,7 +21,7 @@ export default function ResearchInnovation() {
       projects: 25,
       publications: 45,
       funding: "₹5 Cr",
-      icon: "🤖",
+      icon: "🧠",
     },
     {
       name: "IoT Research Center",
@@ -39,7 +39,7 @@ export default function ResearchInnovation() {
       projects: 18,
       publications: 30,
       funding: "₹3.5 Cr",
-      icon: "🔐",
+      icon: "🔒",
     },
     {
       name: "Robotics & Automation Center",
@@ -66,7 +66,7 @@ export default function ResearchInnovation() {
       projects: 12,
       publications: 25,
       funding: "₹6 Cr",
-      icon: "🌞",
+      icon: "⚡",
     },
   ];
 

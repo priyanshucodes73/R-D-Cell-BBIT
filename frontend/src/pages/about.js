@@ -72,7 +72,7 @@ export default function About() {
           </div>
 
           <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl shadow-lg p-8 border-t-4 border-green-600">
-            <div className="text-5xl mb-4">🚀</div>
+            <div className="text-5xl mb-4">🧭</div>
             <h3 className="text-2xl font-bold text-green-900 mb-4">
               Our Mission
             </h3>
@@ -106,7 +106,7 @@ export default function About() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="text-4xl mb-3">💡</div>
+              <div className="text-4xl mb-3">⭐</div>
               <h3 className="font-bold text-lg mb-2">Excellence</h3>
               <p className="text-sm text-gray-600">
                 Striving for the highest standards in everything we do
@@ -120,28 +120,28 @@ export default function About() {
               </p>
             </div>
             <div className="text-center p-6 bg-purple-50 rounded-lg">
-              <div className="text-4xl mb-3">🌟</div>
+              <div className="text-4xl mb-3">💡</div>
               <h3 className="font-bold text-lg mb-2">Innovation</h3>
               <p className="text-sm text-gray-600">
                 Encouraging creativity and out-of-the-box thinking
               </p>
             </div>
             <div className="text-center p-6 bg-yellow-50 rounded-lg">
-              <div className="text-4xl mb-3">🎓</div>
+              <div className="text-4xl mb-3">📚</div>
               <h3 className="font-bold text-lg mb-2">Learning</h3>
               <p className="text-sm text-gray-600">
                 Fostering continuous learning and development
               </p>
             </div>
             <div className="text-center p-6 bg-red-50 rounded-lg">
-              <div className="text-4xl mb-3">🌍</div>
+              <div className="text-4xl mb-3">🌎</div>
               <h3 className="font-bold text-lg mb-2">Diversity</h3>
               <p className="text-sm text-gray-600">
                 Celebrating inclusive and multicultural environment
               </p>
             </div>
             <div className="text-center p-6 bg-indigo-50 rounded-lg">
-              <div className="text-4xl mb-3">💪</div>
+              <div className="text-4xl mb-3">🤝</div>
               <h3 className="font-bold text-lg mb-2">Responsibility</h3>
               <p className="text-sm text-gray-600">
                 Contributing positively to society and environment
