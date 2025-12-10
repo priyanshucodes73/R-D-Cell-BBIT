@@ -16,6 +16,14 @@ services:
     environment:
       DATABASE_URL: postgres://bbit:bbitpass@db:5432/bbitdb
       PORT: 4000
+      JWT_SECRET: bbit-secret-key-2025
+      # Email SMTP Configuration - UPDATE THESE VALUES
+      EMAIL_SERVICE: gmail
+      EMAIL_USER: your-email@gmail.com
+      EMAIL_PASSWORD: your-app-password-here
+      FRONTEND_URL: http://localhost:3005
+      # Contact form emails will be sent to this address
+      CONTACT_EMAIL: rnd@bbit.edu.in
     ports:
       - "4005:4000"
     depends_on:

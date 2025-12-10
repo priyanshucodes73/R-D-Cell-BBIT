@@ -2,12 +2,231 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { Sequelize, DataTypes } = require("sequelize");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
 require("dotenv").config();
+
+const JWT_SECRET = process.env.JWT_SECRET || "bbit-secret-key-2025";
+
+// Email Configuration
+const emailTransporter = nodemailer.createTransport({
+  service: process.env.EMAIL_SERVICE || "gmail",
+  auth: {
+    user: process.env.EMAIL_USER || "noreply@bbit.edu.in",
+    pass: process.env.EMAIL_PASSWORD || "your-app-password"
+  }
+});
+
+// Email Templates
+const sendVerificationEmail = async (email, verificationToken, firstName) => {
+  const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:3005"}/verify-email?token=${verificationToken}`;
+  
+  const mailOptions = {
+    from: `"BBIT R&D Cell" <${process.env.EMAIL_USER || "noreply@bbit.edu.in"}>`,
+    to: email,
+    subject: "Verify Your BBIT Account",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Welcome to BBIT R&D Cell!</h1>
+          </div>
+          <div class="content">
+            <p>Hi ${firstName},</p>
+            <p>Thank you for registering with Budge Budge Institute of Technology R&D Cell!</p>
+            <p>Please verify your email address by clicking the button below:</p>
+            <center>
+              <a href="${verificationUrl}" class="button">Verify Email Address</a>
+            </center>
+            <p>Or copy and paste this link in your browser:</p>
+            <p style="background: #e5e7eb; padding: 10px; border-radius: 5px; word-break: break-all;">${verificationUrl}</p>
+            <p><strong>This link will expire in 24 hours.</strong></p>
+            <p>If you didn't create this account, please ignore this email.</p>
+            <p>Best regards,<br>BBIT R&D Cell Team</p>
+          </div>
+          <div class="footer">
+            <p>Budge Budge Institute of Technology<br>Nischintapur, Budge Budge, Kolkata - 700138, West Bengal, India</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await emailTransporter.sendMail(mailOptions);
+    console.log(`Verification email sent to ${email}`);
+    return true;
+  } catch (error) {
+    console.error("Email send error:", error);
+    return false;
+  }
+};
+
+// Send Contact Form Email Notification
+const sendContactFormEmail = async (contactData) => {
+  const { name, email, phone, subject, message } = contactData;
+  
+  const mailOptions = {
+    from: `"BBIT R&D Cell" <${process.env.EMAIL_USER || "noreply@bbit.edu.in"}>`,
+    to: process.env.CONTACT_EMAIL || process.env.EMAIL_USER || "rnd@bbit.edu.in",
+    replyTo: email,
+    subject: `New Contact Inquiry: ${subject || "General Inquiry"}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .field { margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; }
+          .label { font-weight: bold; color: #1e3a8a; display: block; margin-bottom: 5px; }
+          .value { color: #333; }
+          .message-box { background: white; padding: 15px; border-left: 4px solid #3b82f6; margin-top: 15px; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>📧 New Contact Form Submission</h2>
+          </div>
+          <div class="content">
+            <div class="field">
+              <span class="label">Name:</span>
+              <span class="value">${name || "Not provided"}</span>
+            </div>
+            <div class="field">
+              <span class="label">Email:</span>
+              <span class="value"><a href="mailto:${email}">${email}</a></span>
+            </div>
+            <div class="field">
+              <span class="label">Phone:</span>
+              <span class="value">${phone || "Not provided"}</span>
+            </div>
+            <div class="field">
+              <span class="label">Subject:</span>
+              <span class="value">${subject || "General Inquiry"}</span>
+            </div>
+            <div class="message-box">
+              <span class="label">Message:</span>
+              <div class="value">${message || "No message provided"}</div>
+            </div>
+            <div style="margin-top: 20px; padding: 10px; background: #e0f2fe; border-radius: 5px;">
+              <strong>💡 Quick Actions:</strong><br>
+              <a href="mailto:${email}" style="color: #3b82f6;">Reply to ${name}</a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>This email was sent from BBIT R&D Cell Contact Form<br>
+            Budge Budge Institute of Technology<br>
+            Nischintapur, Budge Budge, Kolkata - 700138</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await emailTransporter.sendMail(mailOptions);
+    console.log(`Contact form notification sent for inquiry from ${email}`);
+    return true;
+  } catch (error) {
+    console.error("Contact email send error:", error);
+    return false;
+  }
+};
+
+// Send Auto-Reply to Contact Form Submitter
+const sendContactAutoReply = async (contactData) => {
+  const { name, email, subject } = contactData;
+  
+  const mailOptions = {
+    from: `"BBIT R&D Cell" <${process.env.EMAIL_USER || "noreply@bbit.edu.in"}>`,
+    to: email,
+    subject: `Thank you for contacting BBIT R&D Cell`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .info-box { background: #e0f2fe; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Thank You for Reaching Out!</h1>
+          </div>
+          <div class="content">
+            <p>Dear ${name},</p>
+            <p>Thank you for contacting <strong>Budge Budge Institute of Technology R&D Cell</strong>.</p>
+            <p>We have received your inquiry regarding: <strong>${subject || "General Inquiry"}</strong></p>
+            <p>Our team will review your message and get back to you within 24-48 hours.</p>
+            
+            <div class="info-box">
+              <strong>📞 Need Immediate Assistance?</strong><br>
+              Phone: <a href="tel:+913324820641">033-2482-0641</a><br>
+              Admission Helpline: <a href="tel:+918420123333">8420123333</a> / <a href="tel:+919836888444">9836888444</a><br>
+              Email: <a href="mailto:info@bbit.edu.in">info@bbit.edu.in</a>
+            </div>
+            
+            <p>In the meantime, feel free to explore:</p>
+            <ul>
+              <li><a href="http://localhost:3005/research-innovation">Our Research Projects</a></li>
+              <li><a href="http://localhost:3005/all-publications">Latest Publications</a></li>
+              <li><a href="http://localhost:3005/innovation-entrepreneurship">Innovation & Entrepreneurship</a></li>
+            </ul>
+            
+            <p>Best regards,<br>
+            <strong>BBIT R&D Cell Team</strong></p>
+          </div>
+          <div class="footer">
+            <p><strong>Budge Budge Institute of Technology</strong><br>
+            Nischintapur, Budge Budge, Kolkata - 700138, West Bengal, India<br>
+            <a href="http://www.bbit.edu.in">www.bbit.edu.in</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await emailTransporter.sendMail(mailOptions);
+    console.log(`Auto-reply sent to ${email}`);
+    return true;
+  } catch (error) {
+    console.error("Auto-reply email error:", error);
+    return false;
+  }
+};
 
 // Database Configuration
 let sequelize;
@@ -164,6 +383,58 @@ const Patent = sequelize.define(
   },
   { timestamps: true }
 );
+
+// User Model (for login/signup)
+const User = sequelize.define(
+  "User",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    firstName: { type: DataTypes.STRING, allowNull: false },
+    lastName: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    phone: { type: DataTypes.STRING },
+    role: { type: DataTypes.STRING, defaultValue: "user" }, // user, admin
+    isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+    verificationToken: { type: DataTypes.STRING },
+    verificationTokenExpiry: { type: DataTypes.DATE },
+    lastLogin: { type: DataTypes.DATE },
+  },
+  { 
+    timestamps: true,
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed('password')) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      }
+    }
+  }
+);
+
+// User instance methods
+User.prototype.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+User.prototype.generateAuthToken = function() {
+  return jwt.sign(
+    { 
+      id: this.id, 
+      email: this.email, 
+      role: this.role 
+    },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};
 
 // ==================== DATABASE INITIALIZATION ====================
 async function init() {
@@ -494,8 +765,23 @@ app.get("/api/contacts", async (req, res) => {
 
 app.post("/api/contacts", async (req, res) => {
   try {
+    // Save contact inquiry to database
     const contact = await ContactInquiry.create(req.body);
-    res.status(201).json(contact);
+    
+    // Send notification email to admin
+    const adminEmailSent = await sendContactFormEmail(req.body);
+    
+    // Send auto-reply to user
+    const autoReplySent = await sendContactAutoReply(req.body);
+    
+    res.status(201).json({
+      message: "Thank you for contacting us! We'll get back to you soon.",
+      contact,
+      emailNotifications: {
+        adminNotified: adminEmailSent,
+        autoReplySent: autoReplySent
+      }
+    });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -633,6 +919,305 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
+// ==================== AUTHENTICATION MIDDLEWARE ====================
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// ==================== AUTH ROUTES ====================
+
+// User Signup
+app.post("/api/auth/signup", async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, phone } = req.body;
+
+    // Validation
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ 
+        error: "First name, last name, email and password are required" 
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    // Create user
+    const verificationToken = jwt.sign({ email }, JWT_SECRET, { expiresIn: '24h' });
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      verificationToken,
+      verificationTokenExpiry
+    });
+
+    // Send verification email
+    const emailSent = await sendVerificationEmail(email, verificationToken, firstName);
+
+    // Generate token
+    const token = user.generateAuthToken();
+
+    res.status(201).json({
+      message: emailSent 
+        ? "User registered successfully. Please check your email to verify your account." 
+        : "User registered successfully. Email verification pending.",
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        isVerified: user.isVerified
+      },
+      token,
+      emailSent
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// User Login
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    // Find user
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // Check password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // Update last login
+    await user.update({ lastLogin: new Date() });
+
+    // Generate token
+    const token = user.generateAuthToken();
+
+    res.json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      },
+      token
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get Current User Profile (Protected Route)
+app.get("/api/auth/me", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update User Profile (Protected Route)
+app.put("/api/auth/profile", authenticateToken, async (req, res) => {
+  try {
+    const { firstName, lastName, phone } = req.body;
+    
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await user.update({ firstName, lastName, phone });
+
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Verify Email
+app.get("/api/auth/verify-email", async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ error: "Verification token is required" });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({ error: "Invalid or expired verification token" });
+    }
+
+    // Find user
+    const user = await User.findOne({ 
+      where: { 
+        email: decoded.email,
+        verificationToken: token
+      } 
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found or token invalid" });
+    }
+
+    // Check if already verified
+    if (user.isVerified) {
+      return res.json({ message: "Email already verified" });
+    }
+
+    // Check token expiry
+    if (user.verificationTokenExpiry && new Date() > user.verificationTokenExpiry) {
+      return res.status(400).json({ error: "Verification token has expired" });
+    }
+
+    // Verify user
+    await user.update({
+      isVerified: true,
+      verificationToken: null,
+      verificationTokenExpiry: null
+    });
+
+    res.json({ 
+      message: "Email verified successfully",
+      user: {
+        id: user.id,
+        email: user.email,
+        isVerified: true
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Resend Verification Email
+app.post("/api/auth/resend-verification", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ error: "Email already verified" });
+    }
+
+    // Generate new verification token
+    const verificationToken = jwt.sign({ email }, JWT_SECRET, { expiresIn: '24h' });
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await user.update({
+      verificationToken,
+      verificationTokenExpiry
+    });
+
+    // Send verification email
+    const emailSent = await sendVerificationEmail(email, verificationToken, user.firstName);
+
+    res.json({ 
+      message: emailSent 
+        ? "Verification email sent successfully" 
+        : "Failed to send verification email",
+      emailSent
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Change Password (Protected Route)
+app.post("/api/auth/change-password", authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        error: "Current password and new password are required" 
+      });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Verify current password
+    const isPasswordValid = await user.comparePassword(currentPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    // Update password
+    await user.update({ password: newPassword });
+
+    res.json({ message: "Password changed successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ===== ROOT ENDPOINT =====
 app.get("/", (req, res) => {
   res.json({
@@ -640,6 +1225,13 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     status: "running",
     endpoints: {
+      auth: {
+        signup: "POST /api/auth/signup",
+        login: "POST /api/auth/login",
+        profile: "GET /api/auth/me (protected)",
+        updateProfile: "PUT /api/auth/profile (protected)",
+        changePassword: "POST /api/auth/change-password (protected)"
+      },
       publications: "/api/publications",
       projects: "/api/projects",
       faculty: "/api/faculty",

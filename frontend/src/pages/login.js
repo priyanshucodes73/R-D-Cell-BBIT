@@ -1,340 +1,163 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import Link from "next/link";
-import { FaUser, FaLock, FaEnvelope, FaUserGraduate, FaChalkboardTeacher } from "react-icons/fa";
+import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Login() {
-  const [userType, setUserType] = useState("student"); // 'student' or 'faculty'
-  const [isLogin, setIsLogin] = useState(true); // true for login, false for signup
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    name: "",
-    confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", { userType, isLogin, formData });
-    alert(`${isLogin ? "Login" : "Signup"} successful for ${userType}!`);
+    setError("");
+    setLoading(true);
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      // Store user data and token
+      localStorage.setItem("userToken", data.token);
+      localStorage.setItem("userData", JSON.stringify(data.user));
+      localStorage.setItem("userAuth", "true");
+
+      // Redirect to home or dashboard
+      router.push("/");
+    } catch (err) {
+      setError(err.message || "An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center px-4 py-12">
-      {/* Back to Home */}
-      <Link href="/">
-        <button className="fixed top-6 left-6 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-6 py-2 rounded-full font-semibold transition-all duration-300 border border-white/30 flex items-center gap-2 z-50">
-          ← Back to Home
-        </button>
-      </Link>
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center px-4">
+      <div className="max-w-md w-full">
+        {/* Logo/Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">BBIT R&D Cell</h1>
+          <p className="text-blue-200">User Login (Students & Faculty)</p>
+        </div>
 
-      <div className="max-w-5xl w-full">
-        {/* Main Container */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden">
-          <div className="grid md:grid-cols-2">
-            {/* Left Side - User Type Selection */}
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-12 text-white flex flex-col justify-center">
-              <div className="mb-8">
-                <h1 className="text-4xl font-bold mb-4">Welcome to BBIT</h1>
-                <p className="text-blue-100 text-lg">
-                  Select your role to continue
-                </p>
-              </div>
+        {/* Login Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            Welcome Back
+          </h2>
 
-              {/* User Type Cards */}
-              <div className="space-y-4">
-                {/* Professional Student Login */}
-                <button
-                  onClick={() => setUserType("student")}
-                  className={`w-full p-6 rounded-2xl transition-all duration-300 text-left ${
-                    userType === "student"
-                      ? "bg-white text-blue-900 shadow-xl scale-105"
-                      : "bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                        userType === "student"
-                          ? "bg-blue-600 text-white"
-                          : "bg-white/20 text-white"
-                      }`}
-                    >
-                      <FaUserGraduate className="text-2xl" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-1">
-                        Professional Student
-                      </h3>
-                      <p
-                        className={`text-sm ${
-                          userType === "student"
-                            ? "text-blue-700"
-                            : "text-blue-100"
-                        }`}
-                      >
-                        Access student portal & resources
-                      </p>
-                    </div>
-                  </div>
-                </button>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
 
-                {/* Faculty Login */}
-                <button
-                  onClick={() => setUserType("faculty")}
-                  className={`w-full p-6 rounded-2xl transition-all duration-300 text-left ${
-                    userType === "faculty"
-                      ? "bg-white text-blue-900 shadow-xl scale-105"
-                      : "bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                        userType === "faculty"
-                          ? "bg-green-600 text-white"
-                          : "bg-white/20 text-white"
-                      }`}
-                    >
-                      <FaChalkboardTeacher className="text-2xl" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-1">Faculty</h3>
-                      <p
-                        className={`text-sm ${
-                          userType === "faculty"
-                            ? "text-green-700"
-                            : "text-blue-100"
-                        }`}
-                      >
-                        Access faculty dashboard & tools
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              {/* Features List */}
-              <div className="mt-12 space-y-3">
-                <div className="flex items-center gap-3 text-blue-100">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <span>Secure Authentication</span>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="text-gray-400" />
                 </div>
-                <div className="flex items-center gap-3 text-blue-100">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <span>24/7 Access to Resources</span>
-                </div>
-                <div className="flex items-center gap-3 text-blue-100">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <span>Real-time Updates</span>
-                </div>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  placeholder="your.email@example.com"
+                />
               </div>
             </div>
 
-            {/* Right Side - Login/Signup Form */}
-            <div className="p-12 bg-white">
-              {/* Toggle Login/Signup */}
-              <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-xl">
-                <button
-                  onClick={() => setIsLogin(true)}
-                  className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                    isLogin
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-600 hover:text-blue-600"
-                  }`}
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => setIsLogin(false)}
-                  className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                    !isLogin
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-600 hover:text-blue-600"
-                  }`}
-                >
-                  Sign Up
-                </button>
-              </div>
-
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                  {isLogin ? "Welcome Back!" : "Create Account"}
-                </h2>
-                <p className="text-gray-600">
-                  {isLogin
-                    ? `Login to your ${
-                        userType === "student" ? "student" : "faculty"
-                      } account`
-                    : `Sign up as a ${
-                        userType === "student" ? "professional student" : "faculty member"
-                      }`}
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Name (only for signup) */}
-                {!isLogin && (
-                  <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Full Name
-                    </label>
-                    <div className="relative">
-                      <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Email */}
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
-                      placeholder={`${
-                        userType === "student" ? "student@bbit.edu.in" : "faculty@bbit.edu.in"
-                      }`}
-                    />
-                  </div>
+            {/* Password Field */}
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaLock className="text-gray-400" />
                 </div>
-
-                {/* Password */}
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="password"
-                      required
-                      value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
-                      placeholder="Enter your password"
-                    />
-                  </div>
-                </div>
-
-                {/* Confirm Password (only for signup) */}
-                {!isLogin && (
-                  <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Confirm Password
-                    </label>
-                    <div className="relative">
-                      <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="password"
-                        required
-                        value={formData.confirmPassword}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            confirmPassword: e.target.value,
-                          })
-                        }
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
-                        placeholder="Confirm your password"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Remember Me & Forgot Password (only for login) */}
-                {isLogin && (
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-600">
-                        Remember me
-                      </span>
-                    </label>
-                    <a
-                      href="#"
-                      className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
-                    >
-                      Forgot Password?
-                    </a>
-                  </div>
-                )}
-
-                {/* Submit Button */}
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full pl-10 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  placeholder="Enter your password"
+                />
                 <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  {isLogin ? "Login Now" : "Create Account"}
-                </button>
-              </form>
-
-              {/* Divider */}
-              <div className="mt-8 flex items-center gap-4">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <span className="text-gray-500 text-sm">OR</span>
-                <div className="flex-1 h-px bg-gray-300"></div>
-              </div>
-
-              {/* Social Login */}
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <button className="flex items-center justify-center gap-2 py-3 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-300">
-                  <img
-                    src="https://www.google.com/favicon.ico"
-                    alt="Google"
-                    className="w-5 h-5"
-                  />
-                  <span className="text-gray-700 font-semibold">Google</span>
-                </button>
-                <button className="flex items-center justify-center gap-2 py-3 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-300">
-                  <img
-                    src="https://www.microsoft.com/favicon.ico"
-                    alt="Microsoft"
-                    className="w-5 h-5"
-                  />
-                  <span className="text-gray-700 font-semibold">
-                    Microsoft
-                  </span>
+                  {showPassword ? (
+                    <FaEyeSlash className="text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <FaEye className="text-gray-400 hover:text-gray-600" />
+                  )}
                 </button>
               </div>
             </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+
+          {/* Signup Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Don't have an account?{" "}
+              <Link href="/register" className="text-blue-600 hover:text-blue-800 font-semibold">
+                Sign up here
+              </Link>
+            </p>
+          </div>
+
+          {/* Admin Login Link */}
+          <div className="mt-4 text-center">
+            <Link href="/admin/login" className="text-sm text-gray-500 hover:text-gray-700">
+              Admin Login →
+            </Link>
           </div>
         </div>
 
-        {/* Footer Text */}
-        <div className="text-center mt-8">
-          <p className="text-white/80">
-            By continuing, you agree to BBIT's{" "}
-            <a href="#" className="text-yellow-400 hover:underline">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="#" className="text-yellow-400 hover:underline">
-              Privacy Policy
-            </a>
-          </p>
+        {/* Back to Home */}
+        <div className="text-center mt-6">
+          <Link href="/" className="text-blue-200 hover:text-white">
+            ← Back to Home
+          </Link>
         </div>
       </div>
     </div>
