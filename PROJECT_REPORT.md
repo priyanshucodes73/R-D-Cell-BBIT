@@ -74,6 +74,8 @@ The existing manual system lacked:
 
 ### 3.1 Architecture Diagram
 
+> **Note:** Detailed DFD and ERD diagrams are available in `DIAGRAMS.md` file.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      CLIENT LAYER (Frontend)                 │
@@ -117,7 +119,16 @@ The existing manual system lacked:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 Three-Tier Architecture
+### 3.2 Data Flow Diagram (DFD)
+
+**See `DIAGRAMS.md` for complete DFD hierarchy:**
+- Context Diagram (Level 0)
+- Level 1 DFD - Main Processes
+- Level 2 DFD - Authentication System
+- Level 2 DFD - Research Management
+- Level 2 DFD - Contact Management
+
+### 3.3 Three-Tier Architecture
 
 **Presentation Tier (Frontend):**
 - Next.js 14 with React 18
@@ -280,52 +291,72 @@ The existing manual system lacked:
 
 ### 6.1 Entity Relationship Diagram (ERD)
 
+> **Note:** Complete ERD with relationships, cardinality, and database constraints is available in `DIAGRAMS.md` file.
+
+**Quick Overview - Main Entities:**
+
 ```
 ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
 │   Publication   │       │     Faculty     │       │  ResearchProject│
 ├─────────────────┤       ├─────────────────┤       ├─────────────────┤
-│ id (PK)         │       │ id (PK)         │       │ id (PK)         │
-│ title           │       │ name            │       │ title           │
-│ authors         │       │ department      │       │ description     │
-│ journal         │       │ email           │       │ funding         │
-│ year            │       │ phone           │       │ status          │
-│ doi             │       │ designation     │       │ start_date      │
-│ citation_count  │       │ research_areas  │       │ end_date        │
-│ abstract        │       │ image_url       │       │ faculty_lead    │
-│ keywords        │       │ created_at      │       │ created_at      │
-│ created_at      │       └─────────────────┘       └─────────────────┘
+│ PK id           │       │ PK id           │       │ PK id           │
+│    title        │       │    name         │       │    title        │
+│    authors      │       │    department   │       │    description  │
+│    journal      │       │ UK email        │       │    funding      │
+│    year         │       │    phone        │       │    status       │
+│    doi          │       │    designation  │       │    start_date   │
+│    citation     │       │    research_area│       │    end_date     │
+│    abstract     │       │    image_url    │       │ FK faculty_lead │
+│    keywords     │       │    createdAt    │       │    createdAt    │
+│    createdAt    │       └─────────────────┘       └─────────────────┘
+└─────────────────┘              │ 1:N                      ▲
+         │                       └──────────────────────────┘
+         │ M:N                        (Faculty leads Projects)
+         ▼
+┌─────────────────┐
+│PublicationAuthor│  (Junction Table)
+├─────────────────┤
+│ FK publicationId│
+│ FK facultyId    │
 └─────────────────┘
 
+
 ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
-│     Patent      │       │   ContactInquiry│       │     NewsEvent   │
+│     Patent      │       │ ContactInquiry  │       │    NewsEvent    │
 ├─────────────────┤       ├─────────────────┤       ├─────────────────┤
-│ id (PK)         │       │ id (PK)         │       │ id (PK)         │
-│ title           │       │ name            │       │ title           │
-│ inventors       │       │ email           │       │ description     │
-│ patent_number   │       │ phone           │       │ event_date      │
-│ filing_date     │       │ subject         │       │ location        │
-│ grant_date      │       │ message         │       │ image_url       │
-│ status          │       │ status          │       │ type            │
-│ created_at      │       │ created_at      │       │ created_at      │
+│ PK id           │       │ PK id           │       │ PK id           │
+│    title        │       │    name         │       │    title        │
+│    inventors    │       │    email        │       │    description  │
+│ UK patent_number│       │    phone        │       │    event_date   │
+│    filing_date  │       │    subject      │       │    location     │
+│    grant_date   │       │    message      │       │    image_url    │
+│    status       │       │    status       │       │    type         │
+│    createdAt    │       │    createdAt    │       │    createdAt    │
 └─────────────────┘       └─────────────────┘       └─────────────────┘
+
 
 ┌─────────────────┐       ┌─────────────────┐
 │  Registration   │       │      User       │
 ├─────────────────┤       ├─────────────────┤
-│ id (PK)         │       │ id (PK)         │
-│ firstName       │       │ firstName       │
-│ lastName        │       │ lastName        │
-│ email           │       │ email (UNIQUE)  │
-│ phone           │       │ password (HASH) │
-│ course          │       │ phone           │
-│ college         │       │ role            │
-│ created_at      │       │ isVerified      │
+│ PK id           │       │ PK id           │
+│    firstName    │       │    firstName    │
+│    lastName     │       │    lastName     │
+│    email        │       │ UK email        │
+│    phone        │       │    password     │  (bcrypt hashed)
+│    course       │       │    phone        │
+│    college      │       │    role         │
+│    createdAt    │       │    isVerified   │
 └─────────────────┘       │ verificationToken│
                           │ tokenExpiry     │
                           │ lastLogin       │
-                          │ created_at      │
+                          │ createdAt       │
                           └─────────────────┘
 ```
+
+**Key Relationships:**
+- Faculty → ResearchProject (1:N) - One faculty leads many projects
+- Publication ↔ Faculty (M:N via PublicationAuthor) - Many-to-many authorship
+- Patent ↔ Faculty (M:N via PatentInventor) - Many-to-many inventors
 
 ### 6.2 Database Tables
 
