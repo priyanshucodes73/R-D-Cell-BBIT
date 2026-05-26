@@ -57,7 +57,10 @@ function isOriginAllowed(origin) {
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (isOriginAllowed(origin)) return callback(null, true);
+      const allowed = isOriginAllowed(origin);
+      console.log(`[CORS] origin=${origin || '(none)'} allowed=${allowed}`);
+      if (allowed) return callback(null, true);
+      console.warn('[CORS] denied origin:', origin, 'allowedPatterns:', allowedOrigins);
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
