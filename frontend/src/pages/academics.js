@@ -2,11 +2,22 @@ import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 
 export default function Academics() {
   const [activeTab, setActiveTab] = useState("departments");
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.academicsPage || {};
 
-  const departments = [
+  const departments = pageSettings.departments || [
     {
       name: "Computer Science & Engineering",
       hod: "Dr. Rajesh Kumar",
@@ -57,7 +68,7 @@ export default function Academics() {
     },
   ];
 
-  const academicCalendar = [
+  const academicCalendar = pageSettings.academicCalendar || [
     { event: "Odd Semester Begins", date: "August 1, 2025" },
     { event: "Mid-Term Examinations", date: "September 20-30, 2025" },
     { event: "End Semester Exams", date: "December 10-25, 2025" },
@@ -68,7 +79,7 @@ export default function Academics() {
     { event: "Summer Break", date: "May 26 - July 31, 2026" },
   ];
 
-  const facilities = [
+  const facilities = pageSettings.facilities || [
     {
       name: "Central Library",
       description: "100,000+ books, 10,000+ e-journals, 24/7 digital access",
@@ -120,7 +131,7 @@ export default function Academics() {
     },
   ];
 
-  const examSystem = [
+  const examSystem = pageSettings.examSystem || [
     {
       title: "Continuous Assessment",
       points: [
@@ -159,7 +170,7 @@ export default function Academics() {
     },
   ];
 
-  const facultyAchievements = [
+  const facultyAchievements = pageSettings.facultyAchievements || [
     { metric: "Ph.D. Faculty", value: "85%", icon: "🎓" },
     { metric: "Publications (2024)", value: "250+", icon: "📄" },
     { metric: "Research Projects", value: "120+", icon: "🔬" },
@@ -178,10 +189,11 @@ export default function Academics() {
             <span className="mx-2">/</span>
             <span>Academics</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Academic Excellence</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            {pageSettings.heroTitle || "Academic Excellence"}
+          </h1>
           <p className="text-xl opacity-90">
-            Comprehensive academic programs with world-class faculty and
-            infrastructure
+            {pageSettings.heroSubtitle || "Comprehensive academic programs with world-class faculty and infrastructure"}
           </p>
         </div>
       </section>

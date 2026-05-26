@@ -2,19 +2,31 @@ import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 
 export default function Programs() {
   const [selectedLevel, setSelectedLevel] = useState("undergraduate");
   const [selectedDomain, setSelectedDomain] = useState("engineering");
 
-  const programLevels = [
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.programsPage || {};
+
+  const programLevels = pageSettings.programLevels || [
     { id: "undergraduate", name: "Undergraduate", icon: "🎓" },
     { id: "postgraduate", name: "Postgraduate", icon: "📚" },
     { id: "doctoral", name: "Doctoral", icon: "🔬" },
     { id: "diploma", name: "Diploma", icon: "📜" },
   ];
 
-  const programs = {
+  const defaultProgramsCatalog = {
     undergraduate: {
       engineering: [
         {
@@ -237,6 +249,7 @@ export default function Programs() {
     },
   };
 
+  const programs = pageSettings.programsCatalog || defaultProgramsCatalog;
   const currentPrograms = programs[selectedLevel]?.[selectedDomain] || [];
 
   return (
@@ -251,10 +264,11 @@ export default function Programs() {
             <span className="mx-2">/</span>
             <span>Programs</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Academic Programs</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            {pageSettings.heroTitle || "Academic Programs"}
+          </h1>
           <p className="text-xl opacity-90">
-            Explore our diverse range of programs designed to shape future
-            leaders and innovators
+            {pageSettings.heroSubtitle || "Explore our diverse range of programs designed to shape future leaders and innovators"}
           </p>
         </div>
       </section>

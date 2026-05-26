@@ -2,178 +2,94 @@ import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
+
+const defaultOpenPositions = [
+  {
+    title: "Research Faculty - Computer Science",
+    type: "Full-time",
+    department: "Computer Science & Engineering",
+    location: "BBIT Campus, Kolkata",
+    experience: "3-10 years",
+    description: "Seeking experienced faculty with expertise in AI/ML, Data Science, or Cybersecurity to lead research projects and mentor students.",
+    requirements: ["Ph.D. in Computer Science or related field", "Strong publication record in reputed journals", "Experience in research project management", "Proficiency in programming and research tools"],
+    responsibilities: ["Lead research projects and guide research scholars", "Publish papers in high-impact journals", "Apply for research grants and funding", "Mentor undergraduate and graduate students"],
+  },
+  {
+    title: "Post-Doctoral Researcher - IoT & Smart Systems",
+    type: "Contract (2 years)",
+    department: "Electronics & Communication",
+    location: "BBIT Campus, Kolkata",
+    experience: "Fresh Ph.D. to 3 years",
+    description: "Post-doctoral position for IoT and smart systems research with focus on industrial applications and sensor networks.",
+    requirements: ["Ph.D. in Electronics/Computer Science/Related field", "Experience with IoT platforms and protocols", "Publications in IoT domain", "Programming skills (Python, C/C++)"],
+    responsibilities: ["Conduct independent research in IoT systems", "Collaborate on funded research projects", "Publish research findings", "Assist in lab management and student guidance"],
+  },
+  {
+    title: "Research Scholar - Artificial Intelligence",
+    type: "Ph.D. Position",
+    department: "Computer Science & Engineering",
+    location: "BBIT Campus, Kolkata",
+    experience: "M.Tech/M.S. in relevant field",
+    description: "Fully-funded Ph.D. position in AI research with focus on healthcare applications, computer vision, or natural language processing.",
+    requirements: ["Master's degree in Computer Science/AI/ML", "Strong mathematical and programming background", "Research publications (preferred)", "Valid GATE/NET score (preferred)"],
+    responsibilities: ["Conduct cutting-edge research in AI/ML", "Publish papers in top conferences and journals", "Assist in teaching and lab activities", "Complete Ph.D. within stipulated time"],
+  },
+  {
+    title: "Lab Manager - Research Infrastructure",
+    type: "Full-time",
+    department: "R&D Administration",
+    location: "BBIT Campus, Kolkata",
+    experience: "5+ years",
+    description: "Manage research labs, coordinate equipment maintenance, and support research activities across departments.",
+    requirements: ["B.Tech/M.Tech in Engineering", "Experience in lab management", "Knowledge of research equipment and safety protocols", "Strong organizational and coordination skills"],
+    responsibilities: ["Maintain and manage research laboratories", "Coordinate equipment procurement and maintenance", "Ensure safety and compliance standards", "Support researchers with technical requirements"],
+  },
+  {
+    title: "Research Associate - Robotics",
+    type: "Full-time",
+    department: "Mechanical Engineering",
+    location: "BBIT Campus, Kolkata",
+    experience: "1-5 years",
+    description: "Work on robotics and automation projects with focus on industrial applications and autonomous systems.",
+    requirements: ["M.Tech in Robotics/Mechanical/Related field", "Experience with ROS, embedded systems", "Programming skills (Python, C++)", "Knowledge of control systems and kinematics"],
+    responsibilities: ["Develop robotic systems and prototypes", "Conduct experiments and collect data", "Publish research findings", "Collaborate with industry partners"],
+  },
+];
+
+const defaultBenefits = [
+  { icon: "💰", title: "Competitive Salary", description: "Industry-leading compensation packages with performance bonuses and increments" },
+  { icon: "🎓", title: "Research Funding", description: "Access to internal and external funding opportunities for research projects" },
+  { icon: "🏥", title: "Health Insurance", description: "Comprehensive medical insurance for you and your family" },
+  { icon: "📚", title: "Learning & Development", description: "Conference sponsorship, training programs, and skill development opportunities" },
+  { icon: "🏖️", title: "Work-Life Balance", description: "Flexible work hours, paid leaves, and sabbatical options" },
+  { icon: "🌍", title: "International Collaboration", description: "Opportunities to collaborate with global research institutions" },
+];
+
+const defaultHiringProcess = [
+  { step: "1", title: "Apply Online", description: "Submit your application with CV, research statement, and publications" },
+  { step: "2", title: "Initial Screening", description: "Our team reviews applications and shortlists candidates" },
+  { step: "3", title: "Technical Interview", description: "Discussion about research interests and technical expertise" },
+  { step: "4", title: "Presentation", description: "Present your research work to the department faculty" },
+  { step: "5", title: "Final Interview", description: "Meet with department head and discuss terms" },
+  { step: "6", title: "Offer Letter", description: "Receive offer and complete joining formalities" },
+];
 
 export default function JoinOurTeam() {
   const [selectedPosition, setSelectedPosition] = useState(null);
-
-  const openPositions = [
-    {
-      title: "Research Faculty - Computer Science",
-      type: "Full-time",
-      department: "Computer Science & Engineering",
-      location: "BBIT Campus, Kolkata",
-      experience: "3-10 years",
-      description: "Seeking experienced faculty with expertise in AI/ML, Data Science, or Cybersecurity to lead research projects and mentor students.",
-      requirements: [
-        "Ph.D. in Computer Science or related field",
-        "Strong publication record in reputed journals",
-        "Experience in research project management",
-        "Proficiency in programming and research tools",
-      ],
-      responsibilities: [
-        "Lead research projects and guide research scholars",
-        "Publish papers in high-impact journals",
-        "Apply for research grants and funding",
-        "Mentor undergraduate and graduate students",
-      ],
-    },
-    {
-      title: "Post-Doctoral Researcher - IoT & Smart Systems",
-      type: "Contract (2 years)",
-      department: "Electronics & Communication",
-      location: "BBIT Campus, Kolkata",
-      experience: "Fresh Ph.D. to 3 years",
-      description: "Post-doctoral position for IoT and smart systems research with focus on industrial applications and sensor networks.",
-      requirements: [
-        "Ph.D. in Electronics/Computer Science/Related field",
-        "Experience with IoT platforms and protocols",
-        "Publications in IoT domain",
-        "Programming skills (Python, C/C++)",
-      ],
-      responsibilities: [
-        "Conduct independent research in IoT systems",
-        "Collaborate on funded research projects",
-        "Publish research findings",
-        "Assist in lab management and student guidance",
-      ],
-    },
-    {
-      title: "Research Scholar - Artificial Intelligence",
-      type: "Ph.D. Position",
-      department: "Computer Science & Engineering",
-      location: "BBIT Campus, Kolkata",
-      experience: "M.Tech/M.S. in relevant field",
-      description: "Fully-funded Ph.D. position in AI research with focus on healthcare applications, computer vision, or natural language processing.",
-      requirements: [
-        "Master's degree in Computer Science/AI/ML",
-        "Strong mathematical and programming background",
-        "Research publications (preferred)",
-        "Valid GATE/NET score (preferred)",
-      ],
-      responsibilities: [
-        "Conduct cutting-edge research in AI/ML",
-        "Publish papers in top conferences and journals",
-        "Assist in teaching and lab activities",
-        "Complete Ph.D. within stipulated time",
-      ],
-    },
-    {
-      title: "Lab Manager - Research Infrastructure",
-      type: "Full-time",
-      department: "R&D Administration",
-      location: "BBIT Campus, Kolkata",
-      experience: "5+ years",
-      description: "Manage research labs, coordinate equipment maintenance, and support research activities across departments.",
-      requirements: [
-        "B.Tech/M.Tech in Engineering",
-        "Experience in lab management",
-        "Knowledge of research equipment and safety protocols",
-        "Strong organizational and coordination skills",
-      ],
-      responsibilities: [
-        "Maintain and manage research laboratories",
-        "Coordinate equipment procurement and maintenance",
-        "Ensure safety and compliance standards",
-        "Support researchers with technical requirements",
-      ],
-    },
-    {
-      title: "Research Associate - Robotics",
-      type: "Full-time",
-      department: "Mechanical Engineering",
-      location: "BBIT Campus, Kolkata",
-      experience: "1-5 years",
-      description: "Work on robotics and automation projects with focus on industrial applications and autonomous systems.",
-      requirements: [
-        "M.Tech in Robotics/Mechanical/Related field",
-        "Experience with ROS, embedded systems",
-        "Programming skills (Python, C++)",
-        "Knowledge of control systems and kinematics",
-      ],
-      responsibilities: [
-        "Develop robotic systems and prototypes",
-        "Conduct experiments and collect data",
-        "Publish research findings",
-        "Collaborate with industry partners",
-      ],
-    },
-  ];
-
-  const benefits = [
-    {
-      icon: "💰",
-      title: "Competitive Salary",
-      description: "Industry-leading compensation packages with performance bonuses and increments",
-    },
-    {
-      icon: "🎓",
-      title: "Research Funding",
-      description: "Access to internal and external funding opportunities for research projects",
-    },
-    {
-      icon: "🏥",
-      title: "Health Insurance",
-      description: "Comprehensive medical insurance for you and your family",
-    },
-    {
-      icon: "📚",
-      title: "Learning & Development",
-      description: "Conference sponsorship, training programs, and skill development opportunities",
-    },
-    {
-      icon: "🏖️",
-      title: "Work-Life Balance",
-      description: "Flexible work hours, paid leaves, and sabbatical options",
-    },
-    {
-      icon: "🌍",
-      title: "International Collaboration",
-      description: "Opportunities to collaborate with global research institutions",
-    },
-  ];
-
-  const hiringProcess = [
-    {
-      step: "1",
-      title: "Apply Online",
-      description: "Submit your application with CV, research statement, and publications",
-    },
-    {
-      step: "2",
-      title: "Initial Screening",
-      description: "Our team reviews applications and shortlists candidates",
-    },
-    {
-      step: "3",
-      title: "Technical Interview",
-      description: "Discussion about research interests and technical expertise",
-    },
-    {
-      step: "4",
-      title: "Presentation",
-      description: "Present your research work to the department faculty",
-    },
-    {
-      step: "5",
-      title: "Final Interview",
-      description: "Meet with department head and discuss terms",
-    },
-    {
-      step: "6",
-      title: "Offer Letter",
-      description: "Receive offer and complete joining formalities",
-    },
-  ];
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.joinOurTeamPage || {};
+  const openPositions = pageSettings.openPositions || defaultOpenPositions;
+  const benefits = pageSettings.benefits || defaultBenefits;
+  const hiringProcess = pageSettings.hiringProcess || defaultHiringProcess;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -187,10 +103,8 @@ export default function JoinOurTeam() {
             <span className="mx-2">/</span>
             <span>Join Our Team</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Join Our Research Team</h1>
-          <p className="text-xl opacity-90">
-            Be part of cutting-edge research and shape the future of technology
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "Join Our Research Team"}</h1>
+          <p className="text-xl opacity-90">{pageSettings.heroSubtitle || "Be part of cutting-edge research and shape the future of technology"}</p>
         </div>
       </section>
 

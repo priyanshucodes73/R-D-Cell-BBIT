@@ -1,50 +1,98 @@
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
+
+const defaultPartnerships = [
+  { country: "🇺🇸 USA", universities: 12, programs: "Student Exchange, Joint Research" },
+  { country: "🇬🇧 UK", universities: 8, programs: "Dual Degree, Research Collaboration" },
+  { country: "🇨🇦 Canada", universities: 6, programs: "Study Abroad, Internships" },
+  { country: "🇦🇺 Australia", universities: 5, programs: "Exchange Programs, Research" },
+  { country: "🇩🇪 Germany", universities: 7, programs: "Engineering Exchange, Research" },
+  { country: "🇫🇷 France", universities: 4, programs: "Management Programs, Culture Exchange" },
+  { country: "🇯🇵 Japan", universities: 5, programs: "Technology Exchange, Research" },
+  { country: "🇸🇬 Singapore", universities: 3, programs: "MBA Exchange, Innovation Programs" },
+];
+
+const defaultInternationalPrograms = [
+  {
+    icon: "🎓",
+    title: "Student Exchange Programs",
+    desc: "Spend a semester or year at our partner universities worldwide",
+    features: ["1-2 Semesters Abroad", "Credit Transfer", "Scholarship Opportunities", "Cultural Immersion"],
+  },
+  {
+    icon: "🏆",
+    title: "Dual Degree Programs",
+    desc: "Earn degrees from BBIT and a partner university simultaneously",
+    features: ["2 Degrees in 4-5 Years", "International Exposure", "Enhanced Career Prospects", "Global Network"],
+  },
+  {
+    icon: "🔬",
+    title: "Research Collaboration",
+    desc: "Work with international faculty on cutting-edge research projects",
+    features: ["Joint Publications", "International Conferences", "Research Grants", "Global Recognition"],
+  },
+  {
+    icon: "💼",
+    title: "International Internships",
+    desc: "Gain work experience at leading companies worldwide",
+    features: ["Fortune 500 Companies", "Paid Internships", "3-6 Months Duration", "Career Placement Support"],
+  },
+  {
+    icon: "🌏",
+    title: "Study Tours",
+    desc: "Short-term academic and cultural immersion programs",
+    features: ["1-4 Weeks Duration", "Industry Visits", "Cultural Activities", "Faculty-Led Programs"],
+  },
+  {
+    icon: "🎤",
+    title: "Global Conferences",
+    desc: "Present your research at international conferences",
+    features: ["Travel Grants", "Networking Opportunities", "Publication Support", "Mentorship"],
+  },
+];
+
+const defaultApplicationSteps = [
+  { step: "1", title: "Check Eligibility", desc: "Review program requirements and eligibility criteria" },
+  { step: "2", title: "Submit Application", desc: "Complete online application with required documents" },
+  { step: "3", title: "Interview", desc: "Attend selection interview with international office" },
+  { step: "4", title: "Confirmation", desc: "Receive acceptance and begin visa process" },
+];
+
+const defaultTestimonials = [
+  {
+    name: "Priya Sharma",
+    program: "Exchange Program - MIT, USA",
+    quote: "The exchange program opened doors to incredible research opportunities and global networking.",
+  },
+  {
+    name: "Rahul Verma",
+    program: "Dual Degree - University of Toronto",
+    quote: "Earning two degrees from top institutions has significantly accelerated my career growth.",
+  },
+  {
+    name: "Anjali Patel",
+    program: "Internship - Google, Singapore",
+    quote: "The international internship helped me gain real-world experience at a leading tech company.",
+  },
+];
 
 export default function International() {
-  const partnerships = [
-    {
-      country: "🇺🇸 USA",
-      universities: 12,
-      programs: "Student Exchange, Joint Research",
-    },
-    {
-      country: "🇬🇧 UK",
-      universities: 8,
-      programs: "Dual Degree, Research Collaboration",
-    },
-    {
-      country: "🇨🇦 Canada",
-      universities: 6,
-      programs: "Study Abroad, Internships",
-    },
-    {
-      country: "🇦🇺 Australia",
-      universities: 5,
-      programs: "Exchange Programs, Research",
-    },
-    {
-      country: "🇩🇪 Germany",
-      universities: 7,
-      programs: "Engineering Exchange, Research",
-    },
-    {
-      country: "🇫🇷 France",
-      universities: 4,
-      programs: "Management Programs, Culture Exchange",
-    },
-    {
-      country: "🇯🇵 Japan",
-      universities: 5,
-      programs: "Technology Exchange, Research",
-    },
-    {
-      country: "🇸🇬 Singapore",
-      universities: 3,
-      programs: "MBA Exchange, Innovation Programs",
-    },
-  ];
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.internationalPage || {};
+  const partnerships = pageSettings.partnerships || defaultPartnerships;
+  const internationalPrograms = pageSettings.programs || defaultInternationalPrograms;
+  const applicationSteps = pageSettings.applicationSteps || defaultApplicationSteps;
+  const testimonials = pageSettings.testimonials || defaultTestimonials;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,10 +107,10 @@ export default function International() {
             <span>International</span>
           </div>
           <h1 className="text-5xl font-bold mb-4">
-            Global Partnerships & International Programs
+            {pageSettings.heroTitle || "Global Partnerships & International Programs"}
           </h1>
           <p className="text-xl opacity-90">
-            Connecting BBIT students with world-class institutions worldwide
+            {pageSettings.heroSubtitle || "Connecting BBIT students with world-class institutions worldwide"}
           </p>
         </div>
       </section>
@@ -101,74 +149,7 @@ export default function International() {
           International Programs
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: "🎓",
-              title: "Student Exchange Programs",
-              desc: "Spend a semester or year at our partner universities worldwide",
-              features: [
-                "1-2 Semesters Abroad",
-                "Credit Transfer",
-                "Scholarship Opportunities",
-                "Cultural Immersion",
-              ],
-            },
-            {
-              icon: "🏆",
-              title: "Dual Degree Programs",
-              desc: "Earn degrees from BBIT and a partner university simultaneously",
-              features: [
-                "2 Degrees in 4-5 Years",
-                "International Exposure",
-                "Enhanced Career Prospects",
-                "Global Network",
-              ],
-            },
-            {
-              icon: "🔬",
-              title: "Research Collaboration",
-              desc: "Work with international faculty on cutting-edge research projects",
-              features: [
-                "Joint Publications",
-                "International Conferences",
-                "Research Grants",
-                "Global Recognition",
-              ],
-            },
-            {
-              icon: "💼",
-              title: "International Internships",
-              desc: "Gain work experience at leading companies worldwide",
-              features: [
-                "Fortune 500 Companies",
-                "Paid Internships",
-                "3-6 Months Duration",
-                "Career Placement Support",
-              ],
-            },
-            {
-              icon: "🌏",
-              title: "Study Tours",
-              desc: "Short-term academic and cultural immersion programs",
-              features: [
-                "1-4 Weeks Duration",
-                "Industry Visits",
-                "Cultural Activities",
-                "Faculty-Led Programs",
-              ],
-            },
-            {
-              icon: "🎤",
-              title: "Global Conferences",
-              desc: "Present your research at international conferences",
-              features: [
-                "Travel Grants",
-                "Networking Opportunities",
-                "Publication Support",
-                "Mentorship",
-              ],
-            },
-          ].map((program, idx) => (
+          {internationalPrograms.map((program, idx) => (
             <div
               key={idx}
               className="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition"
@@ -229,28 +210,7 @@ export default function International() {
           How to Apply
         </h2>
         <div className="grid md:grid-cols-4 gap-6">
-          {[
-            {
-              step: "1",
-              title: "Check Eligibility",
-              desc: "Review program requirements and eligibility criteria",
-            },
-            {
-              step: "2",
-              title: "Submit Application",
-              desc: "Complete online application with required documents",
-            },
-            {
-              step: "3",
-              title: "Interview",
-              desc: "Attend selection interview with international office",
-            },
-            {
-              step: "4",
-              title: "Confirmation",
-              desc: "Receive acceptance and begin visa process",
-            },
-          ].map((item, idx) => (
+          {applicationSteps.map((item, idx) => (
             <div key={idx} className="relative">
               <div className="bg-white p-8 rounded-xl shadow-lg text-center">
                 <div className="w-16 h-16 bg-indigo-900 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
@@ -283,26 +243,7 @@ export default function International() {
             Student Experiences
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Priya Sharma",
-                program: "Exchange Program - MIT, USA",
-                quote:
-                  "The exchange program opened doors to incredible research opportunities and global networking.",
-              },
-              {
-                name: "Rahul Verma",
-                program: "Dual Degree - University of Toronto",
-                quote:
-                  "Earning two degrees from top institutions has significantly accelerated my career growth.",
-              },
-              {
-                name: "Anjali Patel",
-                program: "Internship - Google, Singapore",
-                quote:
-                  "The international internship helped me gain real-world experience at a leading tech company.",
-              },
-            ].map((testimonial, idx) => (
+            {testimonials.map((testimonial, idx) => (
               <div
                 key={idx}
                 className="bg-white/10 backdrop-blur-sm p-6 rounded-xl"

@@ -1,8 +1,74 @@
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
+
+const defaultQuickAccess = [
+  { icon: "🎓", label: "Academic Support", href: "#academic" },
+  { icon: "🏥", label: "Health Services", href: "#health" },
+  { icon: "🏠", label: "Hostel Services", href: "#hostel" },
+  { icon: "💰", label: "Financial Aid", href: "#financial" },
+];
+
+const defaultAcademicServices = [
+  {
+    icon: "📚",
+    title: "Academic Advising",
+    desc: "One-on-one guidance for course selection, academic planning, and career pathways",
+    features: ["Personal Academic Advisor", "Degree Progress Tracking", "Course Planning", "Major/Minor Selection"],
+  },
+  {
+    icon: "✍️",
+    title: "Writing Center",
+    desc: "Support for improving academic writing, research papers, and documentation",
+    features: ["Essay Review", "Citation Help", "Research Guidance", "Grammar & Style"],
+  },
+  {
+    icon: "🧮",
+    title: "Tutoring Services",
+    desc: "Free peer tutoring and subject-specific help in mathematics, sciences, and more",
+    features: ["Peer Tutors", "Group Study Sessions", "Online Tutoring", "Exam Preparation"],
+  },
+  {
+    icon: "🗣️",
+    title: "Language Lab",
+    desc: "Resources for improving communication skills and learning foreign languages",
+    features: ["English Proficiency", "Foreign Languages", "Presentation Skills", "Public Speaking"],
+  },
+  {
+    icon: "💻",
+    title: "IT Support",
+    desc: "Technical assistance for software, systems, and online learning platforms",
+    features: ["24/7 Help Desk", "Software Access", "Account Support", "Network Issues"],
+  },
+  {
+    icon: "🎯",
+    title: "Career Counseling",
+    desc: "Guidance for career planning, resume building, and interview preparation",
+    features: ["Career Assessment", "Resume Reviews", "Mock Interviews", "Job Search Help"],
+  },
+];
 
 export default function StudentServices() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(
+    apiBase ? `${apiBase}/api/site-settings` : null,
+    fetcher
+  );
+  const siteSettings = {
+    ...defaultPublicSettings,
+    ...normalizeSiteSettings(siteSettingsData),
+  };
+  const pageSettings = siteSettings.studentServicesPage || {};
+  const quickAccess = pageSettings.quickAccess || defaultQuickAccess;
+  const academicServices = pageSettings.academicServices || defaultAcademicServices;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -15,9 +81,12 @@ export default function StudentServices() {
             <span className="mx-2">/</span>
             <span>Student Services</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Student Services</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            {pageSettings.heroTitle || "Student Services"}
+          </h1>
           <p className="text-xl opacity-90">
-            Supporting your academic journey and personal growth
+            {pageSettings.heroSubtitle ||
+              "Supporting your academic journey and personal growth"}
           </p>
         </div>
       </section>
@@ -26,12 +95,7 @@ export default function StudentServices() {
       <section className="bg-white py-12 shadow-md">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: "🎓", label: "Academic Support", href: "#academic" },
-              { icon: "🏥", label: "Health Services", href: "#health" },
-              { icon: "🏠", label: "Hostel Services", href: "#hostel" },
-              { icon: "💰", label: "Financial Aid", href: "#financial" },
-            ].map((item, idx) => (
+            {quickAccess.map((item, idx) => (
               <a
                 key={idx}
                 href={item.href}
@@ -51,74 +115,7 @@ export default function StudentServices() {
           Academic Support Services
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: "📚",
-              title: "Academic Advising",
-              desc: "One-on-one guidance for course selection, academic planning, and career pathways",
-              features: [
-                "Personal Academic Advisor",
-                "Degree Progress Tracking",
-                "Course Planning",
-                "Major/Minor Selection",
-              ],
-            },
-            {
-              icon: "✍️",
-              title: "Writing Center",
-              desc: "Support for improving academic writing, research papers, and documentation",
-              features: [
-                "Essay Review",
-                "Citation Help",
-                "Research Guidance",
-                "Grammar & Style",
-              ],
-            },
-            {
-              icon: "🧮",
-              title: "Tutoring Services",
-              desc: "Free peer tutoring and subject-specific help in mathematics, sciences, and more",
-              features: [
-                "Peer Tutors",
-                "Group Study Sessions",
-                "Online Tutoring",
-                "Exam Preparation",
-              ],
-            },
-            {
-              icon: "🗣️",
-              title: "Language Lab",
-              desc: "Resources for improving communication skills and learning foreign languages",
-              features: [
-                "English Proficiency",
-                "Foreign Languages",
-                "Presentation Skills",
-                "Public Speaking",
-              ],
-            },
-            {
-              icon: "💻",
-              title: "IT Support",
-              desc: "Technical assistance for software, systems, and online learning platforms",
-              features: [
-                "24/7 Help Desk",
-                "Software Access",
-                "Account Support",
-                "Network Issues",
-              ],
-            },
-            {
-              icon: "🎯",
-              title: "Career Counseling",
-              desc: "Guidance for career planning, resume building, and interview preparation",
-              features: [
-                "Career Assessment",
-                "Resume Reviews",
-                "Mock Interviews",
-                "Job Search Help",
-              ],
-            },
-          ].map((service, idx) => (
+          {academicServices.map((service, idx) => (
             <div
               key={idx}
               className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition"

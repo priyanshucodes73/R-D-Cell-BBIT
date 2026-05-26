@@ -2,9 +2,20 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 
 export default function Login() {
   const router = useRouter();
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.loginPage || {};
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -53,14 +64,14 @@ export default function Login() {
       <div className="max-w-md w-full">
         {/* Logo/Title */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">BBIT R&D Cell</h1>
-          <p className="text-blue-200">User Login (Students & Faculty)</p>
+          <h1 className="text-4xl font-bold text-white mb-2">{pageSettings.heroTitle || "BBIT R&D Cell"}</h1>
+          <p className="text-blue-200">{pageSettings.heroSubtitle || "User Login (Students & Faculty)"}</p>
         </div>
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            Welcome Back
+            {pageSettings.cardTitle || "Welcome Back"}
           </h2>
 
           {error && (
@@ -138,9 +149,9 @@ export default function Login() {
           {/* Signup Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Don't have an account?{" "}
+              {pageSettings.signupPrompt || "Don't have an account?"}{" "}
               <Link href="/register" className="text-blue-600 hover:text-blue-800 font-semibold">
-                Sign up here
+                {pageSettings.signupLinkLabel || "Sign up here"}
               </Link>
             </p>
           </div>

@@ -3,6 +3,13 @@ import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FaHome, FaInfoCircle } from "react-icons/fa";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 
 // Page content mapping
 const pageContent = {
@@ -1473,9 +1480,18 @@ const pageContent = {
 
 export default function GenericPage() {
   const router = useRouter();
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(
+    apiBase ? `${apiBase}/api/site-settings` : null,
+    fetcher
+  );
+  const siteSettings = {
+    ...defaultPublicSettings,
+    ...normalizeSiteSettings(siteSettingsData),
+  };
   const { slug } = router.query;
 
-  const page = slug ? pageContent[slug] : null;
+  const page = slug ? (siteSettings.slugPages?.[slug] || pageContent[slug]) : null;
 
   if (!page) {
     return (

@@ -1,6 +1,13 @@
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 import {
   FaUniversity,
   FaHandshake,
@@ -10,7 +17,46 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 
+const defaultPartnerBanks = [
+  { name: "State Bank of India", rate: "8.50%", amount: "Up to ₹40 lakhs" },
+  { name: "HDFC Bank", rate: "9.00%", amount: "Up to ₹30 lakhs" },
+  { name: "ICICI Bank", rate: "9.25%", amount: "Up to ₹35 lakhs" },
+  { name: "Axis Bank", rate: "9.50%", amount: "Up to ₹25 lakhs" },
+  { name: "Punjab National Bank", rate: "8.75%", amount: "Up to ₹30 lakhs" },
+  { name: "Bank of Baroda", rate: "8.65%", amount: "Up to ₹30 lakhs" },
+  { name: "Canara Bank", rate: "8.90%", amount: "Up to ₹20 lakhs" },
+  { name: "Union Bank", rate: "9.00%", amount: "Up to ₹25 lakhs" },
+];
+
+const defaultLoanFeatures = [
+  { icon: <FaPercent />, title: "Competitive Rates", desc: "Starting from 8.50% per annum" },
+  { icon: <FaRupeeSign />, title: "100% Finance", desc: "No margin for loans up to ₹7.5 lakhs" },
+  { icon: <FaFileContract />, title: "Quick Processing", desc: "Loan approval within 7-10 days" },
+  { icon: <FaHandshake />, title: "No Collateral", desc: "For loans up to ₹7.5 lakhs" },
+];
+
+const defaultEligibility = [
+  "Indian citizen with confirmed admission to BBIT",
+  "Co-applicant with stable income required",
+  "Age between 18-35 years",
+  "Good academic record",
+];
+
 export default function EducationLoan() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(
+    apiBase ? `${apiBase}/api/site-settings` : null,
+    fetcher
+  );
+  const siteSettings = {
+    ...defaultPublicSettings,
+    ...normalizeSiteSettings(siteSettingsData),
+  };
+  const pageSettings = siteSettings.educationLoanPage || {};
+  const partnerBanks = pageSettings.partnerBanks || defaultPartnerBanks;
+  const loanFeatures = pageSettings.loanFeatures || defaultLoanFeatures;
+  const eligibility = pageSettings.eligibility || defaultEligibility;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 text-white py-20">
@@ -29,9 +75,12 @@ export default function EducationLoan() {
             <span className="mx-2">/</span>
             <span>Education Loan</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Education Loan Assistance</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            {pageSettings.heroTitle || "Education Loan Assistance"}
+          </h1>
           <p className="text-xl opacity-90">
-            Easy financing options to support your academic dreams at BBIT
+            {pageSettings.heroSubtitle ||
+              "Easy financing options to support your academic dreams at BBIT"}
           </p>
         </div>
       </section>
@@ -41,28 +90,7 @@ export default function EducationLoan() {
           Partner Banks
         </h2>
         <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[
-            {
-              name: "State Bank of India",
-              rate: "8.50%",
-              amount: "Up to ₹40 lakhs",
-            },
-            { name: "HDFC Bank", rate: "9.00%", amount: "Up to ₹30 lakhs" },
-            { name: "ICICI Bank", rate: "9.25%", amount: "Up to ₹35 lakhs" },
-            { name: "Axis Bank", rate: "9.50%", amount: "Up to ₹25 lakhs" },
-            {
-              name: "Punjab National Bank",
-              rate: "8.75%",
-              amount: "Up to ₹30 lakhs",
-            },
-            {
-              name: "Bank of Baroda",
-              rate: "8.65%",
-              amount: "Up to ₹30 lakhs",
-            },
-            { name: "Canara Bank", rate: "8.90%", amount: "Up to ₹20 lakhs" },
-            { name: "Union Bank", rate: "9.00%", amount: "Up to ₹25 lakhs" },
-          ].map((bank, index) => (
+          {partnerBanks.map((bank, index) => (
             <div
               key={index}
               className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-t-4 border-blue-600"
@@ -90,28 +118,7 @@ export default function EducationLoan() {
             Loan Features & Benefits
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: <FaPercent />,
-                title: "Competitive Rates",
-                desc: "Starting from 8.50% per annum",
-              },
-              {
-                icon: <FaRupeeSign />,
-                title: "100% Finance",
-                desc: "No margin for loans up to ₹7.5 lakhs",
-              },
-              {
-                icon: <FaFileContract />,
-                title: "Quick Processing",
-                desc: "Loan approval within 7-10 days",
-              },
-              {
-                icon: <FaHandshake />,
-                title: "No Collateral",
-                desc: "For loans up to ₹7.5 lakhs",
-              },
-            ].map((feature, index) => (
+            {loanFeatures.map((feature, index) => (
               <div
                 key={index}
                 className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-center border border-white/20 hover:bg-white/20 transition-all duration-300"
@@ -133,22 +140,12 @@ export default function EducationLoan() {
         </h2>
         <div className="bg-white p-8 rounded-xl shadow-lg">
           <ul className="space-y-3 text-lg">
-            <li className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0 text-xl" />
-              <span>Indian citizen with confirmed admission to BBIT</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0 text-xl" />
-              <span>Co-applicant with stable income required</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0 text-xl" />
-              <span>Age between 18-35 years</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0 text-xl" />
-              <span>Good academic record</span>
-            </li>
+            {eligibility.map((item, index) => (
+              <li key={index} className="flex items-start gap-3">
+                <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0 text-xl" />
+                <span>{item}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </section>

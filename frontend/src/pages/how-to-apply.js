@@ -1,6 +1,13 @@
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 import {
   FaUserPlus,
   FaEdit,
@@ -10,7 +17,122 @@ import {
   FaDownload,
 } from "react-icons/fa";
 
+const defaultProcessSteps = [
+  {
+    step: 1,
+    icon: <FaUserPlus />,
+    title: "Step 1: Register Online",
+    color: "blue",
+    details: [
+      "Visit the BBIT admissions portal at www.bbit.edu.in",
+      "Click on 'New Registration' button",
+      "Enter your basic details: Name, Email, Mobile Number",
+      "Create a strong password for your account",
+      "Verify your email and mobile number via OTP",
+      "Your Login credentials will be sent to your registered email",
+    ],
+  },
+  {
+    step: 2,
+    icon: <FaEdit />,
+    title: "Step 2: Fill Application Form",
+    color: "green",
+    details: [
+      "Login using your credentials",
+      "Fill personal details: Date of Birth, Gender, Category",
+      "Enter academic information: 10th, 12th marks and subjects",
+      "Provide parent/guardian information",
+      "Select your preferred program and specialization",
+      "Enter entrance exam details (JEE/WBJEE/GATE score)",
+      "Fill contact details and permanent address",
+    ],
+  },
+  {
+    step: 3,
+    icon: <FaUpload />,
+    title: "Step 3: Upload Documents",
+    color: "purple",
+    details: [
+      "Recent passport-size photograph (JPG, max 200KB)",
+      "Scanned signature (JPG, max 100KB)",
+      "10th mark sheet and certificate (PDF, max 500KB)",
+      "12th mark sheet and certificate (PDF, max 500KB)",
+      "JEE/WBJEE/GATE scorecard (if applicable)",
+      "Aadhar card (PDF, max 300KB)",
+      "Category certificate (SC/ST/OBC, if applicable)",
+      "Migration certificate (for students from other boards)",
+    ],
+  },
+  {
+    step: 4,
+    icon: <FaMoneyCheckAlt />,
+    title: "Step 4: Pay Application Fee",
+    color: "orange",
+    details: [
+      "Application Fee: ₹1,000 for General/OBC candidates",
+      "Application Fee: ₹500 for SC/ST/PWD candidates",
+      "Payment methods: Credit Card, Debit Card, Net Banking, UPI",
+      "Keep the transaction ID for future reference",
+      "Download the payment receipt",
+      "Fee once paid is non-refundable",
+    ],
+  },
+  {
+    step: 5,
+    icon: <FaCheckCircle />,
+    title: "Step 5: Submit & Download",
+    color: "teal",
+    details: [
+      "Review all entered information carefully",
+      "Check for any errors or missing information",
+      "Click on 'Final Submit' button",
+      "Download the application form",
+      "Take a printout for your records",
+      "Note down your application number",
+      "You will receive confirmation email with application details",
+    ],
+  },
+];
+
+const defaultDocuments = [
+  "Recent Passport Size Photograph",
+  "Scanned Signature",
+  "10th Mark Sheet & Certificate",
+  "12th Mark Sheet & Certificate",
+  "Transfer Certificate",
+  "Migration Certificate",
+  "JEE Main/WBJEE Scorecard",
+  "Aadhar Card",
+  "Category Certificate (if applicable)",
+  "Income Certificate (for scholarship)",
+  "Domicile Certificate",
+  "Character Certificate",
+];
+
+const defaultNotes = [
+  "Ensure all information entered is correct. No changes will be allowed after final submission.",
+  "Upload clear and legible scanned copies of documents in the specified format.",
+  "Application fee is non-refundable under any circumstances.",
+  "Keep your login credentials safe for future reference.",
+  "Incomplete applications will be automatically rejected.",
+  "Candidates must regularly check their email and admission portal for updates.",
+];
+
 export default function HowToApply() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(
+    apiBase ? `${apiBase}/api/site-settings` : null,
+    fetcher
+  );
+  const siteSettings = {
+    ...defaultPublicSettings,
+    ...normalizeSiteSettings(siteSettingsData),
+  };
+  const pageSettings = siteSettings.howToApplyPage || {};
+  const processSteps = pageSettings.processSteps || defaultProcessSteps;
+  const documentChecklist = pageSettings.documents || defaultDocuments;
+  const notes = pageSettings.notes || defaultNotes;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -30,9 +152,12 @@ export default function HowToApply() {
             <span className="mx-2">/</span>
             <span>How to Apply</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">How to Apply</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            {pageSettings.heroTitle || "How to Apply"}
+          </h1>
           <p className="text-xl opacity-90">
-            Complete step-by-step guide to apply for BBIT programs
+            {pageSettings.heroSubtitle ||
+              "Complete step-by-step guide to apply for BBIT programs"}
           </p>
         </div>
       </section>
@@ -44,82 +169,7 @@ export default function HowToApply() {
         </h2>
 
         <div className="space-y-8">
-          {[
-            {
-              step: 1,
-              icon: <FaUserPlus />,
-              title: "Step 1: Register Online",
-              color: "blue",
-              details: [
-                "Visit the BBIT admissions portal at www.bbit.edu.in",
-                "Click on 'New Registration' button",
-                "Enter your basic details: Name, Email, Mobile Number",
-                "Create a strong password for your account",
-                "Verify your email and mobile number via OTP",
-                "Your Login credentials will be sent to your registered email",
-              ],
-            },
-            {
-              step: 2,
-              icon: <FaEdit />,
-              title: "Step 2: Fill Application Form",
-              color: "green",
-              details: [
-                "Login using your credentials",
-                "Fill personal details: Date of Birth, Gender, Category",
-                "Enter academic information: 10th, 12th marks and subjects",
-                "Provide parent/guardian information",
-                "Select your preferred program and specialization",
-                "Enter entrance exam details (JEE/WBJEE/GATE score)",
-                "Fill contact details and permanent address",
-              ],
-            },
-            {
-              step: 3,
-              icon: <FaUpload />,
-              title: "Step 3: Upload Documents",
-              color: "purple",
-              details: [
-                "Recent passport-size photograph (JPG, max 200KB)",
-                "Scanned signature (JPG, max 100KB)",
-                "10th mark sheet and certificate (PDF, max 500KB)",
-                "12th mark sheet and certificate (PDF, max 500KB)",
-                "JEE/WBJEE/GATE scorecard (if applicable)",
-                "Aadhar card (PDF, max 300KB)",
-                "Category certificate (SC/ST/OBC, if applicable)",
-                "Migration certificate (for students from other boards)",
-              ],
-            },
-            {
-              step: 4,
-              icon: <FaMoneyCheckAlt />,
-              title: "Step 4: Pay Application Fee",
-              color: "orange",
-              details: [
-                "Application Fee: ₹1,000 for General/OBC candidates",
-                "Application Fee: ₹500 for SC/ST/PWD candidates",
-                "Payment methods: Credit Card, Debit Card, Net Banking, UPI",
-                "Keep the transaction ID for future reference",
-                "Download the payment receipt",
-                "Fee once paid is non-refundable",
-              ],
-            },
-            {
-              step: 5,
-              icon: <FaCheckCircle />,
-              title: "Step 5: Submit & Download",
-              color: "teal",
-              details: [
-                "Review all entered information carefully",
-                "Check for any errors or missing information",
-                "Click on 'Final Submit' button",
-                "Download the application form",
-                "Take a printout for your records",
-                "Note down your application number",
-                "You will receive confirmation email with application details",
-              ],
-            },
-          ].map((item, index) => (
+          {processSteps.map((item, index) => (
             <div
               key={index}
               className={`bg-white rounded-xl shadow-lg overflow-hidden border-l-8 border-${item.color}-500`}
@@ -157,20 +207,7 @@ export default function HowToApply() {
             Required Documents Checklist
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              "Recent Passport Size Photograph",
-              "Scanned Signature",
-              "10th Mark Sheet & Certificate",
-              "12th Mark Sheet & Certificate",
-              "Transfer Certificate",
-              "Migration Certificate",
-              "JEE Main/WBJEE Scorecard",
-              "Aadhar Card",
-              "Category Certificate (if applicable)",
-              "Income Certificate (for scholarship)",
-              "Domicile Certificate",
-              "Character Certificate",
-            ].map((doc, index) => (
+            {documentChecklist.map((doc, index) => (
               <div
                 key={index}
                 className="bg-white/10 backdrop-blur-md p-4 rounded-lg border border-white/20 hover:bg-white/20 transition-all duration-300"
@@ -192,45 +229,12 @@ export default function HowToApply() {
         </h2>
         <div className="bg-yellow-50 border-l-4 border-yellow-500 p-8 rounded-lg">
           <ul className="space-y-3">
-            <li className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">•</span>
-              <span>
-                Ensure all information entered is correct. No changes will be
-                allowed after final submission.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">•</span>
-              <span>
-                Upload clear and legible scanned copies of documents in the
-                specified format.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">•</span>
-              <span>
-                Application fee is non-refundable under any circumstances.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">•</span>
-              <span>
-                Keep your login credentials safe for future reference.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">•</span>
-              <span>
-                Incomplete applications will be automatically rejected.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">•</span>
-              <span>
-                Candidates must regularly check their email and admission portal
-                for updates.
-              </span>
-            </li>
+            {notes.map((note, index) => (
+              <li key={index} className="flex items-start gap-3">
+                <span className="text-yellow-600 font-bold">•</span>
+                <span>{note}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </section>

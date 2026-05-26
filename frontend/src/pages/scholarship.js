@@ -1,6 +1,13 @@
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 import {
   FaGraduationCap,
   FaRupeeSign,
@@ -9,7 +16,82 @@ import {
   FaHandHoldingUsd,
 } from "react-icons/fa";
 
+const defaultScholarshipStats = [
+  { value: "₹50 Cr+", label: "Total Scholarships Awarded", border: "purple", text: "purple" },
+  { value: "5,000+", label: "Students Benefited", border: "blue", text: "blue" },
+  { value: "15+", label: "Scholarship Programs", border: "green", text: "green" },
+  { value: "100%", label: "Tuition Fee Waivers Available", border: "orange", text: "orange" },
+];
+
+const defaultMeritScholarships = [
+  { name: "BBIT Excellence Scholarship", icon: <FaTrophy />, amount: "100% Tuition Fee Waiver", color: "yellow", criteria: ["JEE Main rank under 5,000", "WBJEE rank under 1,000", "98%+ in 12th Board Exams", "For entire duration of the program"] },
+  { name: "BBIT Merit Scholarship", icon: <FaAward />, amount: "50% Tuition Fee Waiver", color: "blue", criteria: ["JEE Main rank 5,000-15,000", "WBJEE rank 1,000-3,000", "95%+ in 12th Board Exams", "Renewable annually based on CGPA"] },
+  { name: "Academic Achievement Award", icon: <FaGraduationCap />, amount: "₹50,000 per year", color: "green", criteria: ["JEE Main rank 15,000-30,000", "WBJEE rank 3,000-5,000", "90%+ in 12th Board Exams", "Maintain 8.5+ CGPA"] },
+  { name: "Toppers Scholarship", icon: <FaTrophy />, amount: "₹25,000 per year", color: "purple", criteria: ["Board exam district/state topper", "85%+ in 12th Board Exams", "Valid entrance exam score", "Merit-based continuation"] },
+];
+
+const defaultNeedAid = [
+  { name: "Financial Assistance Scheme", amount: "Up to 75% Fee Waiver", criteria: "Annual family income < ₹5 lakhs" },
+  { name: "EWS Scholarship", amount: "Up to 50% Fee Waiver", criteria: "Economically Weaker Section certificate holders" },
+  { name: "Single Parent Support", amount: "Up to 40% Fee Waiver", criteria: "For students from single-parent families" },
+];
+
+const defaultGovernmentScholarships = [
+  { name: "National Scholarship Portal (NSP)", amount: "Variable", category: "SC/ST/OBC/Minority" },
+  { name: "Post-Matric Scholarship", amount: "₹10,000-15,000/year", category: "SC/ST Students" },
+  { name: "OBC Scholarship", amount: "₹3,000-5,000/year", category: "OBC Students" },
+  { name: "Minority Scholarship", amount: "₹5,000-12,000/year", category: "Minority Communities" },
+  { name: "Girl Child Scholarship", amount: "₹2,000-8,000/year", category: "Female Students" },
+  { name: "PWD Scholarship", amount: "₹10,000-20,000/year", category: "Persons with Disabilities" },
+];
+
+const defaultSpecialScholarships = [
+  {
+    title: "Sports Excellence Scholarship",
+    amount: "₹30,000 - ₹100,000/year",
+    items: ["National level sports participation", "State level championship winners", "University sports team members", "Olympic/Asian Games participants"],
+  },
+  {
+    title: "Cultural Talent Scholarship",
+    amount: "₹15,000 - ₹50,000/year",
+    items: ["National level cultural competitions", "State level awards in arts/music", "Theatre and performing arts excellence", "Literary achievements and publications"],
+  },
+];
+
+const defaultApplicationSteps = [
+  { step: "1", title: "Apply for Admission", desc: "Complete your BBIT admission application process first" },
+  { step: "2", title: "Fill Scholarship Form", desc: "Submit scholarship application form with required documents" },
+  { step: "3", title: "Verification & Award", desc: "Documents verified and scholarship awarded within 15 days" },
+];
+
+const defaultRequiredDocuments = [
+  "Scholarship application form",
+  "Income certificate (for need-based)",
+  "Caste certificate (if applicable)",
+  "10th & 12th mark sheets",
+  "Entrance exam scorecard",
+  "Aadhar card copy",
+  "Bank account details",
+  "Passport size photographs",
+  "Sports/Cultural certificates (if applicable)",
+  "EWS certificate (if applicable)",
+  "Disability certificate (if applicable)",
+  "Parent's income proof",
+];
+
 export default function Scholarship() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.scholarshipPage || {};
+  const scholarshipStats = pageSettings.stats || defaultScholarshipStats;
+  const meritScholarships = pageSettings.meritScholarships || defaultMeritScholarships;
+  const needAid = pageSettings.needBasedAid || defaultNeedAid;
+  const governmentScholarships = pageSettings.governmentScholarships || defaultGovernmentScholarships;
+  const specialScholarships = pageSettings.specialScholarships || defaultSpecialScholarships;
+  const applicationSteps = pageSettings.applicationSteps || defaultApplicationSteps;
+  const requiredDocuments = pageSettings.requiredDocuments || defaultRequiredDocuments;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -29,9 +111,11 @@ export default function Scholarship() {
             <span className="mx-2">/</span>
             <span>Scholarships</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">BBIT Scholarships 2025</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            {pageSettings.heroTitle || "BBIT Scholarships 2025"}
+          </h1>
           <p className="text-xl opacity-90">
-            Financial assistance for meritorious and deserving students
+            {pageSettings.heroSubtitle || "Financial assistance for meritorious and deserving students"}
           </p>
         </div>
       </section>
@@ -39,24 +123,12 @@ export default function Scholarship() {
       {/* Scholarship Stats */}
       <section className="max-w-6xl mx-auto px-4 -mt-10 relative z-10">
         <div className="grid md:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center border-t-4 border-purple-600">
-            <div className="text-4xl font-bold text-purple-600 mb-2">
-              ₹50 Cr+
+          {scholarshipStats.map((stat, index) => (
+            <div key={index} className={`bg-white p-6 rounded-xl shadow-lg text-center border-t-4 border-${stat.border}-600`}>
+              <div className={`text-4xl font-bold text-${stat.text}-600 mb-2`}>{stat.value}</div>
+              <div className="text-gray-600">{stat.label}</div>
             </div>
-            <div className="text-gray-600">Total Scholarships Awarded</div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center border-t-4 border-blue-600">
-            <div className="text-4xl font-bold text-blue-600 mb-2">5,000+</div>
-            <div className="text-gray-600">Students Benefited</div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center border-t-4 border-green-600">
-            <div className="text-4xl font-bold text-green-600 mb-2">15+</div>
-            <div className="text-gray-600">Scholarship Programs</div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center border-t-4 border-orange-600">
-            <div className="text-4xl font-bold text-orange-600 mb-2">100%</div>
-            <div className="text-gray-600">Tuition Fee Waivers Available</div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -66,56 +138,7 @@ export default function Scholarship() {
           Merit-Based Scholarships
         </h2>
         <div className="grid md:grid-cols-2 gap-8">
-          {[
-            {
-              name: "BBIT Excellence Scholarship",
-              icon: <FaTrophy />,
-              amount: "100% Tuition Fee Waiver",
-              color: "yellow",
-              criteria: [
-                "JEE Main rank under 5,000",
-                "WBJEE rank under 1,000",
-                "98%+ in 12th Board Exams",
-                "For entire duration of the program",
-              ],
-            },
-            {
-              name: "BBIT Merit Scholarship",
-              icon: <FaAward />,
-              amount: "50% Tuition Fee Waiver",
-              color: "blue",
-              criteria: [
-                "JEE Main rank 5,000-15,000",
-                "WBJEE rank 1,000-3,000",
-                "95%+ in 12th Board Exams",
-                "Renewable annually based on CGPA",
-              ],
-            },
-            {
-              name: "Academic Achievement Award",
-              icon: <FaGraduationCap />,
-              amount: "₹50,000 per year",
-              color: "green",
-              criteria: [
-                "JEE Main rank 15,000-30,000",
-                "WBJEE rank 3,000-5,000",
-                "90%+ in 12th Board Exams",
-                "Maintain 8.5+ CGPA",
-              ],
-            },
-            {
-              name: "Toppers Scholarship",
-              icon: <FaTrophy />,
-              amount: "₹25,000 per year",
-              color: "purple",
-              criteria: [
-                "Board exam district/state topper",
-                "85%+ in 12th Board Exams",
-                "Valid entrance exam score",
-                "Merit-based continuation",
-              ],
-            },
-          ].map((scholarship, index) => (
+          {meritScholarships.map((scholarship, index) => (
             <div
               key={index}
               className="bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-${scholarship.color}-500 hover:shadow-xl transition-all duration-300"
@@ -158,23 +181,7 @@ export default function Scholarship() {
             Need-Based Financial Aid
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Financial Assistance Scheme",
-                amount: "Up to 75% Fee Waiver",
-                criteria: "Annual family income < ₹5 lakhs",
-              },
-              {
-                name: "EWS Scholarship",
-                amount: "Up to 50% Fee Waiver",
-                criteria: "Economically Weaker Section certificate holders",
-              },
-              {
-                name: "Single Parent Support",
-                amount: "Up to 40% Fee Waiver",
-                criteria: "For students from single-parent families",
-              },
-            ].map((aid, index) => (
+            {needAid.map((aid, index) => (
               <div
                 key={index}
                 className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300"
@@ -197,38 +204,7 @@ export default function Scholarship() {
           Government Scholarships
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            {
-              name: "National Scholarship Portal (NSP)",
-              amount: "Variable",
-              category: "SC/ST/OBC/Minority",
-            },
-            {
-              name: "Post-Matric Scholarship",
-              amount: "₹10,000-15,000/year",
-              category: "SC/ST Students",
-            },
-            {
-              name: "OBC Scholarship",
-              amount: "₹3,000-5,000/year",
-              category: "OBC Students",
-            },
-            {
-              name: "Minority Scholarship",
-              amount: "₹5,000-12,000/year",
-              category: "Minority Communities",
-            },
-            {
-              name: "Girl Child Scholarship",
-              amount: "₹2,000-8,000/year",
-              category: "Female Students",
-            },
-            {
-              name: "PWD Scholarship",
-              amount: "₹10,000-20,000/year",
-              category: "Persons with Disabilities",
-            },
-          ].map((scheme, index) => (
+          {governmentScholarships.map((scheme, index) => (
             <div
               key={index}
               className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-blue-600"
@@ -256,34 +232,17 @@ export default function Scholarship() {
             Sports & Cultural Scholarships
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl border border-white/20">
-              <h3 className="text-2xl font-bold mb-4">
-                Sports Excellence Scholarship
-              </h3>
-              <p className="text-3xl font-bold text-yellow-300 mb-4">
-                ₹30,000 - ₹100,000/year
-              </p>
-              <ul className="space-y-2">
-                <li>• National level sports participation</li>
-                <li>• State level championship winners</li>
-                <li>• University sports team members</li>
-                <li>• Olympic/Asian Games participants</li>
-              </ul>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl border border-white/20">
-              <h3 className="text-2xl font-bold mb-4">
-                Cultural Talent Scholarship
-              </h3>
-              <p className="text-3xl font-bold text-yellow-300 mb-4">
-                ₹15,000 - ₹50,000/year
-              </p>
-              <ul className="space-y-2">
-                <li>• National level cultural competitions</li>
-                <li>• State level awards in arts/music</li>
-                <li>• Theatre and performing arts excellence</li>
-                <li>• Literary achievements and publications</li>
-              </ul>
-            </div>
+            {specialScholarships.map((item, index) => (
+              <div key={index} className="bg-white/10 backdrop-blur-md p-8 rounded-xl border border-white/20">
+                <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
+                <p className="text-3xl font-bold text-yellow-300 mb-4">{item.amount}</p>
+                <ul className="space-y-2">
+                  {item.items.map((bullet, bulletIndex) => (
+                    <li key={bulletIndex}>• {bullet}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -294,23 +253,7 @@ export default function Scholarship() {
           How to Apply for Scholarships
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              step: "1",
-              title: "Apply for Admission",
-              desc: "Complete your BBIT admission application process first",
-            },
-            {
-              step: "2",
-              title: "Fill Scholarship Form",
-              desc: "Submit scholarship application form with required documents",
-            },
-            {
-              step: "3",
-              title: "Verification & Award",
-              desc: "Documents verified and scholarship awarded within 15 days",
-            },
-          ].map((item, index) => (
+          {applicationSteps.map((item, index) => (
             <div
               key={index}
               className="bg-white p-8 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300"
@@ -334,42 +277,10 @@ export default function Scholarship() {
           <div className="bg-white p-8 rounded-xl shadow-lg">
             <div className="grid md:grid-cols-2 gap-6">
               <ul className="space-y-3">
-                <li className="flex items-center gap-2">
-                  ✓ Scholarship application form
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ Income certificate (for need-based)
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ Caste certificate (if applicable)
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ 10th & 12th mark sheets
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ Entrance exam scorecard
-                </li>
-                <li className="flex items-center gap-2">✓ Aadhar card copy</li>
+                {requiredDocuments.slice(0, 6).map((doc, index) => <li key={index} className="flex items-center gap-2">✓ {doc}</li>)}
               </ul>
               <ul className="space-y-3">
-                <li className="flex items-center gap-2">
-                  ✓ Bank account details
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ Passport size photographs
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ Sports/Cultural certificates (if applicable)
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ EWS certificate (if applicable)
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ Disability certificate (if applicable)
-                </li>
-                <li className="flex items-center gap-2">
-                  ✓ Parent's income proof
-                </li>
+                {requiredDocuments.slice(6).map((doc, index) => <li key={index} className="flex items-center gap-2">✓ {doc}</li>)}
               </ul>
             </div>
           </div>
@@ -380,10 +291,10 @@ export default function Scholarship() {
       <section className="max-w-6xl mx-auto px-4 py-16">
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-12 text-white text-center">
           <h2 className="text-4xl font-bold mb-4">
-            Don't Let Finance Stop Your Dreams!
+            {pageSettings.ctaTitle || "Don't Let Finance Stop Your Dreams!"}
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Apply for scholarships and get financial support for your education
+            {pageSettings.ctaSubtitle || "Apply for scholarships and get financial support for your education"}
           </p>
           <Link href="/register">
             <span className="inline-block bg-yellow-400 text-purple-900 font-bold px-8 py-4 rounded-lg hover:bg-yellow-300 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl transform hover:-translate-y-1">

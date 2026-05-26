@@ -2,10 +2,91 @@ import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import useSWR from "swr";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
+
+const defaultLibraryStats = [
+  { value: "100,000+", label: "Books" },
+  { value: "10,000+", label: "E-Journals" },
+  { value: "500+", label: "Seating Capacity" },
+  { value: "24/7", label: "Digital Access" },
+  { value: "50+", label: "Databases" },
+];
+
+const defaultPhysicalCollections = [
+  { icon: "📚", title: "Text Books", count: "50,000+", desc: "Comprehensive collection of prescribed textbooks for all programs" },
+  { icon: "📖", title: "Reference Books", count: "20,000+", desc: "Encyclopedias, dictionaries, handbooks, and reference materials" },
+  { icon: "📰", title: "Journals & Magazines", count: "500+", desc: "Print subscriptions to national and international journals" },
+  { icon: "📜", title: "Theses & Dissertations", count: "5,000+", desc: "Archive of research work by BBIT students and faculty" },
+  { icon: "🗞️", title: "Newspapers", count: "25+", desc: "Daily newspapers in English, Hindi, and regional languages" },
+  { icon: "🎬", title: "Audio-Visual Materials", count: "1,000+", desc: "Educational DVDs, CDs, and multimedia resources" },
+];
+
+const defaultDigitalDatabases = [
+  { name: "IEEE Xplore Digital Library", desc: "Access to millions of technical documents in engineering and computer science", type: "Engineering" },
+  { name: "Springer Link", desc: "Full-text access to journals, books, and protocols in science and technology", type: "Science" },
+  { name: "ScienceDirect (Elsevier)", desc: "Leading full-text scientific database covering all science disciplines", type: "Multidisciplinary" },
+  { name: "JSTOR", desc: "Digital library of academic journals, books, and primary sources", type: "Arts & Sciences" },
+  { name: "ProQuest Central", desc: "Comprehensive database spanning business, health, science, and more", type: "Multidisciplinary" },
+  { name: "ACM Digital Library", desc: "Full-text collection of ACM publications in computing and IT", type: "Computer Science" },
+  { name: "Emerald Insight", desc: "Management, business, and economics journals and books", type: "Management" },
+  { name: "EBSCO Host", desc: "Academic research databases covering multiple subjects", type: "Multidisciplinary" },
+];
+
+const defaultServices = [
+  { icon: "📋", title: "Issue & Return", desc: "Borrow up to 10 books for 15 days" },
+  { icon: "🔍", title: "Reference Service", desc: "Help finding specific information" },
+  { icon: "📤", title: "Inter-Library Loan", desc: "Access books from other libraries" },
+  { icon: "📊", title: "Research Support", desc: "Assistance with research methodology" },
+  { icon: "🎓", title: "Information Literacy", desc: "Training on database searching" },
+  { icon: "📸", title: "Photocopy & Scan", desc: "Document reproduction services" },
+  { icon: "💻", title: "Computer Access", desc: "Internet-enabled workstations" },
+  { icon: "📚", title: "Book Reservation", desc: "Reserve books currently on loan" },
+];
+
+const defaultTimings = [
+  { day: "Monday - Friday", time: "8:00 AM - 10:00 PM" },
+  { day: "Saturday", time: "9:00 AM - 6:00 PM" },
+  { day: "Sunday", time: "10:00 AM - 4:00 PM" },
+  { day: "Digital Resources", time: "24/7 Access" },
+];
+
+const defaultRules = [
+  "Carry your library card at all times",
+  "Maintain silence in reading areas",
+  "Mobile phones on silent mode",
+  "No food or beverages inside",
+  "Return books by due date to avoid fines",
+  "Handle books and materials with care",
+  "Report damaged or lost books immediately",
+  "Use designated areas for group discussions",
+];
+
+const defaultContact = [
+  { icon: "📧", value: "library@bbit.edu.in" },
+  { icon: "📞", value: "+91-11-2345-6789" },
+  { icon: "💬", value: "Live Chat Support" },
+];
 
 export default function Library() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("physical");
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.libraryPage || {};
+  const libraryStats = pageSettings.stats || defaultLibraryStats;
+  const physicalCollections = pageSettings.physicalCollections || defaultPhysicalCollections;
+  const digitalDatabases = pageSettings.digitalDatabases || defaultDigitalDatabases;
+  const services = pageSettings.services || defaultServices;
+  const timings = pageSettings.timings || defaultTimings;
+  const rules = pageSettings.rules || defaultRules;
+  const contact = pageSettings.contact || defaultContact;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -19,10 +100,8 @@ export default function Library() {
             <span className="mx-2">/</span>
             <span>Library</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">BBIT Central Library</h1>
-          <p className="text-xl opacity-90">
-            Your gateway to knowledge and research excellence
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "BBIT Central Library"}</h1>
+          <p className="text-xl opacity-90">{pageSettings.heroSubtitle || "Your gateway to knowledge and research excellence"}</p>
         </div>
       </section>
 
@@ -30,34 +109,12 @@ export default function Library() {
       <section className="bg-white py-12 shadow-md">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-purple-900 mb-2">
-                100,000+
+            {libraryStats.map((stat, index) => (
+              <div key={index}>
+                <div className="text-4xl font-bold text-purple-900 mb-2">{stat.value}</div>
+                <div className="text-gray-600">{stat.label}</div>
               </div>
-              <div className="text-gray-600">Books</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-900 mb-2">
-                10,000+
-              </div>
-              <div className="text-gray-600">E-Journals</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-900 mb-2">
-                500+
-              </div>
-              <div className="text-gray-600">Seating Capacity</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-900 mb-2">
-                24/7
-              </div>
-              <div className="text-gray-600">Digital Access</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-900 mb-2">50+</div>
-              <div className="text-gray-600">Databases</div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -127,44 +184,7 @@ export default function Library() {
         {/* Physical Resources */}
         {activeTab === "physical" && (
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: "📚",
-                title: "Text Books",
-                count: "50,000+",
-                desc: "Comprehensive collection of prescribed textbooks for all programs",
-              },
-              {
-                icon: "📖",
-                title: "Reference Books",
-                count: "20,000+",
-                desc: "Encyclopedias, dictionaries, handbooks, and reference materials",
-              },
-              {
-                icon: "📰",
-                title: "Journals & Magazines",
-                count: "500+",
-                desc: "Print subscriptions to national and international journals",
-              },
-              {
-                icon: "📜",
-                title: "Theses & Dissertations",
-                count: "5,000+",
-                desc: "Archive of research work by BBIT students and faculty",
-              },
-              {
-                icon: "🗞️",
-                title: "Newspapers",
-                count: "25+",
-                desc: "Daily newspapers in English, Hindi, and regional languages",
-              },
-              {
-                icon: "🎬",
-                title: "Audio-Visual Materials",
-                count: "1,000+",
-                desc: "Educational DVDs, CDs, and multimedia resources",
-              },
-            ].map((collection, idx) => (
+            {physicalCollections.map((collection, idx) => (
               <div
                 key={idx}
                 className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition"
@@ -194,48 +214,7 @@ export default function Library() {
                 E-Resources & Databases
               </h3>
               <div className="grid md:grid-cols-2 gap-6">
-                {[
-                  {
-                    name: "IEEE Xplore Digital Library",
-                    desc: "Access to millions of technical documents in engineering and computer science",
-                    type: "Engineering",
-                  },
-                  {
-                    name: "Springer Link",
-                    desc: "Full-text access to journals, books, and protocols in science and technology",
-                    type: "Science",
-                  },
-                  {
-                    name: "ScienceDirect (Elsevier)",
-                    desc: "Leading full-text scientific database covering all science disciplines",
-                    type: "Multidisciplinary",
-                  },
-                  {
-                    name: "JSTOR",
-                    desc: "Digital library of academic journals, books, and primary sources",
-                    type: "Arts & Sciences",
-                  },
-                  {
-                    name: "ProQuest Central",
-                    desc: "Comprehensive database spanning business, health, science, and more",
-                    type: "Multidisciplinary",
-                  },
-                  {
-                    name: "ACM Digital Library",
-                    desc: "Full-text collection of ACM publications in computing and IT",
-                    type: "Computer Science",
-                  },
-                  {
-                    name: "Emerald Insight",
-                    desc: "Management, business, and economics journals and books",
-                    type: "Management",
-                  },
-                  {
-                    name: "EBSCO Host",
-                    desc: "Academic research databases covering multiple subjects",
-                    type: "Multidisciplinary",
-                  },
-                ].map((db, idx) => (
+                {digitalDatabases.map((db, idx) => (
                   <div
                     key={idx}
                     className="border-l-4 border-purple-600 pl-4 py-3"
@@ -292,48 +271,7 @@ export default function Library() {
             Library Services
           </h2>
           <div className="grid md:grid-cols-4 gap-6">
-            {[
-              {
-                icon: "📋",
-                title: "Issue & Return",
-                desc: "Borrow up to 10 books for 15 days",
-              },
-              {
-                icon: "🔍",
-                title: "Reference Service",
-                desc: "Help finding specific information",
-              },
-              {
-                icon: "📤",
-                title: "Inter-Library Loan",
-                desc: "Access books from other libraries",
-              },
-              {
-                icon: "📊",
-                title: "Research Support",
-                desc: "Assistance with research methodology",
-              },
-              {
-                icon: "🎓",
-                title: "Information Literacy",
-                desc: "Training on database searching",
-              },
-              {
-                icon: "📸",
-                title: "Photocopy & Scan",
-                desc: "Document reproduction services",
-              },
-              {
-                icon: "💻",
-                title: "Computer Access",
-                desc: "Internet-enabled workstations",
-              },
-              {
-                icon: "📚",
-                title: "Book Reservation",
-                desc: "Reserve books currently on loan",
-              },
-            ].map((service, idx) => (
+            {services.map((service, idx) => (
               <div
                 key={idx}
                 className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-2xl transition"
@@ -357,32 +295,12 @@ export default function Library() {
               Library Timings
             </h3>
             <div className="space-y-4">
-              <div className="flex justify-between border-b pb-3">
-                <span className="font-semibold text-gray-700">
-                  Monday - Friday
-                </span>
-                <span className="text-purple-900 font-bold">
-                  8:00 AM - 10:00 PM
-                </span>
-              </div>
-              <div className="flex justify-between border-b pb-3">
-                <span className="font-semibold text-gray-700">Saturday</span>
-                <span className="text-purple-900 font-bold">
-                  9:00 AM - 6:00 PM
-                </span>
-              </div>
-              <div className="flex justify-between border-b pb-3">
-                <span className="font-semibold text-gray-700">Sunday</span>
-                <span className="text-purple-900 font-bold">
-                  10:00 AM - 4:00 PM
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold text-gray-700">
-                  Digital Resources
-                </span>
-                <span className="text-purple-900 font-bold">24/7 Access</span>
-              </div>
+              {timings.map((item, idx) => (
+                <div key={idx} className="flex justify-between border-b pb-3 last:border-b-0 last:pb-0">
+                  <span className="font-semibold text-gray-700">{item.day}</span>
+                  <span className="text-purple-900 font-bold">{item.time}</span>
+                </div>
+              ))}
             </div>
             <div className="mt-6 p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-gray-700">
@@ -398,16 +316,7 @@ export default function Library() {
               Library Rules
             </h3>
             <ul className="space-y-3">
-              {[
-                "Carry your library card at all times",
-                "Maintain silence in reading areas",
-                "Mobile phones on silent mode",
-                "No food or beverages inside",
-                "Return books by due date to avoid fines",
-                "Handle books and materials with care",
-                "Report damaged or lost books immediately",
-                "Use designated areas for group discussions",
-              ].map((rule, idx) => (
+              {rules.map((rule, idx) => (
                 <li key={idx} className="flex items-start gap-3">
                   <span className="text-purple-600 text-xl">•</span>
                   <span className="text-gray-700">{rule}</span>
@@ -427,18 +336,12 @@ export default function Library() {
             any queries.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
-            <div className="flex items-center gap-2">
-              <span>📧</span>
-              <span>library@bbit.edu.in</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>📞</span>
-              <span>+91-11-2345-6789</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>💬</span>
-              <span>Live Chat Support</span>
-            </div>
+            {contact.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span>{item.icon}</span>
+                <span>{item.value}</span>
+              </div>
+            ))}
           </div>
           <button className="mt-8 bg-white text-purple-900 px-10 py-4 rounded-lg font-bold hover:bg-gray-100 transition">
             Ask a Librarian

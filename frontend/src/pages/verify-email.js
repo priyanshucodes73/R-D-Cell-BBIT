@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import useSWR from 'swr';
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from '../lib/siteSettings';
 
 export default function VerifyEmail() {
   const router = useRouter();
@@ -11,6 +18,10 @@ export default function VerifyEmail() {
   const [resendLoading, setResendLoading] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4005';
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const pageSettings = siteSettings.verifyEmailPage || {};
 
   useEffect(() => {
     if (token) {
@@ -70,7 +81,7 @@ export default function VerifyEmail() {
   return (
     <>
       <Head>
-        <title>Verify Email - BBIT R&D Cell</title>
+        <title>{pageSettings.pageTitle || 'Verify Email - BBIT R&D Cell'}</title>
       </Head>
 
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -98,20 +109,20 @@ export default function VerifyEmail() {
 
             {/* Title */}
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {status === 'verifying' && 'Verifying Email...'}
-              {status === 'success' && 'Email Verified!'}
-              {status === 'error' && 'Verification Failed'}
+              {status === 'verifying' && (pageSettings.verifyingTitle || 'Verifying Email...')}
+              {status === 'success' && (pageSettings.successTitle || 'Email Verified!')}
+              {status === 'error' && (pageSettings.errorTitle || 'Verification Failed')}
             </h2>
 
             {/* Message */}
             <p className={`text-lg ${status === 'success' ? 'text-green-600' : status === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
-              {message}
+              {message || pageSettings.defaultMessage || ''}
             </p>
 
             {/* Redirect message for success */}
             {status === 'success' && (
               <p className="mt-4 text-sm text-gray-500">
-                Redirecting to login page...
+                {pageSettings.redirectMessage || 'Redirecting to login page...'}
               </p>
             )}
           </div>
@@ -120,7 +131,7 @@ export default function VerifyEmail() {
           {status === 'error' && (
             <div className="mt-8 border-t pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-                Need a new verification link?
+                {pageSettings.resendHeading || 'Need a new verification link?'}
               </h3>
               <form onSubmit={handleResendVerification} className="space-y-4">
                 <input
@@ -128,7 +139,7 @@ export default function VerifyEmail() {
                   required
                   value={resendEmail}
                   onChange={(e) => setResendEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={pageSettings.emailPlaceholder || 'Enter your email'}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <button
@@ -136,7 +147,7 @@ export default function VerifyEmail() {
                   disabled={resendLoading}
                   className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50"
                 >
-                  {resendLoading ? 'Sending...' : 'Resend Verification Email'}
+                  {resendLoading ? (pageSettings.sendingLabel || 'Sending...') : (pageSettings.resendButtonLabel || 'Resend Verification Email')}
                 </button>
               </form>
             </div>
@@ -148,7 +159,7 @@ export default function VerifyEmail() {
               onClick={() => router.push('/login')}
               className="text-blue-600 hover:text-blue-800 font-medium"
             >
-              Back to Login
+              {pageSettings.backToLoginLabel || 'Back to Login'}
             </button>
           </div>
         </div>
