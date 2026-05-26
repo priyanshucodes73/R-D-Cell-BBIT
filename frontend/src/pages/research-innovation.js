@@ -241,9 +241,9 @@ export default function ResearchInnovation() {
               Home
             </Link>
             <span className="mx-2">/</span>
-            <span>Research & Innovation</span>
+            <span>Research & Development</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Research & Innovation</h1>
+          <h1 className="text-5xl font-bold mb-4">Research & Development</h1>
           <p className="text-xl opacity-90">
             Advancing knowledge through cutting-edge research and fostering
             innovation
@@ -650,7 +650,7 @@ export default function ResearchInnovation() {
             Join Our Research Community
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Be part of groundbreaking research and innovation at BBIT
+            Be part of groundbreaking research and development at BBIT
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/register">

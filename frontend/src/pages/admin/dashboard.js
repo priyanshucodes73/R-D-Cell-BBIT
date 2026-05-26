@@ -30,7 +30,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     // Check authentication only on client side
     if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("adminAuth");
+      const isAuth = localStorage.getItem("adminToken");
       if (!isAuth) {
         router.push("/admin/login");
         return;
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("adminAuth");
+    localStorage.removeItem("adminToken");
     localStorage.removeItem("adminEmail");
     localStorage.removeItem("adminLoginTime");
     router.push("/admin/login");

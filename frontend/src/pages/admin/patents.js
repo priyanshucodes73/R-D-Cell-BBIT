@@ -26,7 +26,7 @@ export default function PatentsManager() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("adminAuth");
+      const isAuth = localStorage.getItem("adminToken");
       if (!isAuth) {
         router.push("/admin/login");
         return;
@@ -55,9 +55,10 @@ export default function PatentsManager() {
         : `${apiBase}/api/patents`;
       const method = editMode ? "PUT" : "POST";
 
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(formData),
       });
 
@@ -84,8 +85,10 @@ export default function PatentsManager() {
     if (!confirm("Are you sure you want to delete this patent?")) return;
 
     try {
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(`${apiBase}/api/patents/${id}`, {
         method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` },
       });
       if (response.ok) {
         alert("Patent deleted successfully!");

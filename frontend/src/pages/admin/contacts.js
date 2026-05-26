@@ -14,7 +14,7 @@ export default function ContactsManager() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("adminAuth");
+      const isAuth = localStorage.getItem("adminToken");
       if (!isAuth) {
         router.push("/admin/login");
         return;
@@ -25,7 +25,10 @@ export default function ContactsManager() {
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch(`${apiBase}/api/contacts`);
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch(`${apiBase}/api/contacts`, {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
       const data = await response.json();
       setContacts(data);
     } catch (error) {
@@ -39,8 +42,10 @@ export default function ContactsManager() {
     if (!confirm("Are you sure you want to delete this inquiry?")) return;
 
     try {
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(`${apiBase}/api/contacts/${id}`, {
         method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` },
       });
       if (response.ok) {
         alert("Contact inquiry deleted successfully!");

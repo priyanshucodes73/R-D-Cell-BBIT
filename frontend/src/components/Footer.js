@@ -31,6 +31,7 @@ const footerLinks = [
       { name: "Teaching Practices", href: "/teaching-practices" },
       { name: "System of Evaluation", href: "/evaluation" },
       { name: "BBIT Placements", href: "/placements" },
+      { name: "Clubs & Groups", href: "/clubs" },
       { name: "BBIT Edge", href: "/bbit-edge" },
       { name: "QS Asia Rankings 2024", href: "/qs-rankings" },
       { name: "NIRF Rankings 2025", href: "/nirf-rankings" },

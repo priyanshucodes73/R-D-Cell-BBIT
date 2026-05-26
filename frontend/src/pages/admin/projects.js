@@ -29,7 +29,7 @@ export default function ProjectsManager() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("adminAuth");
+      const isAuth = localStorage.getItem("adminToken");
       if (!isAuth) {
         router.push("/admin/login");
         return;
@@ -58,9 +58,10 @@ export default function ProjectsManager() {
         : `${apiBase}/api/projects`;
       const method = editMode ? "PUT" : "POST";
 
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(formData),
       });
 
@@ -87,8 +88,10 @@ export default function ProjectsManager() {
     if (!confirm("Are you sure you want to delete this project?")) return;
 
     try {
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(`${apiBase}/api/projects/${id}`, {
         method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` },
       });
       if (response.ok) {
         alert("Project deleted successfully!");

@@ -22,6 +22,11 @@ services:
       EMAIL_USER: your-email@gmail.com
       EMAIL_PASSWORD: your-app-password-here
       FRONTEND_URL: http://localhost:3005
+      # Allowed CORS origins (comma-separated)
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3005
+      # Default admin credentials (change these!)
+      ADMIN_EMAIL: admin@bbit.edu.in
+      ADMIN_PASSWORD: Admin@BBIT2026
       # Contact form emails will be sent to this address
       CONTACT_EMAIL: rnd@bbit.edu.in
     ports:

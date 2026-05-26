@@ -78,8 +78,9 @@ const navLinks = [
   { name: "ACADEMICS", href: "/academics", menu: [] },
   { name: "ADMISSIONS", href: "/register", menu: [] },
   { name: "CAMPUS LIFE", href: "/campus-life", menu: [] },
+  { name: "CLUBS & GROUPS", href: "/clubs", menu: [] },
   { name: "PLACEMENTS", href: "/placements", menu: [] },
-  { name: "RESEARCH & INNOVATION", href: "/research-innovation", menu: [] },
+  { name: "RESEARCH & DEVELOPMENT", href: "/research-innovation", menu: [] },
 ];
 
 function DropdownMenu({ link }) {
@@ -110,8 +111,8 @@ function DropdownMenu({ link }) {
     return (
       <Link href={link.href}>
         <span
-          className="text-white hover:text-yellow-400 font-bold transition-colors uppercase tracking-wide px-4 py-2 rounded-md focus:outline-none text-[15px] shadow-sm hover:bg-blue-900/40 whitespace-nowrap min-w-max cursor-pointer inline-block"
-          style={{ letterSpacing: "0.04em" }}
+          className="text-white hover:text-yellow-400 font-bold transition-colors uppercase tracking-wide px-2.5 py-2 rounded-md focus:outline-none text-[12px] shadow-sm hover:bg-blue-900/40 whitespace-nowrap cursor-pointer inline-block"
+          style={{ letterSpacing: "0.03em" }}
         >
           {link.name}
         </span>
@@ -123,8 +124,8 @@ function DropdownMenu({ link }) {
     <div className="relative">
       <button
         ref={buttonRef}
-        className="text-white hover:text-yellow-400 font-bold transition-colors uppercase tracking-wide px-4 py-2 rounded-md focus:outline-none text-[15px] shadow-sm hover:bg-blue-900/40 whitespace-nowrap min-w-max"
-        style={{ letterSpacing: "0.04em" }}
+        className="text-white hover:text-yellow-400 font-bold transition-colors uppercase tracking-wide px-2.5 py-2 rounded-md focus:outline-none text-[12px] shadow-sm hover:bg-blue-900/40 whitespace-nowrap"
+        style={{ letterSpacing: "0.03em" }}
         aria-haspopup="true"
         aria-expanded={open}
         onClick={(e) => {
@@ -330,32 +331,19 @@ export default function Home() {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center flex-1 justify-end">
-              <div className="flex items-center gap-1 xl:gap-2">
+              <div className="flex items-center gap-0.5 xl:gap-1">
                 {navLinks.map((link) => (
                   <div key={link.name}>
                     <DropdownMenu link={link} />
                   </div>
                 ))}
                 
-                {/* Login Button */}
-                <Link href="/login">
-                  <span className="ml-4 w-12 h-12 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-blue-900 font-bold text-sm cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110 border-2 border-blue-200">
-                    Login
-                  </span>
-                </Link>
+
               </div>
             </nav>
 
             {/* Mobile Menu Button & Login */}
             <div className="lg:hidden flex items-center gap-3">
-              {/* Login Button Mobile */}
-              <Link href="/login">
-                <span className="w-10 h-10 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-blue-900 font-bold text-xs cursor-pointer transition-all duration-300 shadow-lg">
-                  Login
-                </span>
-              </Link>
-              
-                
               {/* Mobile Menu Button */}
               <button
               className="lg:hidden relative group flex items-center justify-center p-2.5 border-2 rounded-lg text-white border-white/30 hover:border-yellow-400 hover:bg-blue-900/50 transition-all duration-300 backdrop-blur-sm"

@@ -1,16 +1,30 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 const { Sequelize, DataTypes } = require("sequelize");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 
+require("dotenv").config();
+
 const app = express();
 app.use(bodyParser.json());
-app.use(cors());
 
-require("dotenv").config();
+// ── CORS ──
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["http://localhost:3000", "http://localhost:3005"];
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 
 const JWT_SECRET = process.env.JWT_SECRET || "bbit-secret-key-2025";
 
@@ -399,6 +413,8 @@ const User = sequelize.define(
     verificationToken: { type: DataTypes.STRING },
     verificationTokenExpiry: { type: DataTypes.DATE },
     lastLogin: { type: DataTypes.DATE },
+    resetPasswordToken: { type: DataTypes.STRING },
+    resetPasswordExpiry: { type: DataTypes.DATE },
   },
   { 
     timestamps: true,
@@ -441,7 +457,7 @@ async function init() {
   try {
     await sequelize.authenticate();
     console.log("DB connected");
-    await sequelize.sync(); // Normal sync without force
+    await sequelize.sync({ alter: true }); // Add any new columns to existing tables
 
     // Seed Publications
     const pubCount = await Publication.count();
@@ -591,11 +607,69 @@ async function init() {
       console.log("Seeded news & events");
     }
 
+    // Seed default admin user
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@bbit.edu.in";
+    const adminPassword = process.env.ADMIN_PASSWORD || "Admin@BBIT2026";
+    const existingAdmin = await User.findOne({ where: { email: adminEmail } });
+    if (!existingAdmin) {
+      await User.create({
+        firstName: "BBIT",
+        lastName: "Admin",
+        email: adminEmail,
+        password: adminPassword,
+        role: "admin",
+        isVerified: true,
+      });
+      console.log(`Admin user created: ${adminEmail}`);
+    } else if (existingAdmin.role !== "admin") {
+      await existingAdmin.update({ role: "admin", isVerified: true });
+      console.log(`Existing user promoted to admin: ${adminEmail}`);
+    }
+
   } catch (err) {
     console.error("DB init error", err);
     process.exit(1);
   }
 }
+
+// ==================== MIDDLEWARE ====================
+
+// Auth token verifier
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Access token required" });
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: "Invalid or expired token" });
+    req.user = user;
+    next();
+  });
+};
+
+// Admin-only guard
+const requireAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ error: "Admin access required" });
+  }
+  next();
+};
+
+// Rate limiters
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: { error: "Too many requests from this IP, please try again after 15 minutes" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const heavyLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60,
+  message: { error: "Too many requests, slow down" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ==================== API ROUTES ====================
 
@@ -631,7 +705,7 @@ app.get("/api/publications/:id", async (req, res) => {
   }
 });
 
-app.post("/api/publications", async (req, res) => {
+app.post("/api/publications", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const pub = await Publication.create(req.body);
     res.status(201).json(pub);
@@ -640,7 +714,7 @@ app.post("/api/publications", async (req, res) => {
   }
 });
 
-app.put("/api/publications/:id", async (req, res) => {
+app.put("/api/publications/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const pub = await Publication.findByPk(req.params.id);
     if (!pub) return res.status(404).json({ error: "Publication not found" });
@@ -651,7 +725,7 @@ app.put("/api/publications/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/publications/:id", async (req, res) => {
+app.delete("/api/publications/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const pub = await Publication.findByPk(req.params.id);
     if (!pub) return res.status(404).json({ error: "Publication not found" });
@@ -690,7 +764,7 @@ app.get("/api/projects/:id", async (req, res) => {
   }
 });
 
-app.post("/api/projects", async (req, res) => {
+app.post("/api/projects", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const project = await ResearchProject.create(req.body);
     res.status(201).json(project);
@@ -699,7 +773,7 @@ app.post("/api/projects", async (req, res) => {
   }
 });
 
-app.put("/api/projects/:id", async (req, res) => {
+app.put("/api/projects/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const project = await ResearchProject.findByPk(req.params.id);
     if (!project) return res.status(404).json({ error: "Project not found" });
@@ -707,6 +781,17 @@ app.put("/api/projects/:id", async (req, res) => {
     res.json(project);
   } catch (e) {
     res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete("/api/projects/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const project = await ResearchProject.findByPk(req.params.id);
+    if (!project) return res.status(404).json({ error: "Project not found" });
+    await project.destroy();
+    res.json({ message: "Project deleted successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -737,7 +822,7 @@ app.get("/api/faculty/:id", async (req, res) => {
   }
 });
 
-app.post("/api/faculty", async (req, res) => {
+app.post("/api/faculty", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const faculty = await Faculty.create(req.body);
     res.status(201).json(faculty);
@@ -746,16 +831,37 @@ app.post("/api/faculty", async (req, res) => {
   }
 });
 
+app.put("/api/faculty/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const faculty = await Faculty.findByPk(req.params.id);
+    if (!faculty) return res.status(404).json({ error: "Faculty not found" });
+    await faculty.update(req.body);
+    res.json(faculty);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete("/api/faculty/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const faculty = await Faculty.findByPk(req.params.id);
+    if (!faculty) return res.status(404).json({ error: "Faculty not found" });
+    await faculty.destroy();
+    res.json({ message: "Faculty record deleted successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ===== CONTACT INQUIRIES =====
-app.get("/api/contacts", async (req, res) => {
+app.get("/api/contacts", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { status } = req.query;
     const where = {};
     if (status) where.status = status;
-    
-    const contacts = await ContactInquiry.findAll({ 
+    const contacts = await ContactInquiry.findAll({
       where,
-      order: [["createdAt", "DESC"]]
+      order: [["createdAt", "DESC"]],
     });
     res.json(contacts);
   } catch (e) {
@@ -787,7 +893,7 @@ app.post("/api/contacts", async (req, res) => {
   }
 });
 
-app.put("/api/contacts/:id", async (req, res) => {
+app.put("/api/contacts/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const contact = await ContactInquiry.findByPk(req.params.id);
     if (!contact) return res.status(404).json({ error: "Contact not found" });
@@ -798,17 +904,27 @@ app.put("/api/contacts/:id", async (req, res) => {
   }
 });
 
+app.delete("/api/contacts/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const contact = await ContactInquiry.findByPk(req.params.id);
+    if (!contact) return res.status(404).json({ error: "Contact not found" });
+    await contact.destroy();
+    res.json({ message: "Contact inquiry deleted successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ===== REGISTRATIONS =====
-app.get("/api/registrations", async (req, res) => {
+app.get("/api/registrations", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { registrationType, status } = req.query;
     const where = {};
     if (registrationType) where.registrationType = registrationType;
     if (status) where.status = status;
-    
-    const registrations = await Registration.findAll({ 
+    const registrations = await Registration.findAll({
       where,
-      order: [["createdAt", "DESC"]]
+      order: [["createdAt", "DESC"]],
     });
     res.json(registrations);
   } catch (e) {
@@ -825,7 +941,7 @@ app.post("/api/registrations", async (req, res) => {
   }
 });
 
-app.put("/api/registrations/:id", async (req, res) => {
+app.put("/api/registrations/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const registration = await Registration.findByPk(req.params.id);
     if (!registration) return res.status(404).json({ error: "Registration not found" });
@@ -833,6 +949,17 @@ app.put("/api/registrations/:id", async (req, res) => {
     res.json(registration);
   } catch (e) {
     res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete("/api/registrations/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const registration = await Registration.findByPk(req.params.id);
+    if (!registration) return res.status(404).json({ error: "Registration not found" });
+    await registration.destroy();
+    res.json({ message: "Registration deleted successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -855,7 +982,7 @@ app.get("/api/news-events", async (req, res) => {
   }
 });
 
-app.post("/api/news-events", async (req, res) => {
+app.post("/api/news-events", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const news = await NewsEvent.create(req.body);
     res.status(201).json(news);
@@ -864,7 +991,7 @@ app.post("/api/news-events", async (req, res) => {
   }
 });
 
-app.put("/api/news-events/:id", async (req, res) => {
+app.put("/api/news-events/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const news = await NewsEvent.findByPk(req.params.id);
     if (!news) return res.status(404).json({ error: "News/Event not found" });
@@ -875,6 +1002,17 @@ app.put("/api/news-events/:id", async (req, res) => {
   }
 });
 
+app.delete("/api/news-events/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const news = await NewsEvent.findByPk(req.params.id);
+    if (!news) return res.status(404).json({ error: "News/Event not found" });
+    await news.destroy();
+    res.json({ message: "News/Event deleted successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ===== PATENTS =====
 app.get("/api/patents", async (req, res) => {
   try {
@@ -882,10 +1020,9 @@ app.get("/api/patents", async (req, res) => {
     const where = {};
     if (status) where.status = status;
     if (department) where.department = department;
-    
-    const patents = await Patent.findAll({ 
+    const patents = await Patent.findAll({
       where,
-      order: [["filingDate", "DESC"]]
+      order: [["filingDate", "DESC"]],
     });
     res.json(patents);
   } catch (e) {
@@ -893,12 +1030,44 @@ app.get("/api/patents", async (req, res) => {
   }
 });
 
-app.post("/api/patents", async (req, res) => {
+app.get("/api/patents/:id", async (req, res) => {
+  try {
+    const patent = await Patent.findByPk(req.params.id);
+    if (!patent) return res.status(404).json({ error: "Patent not found" });
+    res.json(patent);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/patents", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const patent = await Patent.create(req.body);
     res.status(201).json(patent);
   } catch (e) {
     res.status(400).json({ error: e.message });
+  }
+});
+
+app.put("/api/patents/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const patent = await Patent.findByPk(req.params.id);
+    if (!patent) return res.status(404).json({ error: "Patent not found" });
+    await patent.update(req.body);
+    res.json(patent);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete("/api/patents/:id", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const patent = await Patent.findByPk(req.params.id);
+    if (!patent) return res.status(404).json({ error: "Patent not found" });
+    await patent.destroy();
+    res.json({ message: "Patent deleted successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -919,28 +1088,10 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
-// ==================== AUTHENTICATION MIDDLEWARE ====================
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Access token required' });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
 // ==================== AUTH ROUTES ====================
 
 // User Signup
-app.post("/api/auth/signup", async (req, res) => {
+app.post("/api/auth/signup", authLimiter, async (req, res) => {
   try {
     const { firstName, lastName, email, password, phone } = req.body;
 
@@ -998,7 +1149,7 @@ app.post("/api/auth/signup", async (req, res) => {
 });
 
 // User Login
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -1218,29 +1369,138 @@ app.post("/api/auth/change-password", authenticateToken, async (req, res) => {
   }
 });
 
+// Forgot Password — sends reset link by email
+app.post("/api/auth/forgot-password", authLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const user = await User.findOne({ where: { email } });
+    // Always respond OK to prevent user enumeration
+    if (!user) return res.json({ message: "If that email exists, a reset link has been sent." });
+
+    const resetToken = jwt.sign({ id: user.id, email }, JWT_SECRET, { expiresIn: "1h" });
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.update({ resetPasswordToken: resetToken, resetPasswordExpiry: resetExpiry });
+
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3005"}/reset-password?token=${resetToken}`;
+    const mailOptions = {
+      from: `"BBIT R&D Cell" <${process.env.EMAIL_USER || "noreply@bbit.edu.in"}>`,
+      to: email,
+      subject: "Reset Your BBIT Password",
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head><style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style></head>
+        <body>
+          <div class="container">
+            <div class="header"><h1>Password Reset Request</h1></div>
+            <div class="content">
+              <p>Hi ${user.firstName},</p>
+              <p>We received a request to reset your BBIT account password.</p>
+              <p>Click the button below to reset it. This link expires in <strong>1 hour</strong>.</p>
+              <center><a href="${resetUrl}" class="button">Reset Password</a></center>
+              <p>Or copy this link:<br><code style="background:#e5e7eb;padding:8px;display:block;border-radius:4px;word-break:break-all">${resetUrl}</code></p>
+              <p>If you did not request a password reset, please ignore this email.</p>
+              <p>Best regards,<br><strong>BBIT R&amp;D Cell Team</strong></p>
+            </div>
+            <div class="footer"><p>Budge Budge Institute of Technology<br>Nischintapur, Budge Budge, Kolkata - 700138</p></div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    try {
+      await emailTransporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      console.error("Reset email error:", emailErr);
+    }
+
+    res.json({ message: "If that email exists, a reset link has been sent." });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Reset Password — consumes token and sets new password
+app.post("/api/auth/reset-password", authLimiter, async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: "Token and new password are required" });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
+    const user = await User.findOne({
+      where: { id: decoded.id, resetPasswordToken: token },
+    });
+    if (!user) return res.status(404).json({ error: "Invalid or expired reset token" });
+
+    if (user.resetPasswordExpiry && new Date() > user.resetPasswordExpiry) {
+      return res.status(400).json({ error: "Reset token has expired" });
+    }
+
+    await user.update({
+      password: newPassword,
+      resetPasswordToken: null,
+      resetPasswordExpiry: null,
+    });
+
+    res.json({ message: "Password reset successfully. You can now log in with your new password." });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ===== ROOT ENDPOINT =====
 app.get("/", (req, res) => {
   res.json({
     message: "BBIT R&D Cell API",
-    version: "1.0.0",
+    version: "2.0.0",
     status: "running",
     endpoints: {
       auth: {
-        signup: "POST /api/auth/signup",
-        login: "POST /api/auth/login",
-        profile: "GET /api/auth/me (protected)",
-        updateProfile: "PUT /api/auth/profile (protected)",
-        changePassword: "POST /api/auth/change-password (protected)"
+        signup: "POST /api/auth/signup  [rate-limited]",
+        login: "POST /api/auth/login  [rate-limited]",
+        verifyEmail: "GET /api/auth/verify-email?token=...",
+        resendVerification: "POST /api/auth/resend-verification",
+        forgotPassword: "POST /api/auth/forgot-password  [rate-limited]",
+        resetPassword: "POST /api/auth/reset-password  [rate-limited]",
+        me: "GET /api/auth/me  [protected]",
+        updateProfile: "PUT /api/auth/profile  [protected]",
+        changePassword: "POST /api/auth/change-password  [protected]",
       },
-      publications: "/api/publications",
-      projects: "/api/projects",
-      faculty: "/api/faculty",
-      newsEvents: "/api/news-events",
-      patents: "/api/patents",
-      contacts: "/api/contacts",
-      registrations: "/api/registrations",
-      stats: "/api/stats"
-    }
+      publications: "GET|POST /api/publications  (write: admin)",
+      publicationById: "GET|PUT|DELETE /api/publications/:id  (write: admin)",
+      projects: "GET|POST /api/projects  (write: admin)",
+      projectById: "GET|PUT|DELETE /api/projects/:id  (write: admin)",
+      faculty: "GET|POST /api/faculty  (write: admin)",
+      facultyById: "GET|PUT|DELETE /api/faculty/:id  (write: admin)",
+      newsEvents: "GET|POST /api/news-events  (write: admin)",
+      newsEventById: "GET|PUT|DELETE /api/news-events/:id  (write: admin)",
+      patents: "GET|POST /api/patents  (write: admin)",
+      patentById: "GET|PUT|DELETE /api/patents/:id  (write: admin)",
+      contacts: "GET[admin]|POST /api/contacts",
+      contactById: "PUT|DELETE /api/contacts/:id  [admin]",
+      registrations: "GET[admin]|POST /api/registrations",
+      registrationById: "PUT|DELETE /api/registrations/:id  [admin]",
+      stats: "GET /api/stats",
+    },
   });
 });
 

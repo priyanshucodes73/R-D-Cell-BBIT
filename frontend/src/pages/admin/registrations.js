@@ -14,7 +14,7 @@ export default function RegistrationsManager() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("adminAuth");
+      const isAuth = localStorage.getItem("adminToken");
       if (!isAuth) {
         router.push("/admin/login");
         return;
@@ -25,7 +25,10 @@ export default function RegistrationsManager() {
 
   const fetchRegistrations = async () => {
     try {
-      const response = await fetch(`${apiBase}/api/registrations`);
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch(`${apiBase}/api/registrations`, {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
       const data = await response.json();
       setRegistrations(data);
     } catch (error) {
@@ -39,8 +42,10 @@ export default function RegistrationsManager() {
     if (!confirm("Are you sure you want to delete this registration?")) return;
 
     try {
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(`${apiBase}/api/registrations/${id}`, {
         method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` },
       });
       if (response.ok) {
         alert("Registration deleted successfully!");

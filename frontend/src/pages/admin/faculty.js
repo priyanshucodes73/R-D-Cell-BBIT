@@ -28,7 +28,7 @@ export default function FacultyManager() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("adminAuth");
+      const isAuth = localStorage.getItem("adminToken");
       if (!isAuth) {
         router.push("/admin/login");
         return;
@@ -57,9 +57,10 @@ export default function FacultyManager() {
         : `${apiBase}/api/faculty`;
       const method = editMode ? "PUT" : "POST";
 
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(formData),
       });
 
@@ -86,8 +87,10 @@ export default function FacultyManager() {
     if (!confirm("Are you sure you want to delete this faculty member?")) return;
 
     try {
+      const token = localStorage.getItem("adminToken");
       const response = await fetch(`${apiBase}/api/faculty/${id}`, {
         method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` },
       });
       if (response.ok) {
         alert("Faculty member deleted successfully!");

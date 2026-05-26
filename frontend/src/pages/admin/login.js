@@ -17,30 +17,36 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
 
-    // Admin credentials
-    const ADMIN_EMAIL = "admin@bbit.edu.in";
-    const ADMIN_PASSWORD = "BBIT@Admin2025";
-
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+      const res = await fetch(`${apiBase}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
 
-      if (
-        formData.email === ADMIN_EMAIL &&
-        formData.password === ADMIN_PASSWORD
-      ) {
-        // Store admin session
-        localStorage.setItem("adminAuth", "true");
-        localStorage.setItem("adminEmail", formData.email);
-        localStorage.setItem("adminLoginTime", new Date().toISOString());
+      const data = await res.json();
 
-        // Redirect to admin dashboard
-        router.push("/admin/dashboard");
-      } else {
-        setError("Invalid email or password");
+      if (!res.ok) {
+        setError(data.error || "Invalid email or password");
+        return;
       }
+
+      if (data.user?.role !== "admin") {
+        setError("Access denied. Admin account required.");
+        return;
+      }
+
+      // Store admin session + JWT token
+      localStorage.setItem("adminAuth", "true");
+      localStorage.setItem("adminEmail", data.user.email);
+      localStorage.setItem("adminToken", data.token);
+      localStorage.setItem("adminName", `${data.user.firstName} ${data.user.lastName}`);
+      localStorage.setItem("adminLoginTime", new Date().toISOString());
+
+      router.push("/admin/dashboard");
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("Cannot connect to server. Make sure the backend is running.");
     } finally {
       setLoading(false);
     }
@@ -188,16 +194,16 @@ export default function AdminLogin() {
             </button>
           </form>
 
-          {/* Demo Credentials Info */}
+          {/* Admin Credentials Info */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-xs text-blue-800 font-semibold mb-2">
-              🔐 Admin Credentials:
+              🔐 Default Admin Credentials:
             </p>
             <p className="text-xs text-blue-700">
               <strong>Email:</strong> admin@bbit.edu.in
             </p>
             <p className="text-xs text-blue-700">
-              <strong>Password:</strong> BBIT@Admin2025
+              <strong>Password:</strong> Admin@BBIT2026
             </p>
           </div>
         </div>
