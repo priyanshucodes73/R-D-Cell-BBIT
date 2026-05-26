@@ -14,12 +14,41 @@ app.use(bodyParser.json());
 
 // ── CORS ──
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
+  ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
   : ["http://localhost:3000", "http://localhost:3005"];
+
+// Build patterns to support exact origins and simple wildcards like '*.vercel.app' or 'https://*.vercel.app'
+const originPatterns = allowedOrigins.map((o) => {
+  if (o.includes("*")) {
+    // If protocol not provided, match http/https
+    if (!/^https?:\/\//.test(o)) {
+      // convert domain wildcard to a regex: *.vercel.app -> https?://[subdomain].vercel.app
+      const domainPattern = o.replace(/\./g, "\\.").replace(/\*/g, "[\\w-]+");
+      return new RegExp(`^https?:\\/\\/${domainPattern}$`);
+    }
+    // protocol provided, escape and replace * with .* for regex
+    const escaped = o.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*");
+    return new RegExp(`^${escaped}$`);
+  }
+  return o; // exact string
+});
+
+function isOriginAllowed(origin) {
+  if (!origin) return true; // allow server-to-server or same-origin requests without Origin
+  for (const p of originPatterns) {
+    if (p instanceof RegExp) {
+      if (p.test(origin)) return true;
+    } else {
+      if (origin === p) return true;
+    }
+  }
+  return false;
+}
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      if (isOriginAllowed(origin)) return callback(null, true);
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -243,220 +272,224 @@ const sendContactAutoReply = async (contactData) => {
 };
 
 // Database Configuration
-let sequelize;
-if (process.env.DATABASE_URL) {
-  const DATABASE_URL = process.env.DATABASE_URL;
-  sequelize = new Sequelize(DATABASE_URL, {
-    dialect: "postgres",
-    logging: false,
-  });
-} else if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
-  const DATABASE_URL = `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
-  sequelize = new Sequelize(DATABASE_URL, {
-    dialect: "postgres",
-    logging: false,
-  });
-} else {
-  const storage = process.env.SQLITE_STORAGE || "dev.sqlite";
-  console.log(`No DATABASE_URL found — using SQLite fallback: ${storage}`);
-  sequelize = new Sequelize({
-    dialect: "sqlite",
-    storage,
-    logging: false,
-  });
+let sequelize; // will be set when models are defined
+const defaultSQLiteStorage = process.env.SQLITE_STORAGE || "dev.sqlite";
+
+const createPostgresSequelize = (databaseUrl) =>
+  new Sequelize(databaseUrl, { dialect: "postgres", logging: false });
+
+const createSqliteSequelize = (storage = defaultSQLiteStorage) => {
+  console.log(`Using SQLite storage: ${storage}`);
+  return new Sequelize({ dialect: "sqlite", storage, logging: false });
+};
+
+// Model placeholders (will be assigned by defineModels)
+let Publication,
+  ResearchProject,
+  Faculty,
+  ContactInquiry,
+  Registration,
+  NewsEvent,
+  Patent,
+  User;
+
+function defineModels(sq) {
+  sequelize = sq;
+
+  Publication = sequelize.define(
+    "Publication",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      title: { type: DataTypes.TEXT, allowNull: false },
+      authors: { type: DataTypes.TEXT },
+      journal: { type: DataTypes.STRING },
+      year: { type: DataTypes.INTEGER },
+      doi: { type: DataTypes.STRING },
+      citation_count: { type: DataTypes.INTEGER, defaultValue: 0 },
+      type: { type: DataTypes.STRING },
+      abstract: { type: DataTypes.TEXT },
+      keywords: { type: DataTypes.STRING },
+    },
+    { timestamps: true }
+  );
+
+  ResearchProject = sequelize.define(
+    "ResearchProject",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      title: { type: DataTypes.TEXT, allowNull: false },
+      principalInvestigator: { type: DataTypes.STRING },
+      department: { type: DataTypes.STRING },
+      fundingAgency: { type: DataTypes.STRING },
+      fundingAmount: { type: DataTypes.STRING },
+      startDate: { type: DataTypes.DATEONLY },
+      endDate: { type: DataTypes.DATEONLY },
+      status: { type: DataTypes.STRING, defaultValue: "Ongoing" },
+      description: { type: DataTypes.TEXT },
+      progress: { type: DataTypes.INTEGER, defaultValue: 0 },
+    },
+    { timestamps: true }
+  );
+
+  Faculty = sequelize.define(
+    "Faculty",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      name: { type: DataTypes.STRING, allowNull: false },
+      email: { type: DataTypes.STRING, unique: true },
+      department: { type: DataTypes.STRING },
+      designation: { type: DataTypes.STRING },
+      specialization: { type: DataTypes.STRING },
+      qualifications: { type: DataTypes.TEXT },
+      experience: { type: DataTypes.INTEGER },
+      publications: { type: DataTypes.INTEGER, defaultValue: 0 },
+      researchInterests: { type: DataTypes.TEXT },
+      phone: { type: DataTypes.STRING },
+    },
+    { timestamps: true }
+  );
+
+  ContactInquiry = sequelize.define(
+    "ContactInquiry",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      name: { type: DataTypes.STRING, allowNull: false },
+      email: { type: DataTypes.STRING, allowNull: false },
+      phone: { type: DataTypes.STRING },
+      subject: { type: DataTypes.STRING },
+      message: { type: DataTypes.TEXT, allowNull: false },
+      status: { type: DataTypes.STRING, defaultValue: "pending" },
+      responseMessage: { type: DataTypes.TEXT },
+    },
+    { timestamps: true }
+  );
+
+  Registration = sequelize.define(
+    "Registration",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      registrationType: { type: DataTypes.STRING, allowNull: false },
+      firstName: { type: DataTypes.STRING, allowNull: false },
+      lastName: { type: DataTypes.STRING, allowNull: false },
+      email: { type: DataTypes.STRING, allowNull: false },
+      phone: { type: DataTypes.STRING, allowNull: false },
+      program: { type: DataTypes.STRING },
+      category: { type: DataTypes.STRING },
+      previousEducation: { type: DataTypes.TEXT },
+      rollNumber: { type: DataTypes.STRING },
+      branch: { type: DataTypes.STRING },
+      eventName: { type: DataTypes.STRING },
+      participants: { type: DataTypes.INTEGER, defaultValue: 1 },
+      status: { type: DataTypes.STRING, defaultValue: "pending" },
+      additionalInfo: { type: DataTypes.TEXT },
+    },
+    { timestamps: true }
+  );
+
+  NewsEvent = sequelize.define(
+    "NewsEvent",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      title: { type: DataTypes.STRING, allowNull: false },
+      category: { type: DataTypes.STRING },
+      date: { type: DataTypes.DATEONLY, allowNull: false },
+      description: { type: DataTypes.TEXT },
+      imageUrl: { type: DataTypes.STRING },
+      venue: { type: DataTypes.STRING },
+      organizer: { type: DataTypes.STRING },
+      featured: { type: DataTypes.BOOLEAN, defaultValue: false },
+    },
+    { timestamps: true }
+  );
+
+  Patent = sequelize.define(
+    "Patent",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      title: { type: DataTypes.TEXT, allowNull: false },
+      inventors: { type: DataTypes.TEXT },
+      patentNumber: { type: DataTypes.STRING },
+      applicationNumber: { type: DataTypes.STRING },
+      status: { type: DataTypes.STRING },
+      filingDate: { type: DataTypes.DATEONLY },
+      grantDate: { type: DataTypes.DATEONLY },
+      description: { type: DataTypes.TEXT },
+      department: { type: DataTypes.STRING },
+    },
+    { timestamps: true }
+  );
+
+  User = sequelize.define(
+    "User",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      firstName: { type: DataTypes.STRING, allowNull: false },
+      lastName: { type: DataTypes.STRING, allowNull: false },
+      email: { type: DataTypes.STRING, allowNull: false, unique: true },
+      password: { type: DataTypes.STRING, allowNull: false },
+      phone: { type: DataTypes.STRING },
+      role: { type: DataTypes.STRING, defaultValue: "user" },
+      isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+      verificationToken: { type: DataTypes.STRING },
+      verificationTokenExpiry: { type: DataTypes.DATE },
+      lastLogin: { type: DataTypes.DATE },
+      resetPasswordToken: { type: DataTypes.STRING },
+      resetPasswordExpiry: { type: DataTypes.DATE },
+    },
+    {
+      timestamps: true,
+      hooks: {
+        beforeCreate: async (user) => {
+          if (user.password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(user.password, salt);
+          }
+        },
+        beforeUpdate: async (user) => {
+          if (user.changed("password")) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(user.password, salt);
+          }
+        },
+      },
+    }
+  );
+
+  // User instance methods
+  User.prototype.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+  };
+
+  User.prototype.generateAuthToken = function () {
+    return jwt.sign({ id: this.id, email: this.email, role: this.role }, JWT_SECRET, { expiresIn: "7d" });
+  };
 }
 
-// ==================== MODELS ====================
 
-// Publication Model
-const Publication = sequelize.define(
-  "Publication",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.TEXT, allowNull: false },
-    authors: { type: DataTypes.TEXT },
-    journal: { type: DataTypes.STRING },
-    year: { type: DataTypes.INTEGER },
-    doi: { type: DataTypes.STRING },
-    citation_count: { type: DataTypes.INTEGER, defaultValue: 0 },
-    type: { type: DataTypes.STRING },
-    abstract: { type: DataTypes.TEXT },
-    keywords: { type: DataTypes.STRING },
-  },
-  { timestamps: true }
-);
-
-// Research Project Model
-const ResearchProject = sequelize.define(
-  "ResearchProject",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.TEXT, allowNull: false },
-    principalInvestigator: { type: DataTypes.STRING },
-    department: { type: DataTypes.STRING },
-    fundingAgency: { type: DataTypes.STRING },
-    fundingAmount: { type: DataTypes.STRING },
-    startDate: { type: DataTypes.DATEONLY },
-    endDate: { type: DataTypes.DATEONLY },
-    status: { type: DataTypes.STRING, defaultValue: "Ongoing" },
-    description: { type: DataTypes.TEXT },
-    progress: { type: DataTypes.INTEGER, defaultValue: 0 },
-  },
-  { timestamps: true }
-);
-
-// Faculty Model
-const Faculty = sequelize.define(
-  "Faculty",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, unique: true },
-    department: { type: DataTypes.STRING },
-    designation: { type: DataTypes.STRING },
-    specialization: { type: DataTypes.STRING },
-    qualifications: { type: DataTypes.TEXT },
-    experience: { type: DataTypes.INTEGER },
-    publications: { type: DataTypes.INTEGER, defaultValue: 0 },
-    researchInterests: { type: DataTypes.TEXT },
-    phone: { type: DataTypes.STRING },
-  },
-  { timestamps: true }
-);
-
-// Contact/Inquiry Model
-const ContactInquiry = sequelize.define(
-  "ContactInquiry",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false },
-    phone: { type: DataTypes.STRING },
-    subject: { type: DataTypes.STRING },
-    message: { type: DataTypes.TEXT, allowNull: false },
-    status: { type: DataTypes.STRING, defaultValue: "pending" },
-    responseMessage: { type: DataTypes.TEXT },
-  },
-  { timestamps: true }
-);
-
-// Registration Model (for admissions, events, placements)
-const Registration = sequelize.define(
-  "Registration",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    registrationType: { type: DataTypes.STRING, allowNull: false }, // admission, placement, event, research
-    firstName: { type: DataTypes.STRING, allowNull: false },
-    lastName: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false },
-    phone: { type: DataTypes.STRING, allowNull: false },
-    program: { type: DataTypes.STRING },
-    category: { type: DataTypes.STRING },
-    previousEducation: { type: DataTypes.TEXT },
-    rollNumber: { type: DataTypes.STRING },
-    branch: { type: DataTypes.STRING },
-    eventName: { type: DataTypes.STRING },
-    participants: { type: DataTypes.INTEGER, defaultValue: 1 },
-    status: { type: DataTypes.STRING, defaultValue: "pending" },
-    additionalInfo: { type: DataTypes.TEXT },
-  },
-  { timestamps: true }
-);
-
-// News & Events Model
-const NewsEvent = sequelize.define(
-  "NewsEvent",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.STRING, allowNull: false },
-    category: { type: DataTypes.STRING }, // Award, Event, Achievement, Publication, etc.
-    date: { type: DataTypes.DATEONLY, allowNull: false },
-    description: { type: DataTypes.TEXT },
-    imageUrl: { type: DataTypes.STRING },
-    venue: { type: DataTypes.STRING },
-    organizer: { type: DataTypes.STRING },
-    featured: { type: DataTypes.BOOLEAN, defaultValue: false },
-  },
-  { timestamps: true }
-);
-
-// Patent Model
-const Patent = sequelize.define(
-  "Patent",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.TEXT, allowNull: false },
-    inventors: { type: DataTypes.TEXT },
-    patentNumber: { type: DataTypes.STRING },
-    applicationNumber: { type: DataTypes.STRING },
-    status: { type: DataTypes.STRING }, // Filed, Granted, Published
-    filingDate: { type: DataTypes.DATEONLY },
-    grantDate: { type: DataTypes.DATEONLY },
-    description: { type: DataTypes.TEXT },
-    department: { type: DataTypes.STRING },
-  },
-  { timestamps: true }
-);
-
-// User Model (for login/signup)
-const User = sequelize.define(
-  "User",
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    firstName: { type: DataTypes.STRING, allowNull: false },
-    lastName: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
-    phone: { type: DataTypes.STRING },
-    role: { type: DataTypes.STRING, defaultValue: "user" }, // user, admin
-    isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
-    verificationToken: { type: DataTypes.STRING },
-    verificationTokenExpiry: { type: DataTypes.DATE },
-    lastLogin: { type: DataTypes.DATE },
-    resetPasswordToken: { type: DataTypes.STRING },
-    resetPasswordExpiry: { type: DataTypes.DATE },
-  },
-  { 
-    timestamps: true,
-    hooks: {
-      beforeCreate: async (user) => {
-        if (user.password) {
-          const salt = await bcrypt.genSalt(10);
-          user.password = await bcrypt.hash(user.password, salt);
-        }
-      },
-      beforeUpdate: async (user) => {
-        if (user.changed('password')) {
-          const salt = await bcrypt.genSalt(10);
-          user.password = await bcrypt.hash(user.password, salt);
-        }
-      }
-    }
-  }
-);
-
-// User instance methods
-User.prototype.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
-
-User.prototype.generateAuthToken = function() {
-  return jwt.sign(
-    { 
-      id: this.id, 
-      email: this.email, 
-      role: this.role 
-    },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-};
 
 // ==================== DATABASE INITIALIZATION ====================
 async function init() {
   try {
-    await sequelize.authenticate();
-    console.log("DB connected");
+    // Try Postgres if env is present, otherwise use SQLite
+    if (process.env.DATABASE_URL || (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME)) {
+      const pgUrl = process.env.DATABASE_URL
+        ? process.env.DATABASE_URL
+        : `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME}`;
+
+      const pg = createPostgresSequelize(pgUrl);
+      try {
+        await pg.authenticate();
+        console.log("DB connected (Postgres)");
+        defineModels(pg);
+      } catch (err) {
+        console.error("Postgres connection failed, falling back to SQLite:", err && err.message ? err.message : err);
+        defineModels(createSqliteSequelize());
+      }
+    } else {
+      defineModels(createSqliteSequelize());
+      console.log(`No DATABASE_URL found — using SQLite fallback: ${defaultSQLiteStorage}`);
+    }
+
     await sequelize.sync({ alter: true }); // Add any new columns to existing tables
 
     // Seed Publications
