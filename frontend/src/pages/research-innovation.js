@@ -1,235 +1,30 @@
+import useSWR from "swr";
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
 export default function ResearchInnovation() {
   const [activeTab, setActiveTab] = useState("overview");
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const researchInnovationPage = siteSettings.researchInnovationPage || defaultPublicSettings.researchInnovationPage;
 
-  const researchStats = [
-    { label: "Research Projects", value: "150+", icon: "🧪" },
-    { label: "Publications (2024)", value: "250+", icon: "📝" },
-    { label: "Patents Filed", value: "35", icon: "📜" },
-    { label: "Research Grants", value: "₹50Cr+", icon: "💵" },
-  ];
+  const researchStats = researchInnovationPage.researchStats || [];
 
-  const researchCenters = [
-    {
-      name: "AI & Machine Learning Lab",
-      head: "Dr. Rajesh Kumar",
-      focus: "Deep Learning, NLP, Computer Vision",
-      projects: 25,
-      publications: 45,
-      funding: "₹5 Cr",
-      icon: "🧠",
-    },
-    {
-      name: "IoT Research Center",
-      head: "Dr. Priya Sharma",
-      focus: "Smart Cities, Industrial IoT, Edge Computing",
-      projects: 20,
-      publications: 35,
-      funding: "₹4 Cr",
-      icon: "📡",
-    },
-    {
-      name: "Cybersecurity Lab",
-      head: "Dr. Amit Verma",
-      focus: "Blockchain, Ethical Hacking, Data Privacy",
-      projects: 18,
-      publications: 30,
-      funding: "₹3.5 Cr",
-      icon: "🔒",
-    },
-    {
-      name: "Robotics & Automation Center",
-      head: "Dr. Sunita Reddy",
-      focus: "Industrial Robots, Drones, Autonomous Systems",
-      projects: 15,
-      publications: 28,
-      funding: "₹4.5 Cr",
-      icon: "🤖",
-    },
-    {
-      name: "Data Science Lab",
-      head: "Dr. Vikram Singh",
-      focus: "Big Data Analytics, Predictive Modeling, BI",
-      projects: 22,
-      publications: 40,
-      funding: "₹3 Cr",
-      icon: "📊",
-    },
-    {
-      name: "Renewable Energy Lab",
-      head: "Dr. Meena Joshi",
-      focus: "Solar Energy, Wind Power, Energy Storage",
-      projects: 12,
-      publications: 25,
-      funding: "₹6 Cr",
-      icon: "⚡",
-    },
-  ];
+  const researchCenters = researchInnovationPage.researchCenters || [];
 
-  const ongoingProjects = [
-    {
-      title: "AI-Powered Healthcare Diagnostics",
-      pi: "Dr. Rajesh Kumar",
-      funding: "SERB - ₹80 Lakhs",
-      duration: "2023-2026",
-      status: "Ongoing",
-      progress: 65,
-      desc: "Developing AI models for early detection of diseases using medical imaging",
-    },
-    {
-      title: "Smart City Infrastructure Monitoring",
-      pi: "Dr. Priya Sharma",
-      funding: "DST - ₹1.2 Cr",
-      duration: "2024-2027",
-      status: "Ongoing",
-      progress: 40,
-      desc: "IoT-based real-time monitoring system for urban infrastructure",
-    },
-    {
-      title: "Blockchain for Supply Chain Security",
-      pi: "Dr. Amit Verma",
-      funding: "ICSSR - ₹60 Lakhs",
-      duration: "2023-2025",
-      status: "Ongoing",
-      progress: 80,
-      desc: "Implementing blockchain technology for transparent supply chain management",
-    },
-    {
-      title: "Autonomous Agricultural Robots",
-      pi: "Dr. Sunita Reddy",
-      funding: "ICAR - ₹1.5 Cr",
-      duration: "2024-2028",
-      status: "Ongoing",
-      progress: 35,
-      desc: "Developing autonomous robots for precision agriculture and crop monitoring",
-    },
-  ];
+  const ongoingProjects = researchInnovationPage.ongoingProjects || [];
 
-  const publications = [
-    {
-      title: "Deep Learning Approaches for Medical Image Analysis",
-      authors: "Dr. Rajesh Kumar, et al.",
-      journal: "IEEE Transactions on Medical Imaging",
-      year: "2024",
-      impact: "10.5",
-    },
-    {
-      title: "IoT-Enabled Smart Grid Management System",
-      authors: "Dr. Priya Sharma, et al.",
-      journal: "Journal of Network and Computer Applications",
-      year: "2024",
-      impact: "7.2",
-    },
-    {
-      title: "Blockchain-Based Secure Data Sharing Framework",
-      authors: "Dr. Amit Verma, et al.",
-      journal: "Computers & Security",
-      year: "2024",
-      impact: "5.8",
-    },
-    {
-      title: "Autonomous Navigation for Mobile Robots",
-      authors: "Dr. Sunita Reddy, et al.",
-      journal: "Robotics and Autonomous Systems",
-      year: "2024",
-      impact: "6.5",
-    },
-  ];
+  const publications = researchInnovationPage.publications || [];
 
-  const patents = [
-    {
-      title: "AI-Based Disease Prediction System",
-      inventors: "Dr. Rajesh Kumar, Dr. Meena Joshi",
-      number: "IN 202411023456",
-      status: "Granted",
-      year: "2024",
-    },
-    {
-      title: "Smart Energy Management Device",
-      inventors: "Dr. Priya Sharma, Dr. Vikram Singh",
-      number: "IN 202411034567",
-      status: "Granted",
-      year: "2024",
-    },
-    {
-      title: "Blockchain-Based Authentication System",
-      inventors: "Dr. Amit Verma",
-      number: "IN 202411045678",
-      status: "Filed",
-      year: "2024",
-    },
-    {
-      title: "Autonomous Crop Monitoring Robot",
-      inventors: "Dr. Sunita Reddy, Dr. Rajesh Kumar",
-      number: "IN 202411056789",
-      status: "Filed",
-      year: "2024",
-    },
-  ];
+  const patents = researchInnovationPage.patents || [];
 
-  const innovationPrograms = [
-    {
-      name: "Innovation Hub",
-      description:
-        "State-of-the-art facility for prototyping and product development",
-      capacity: "100 projects",
-      equipment: "3D Printers, Laser Cutters, Electronics Lab",
-      icon: "💡",
-    },
-    {
-      name: "Startup Incubator",
-      description:
-        "Support for student and faculty startups with funding and mentorship",
-      startups: "25 active",
-      funding: "Up to ₹10 Lakhs/startup",
-      icon: "🚀",
-    },
-    {
-      name: "Industry Collaboration",
-      description:
-        "Partnerships with leading companies for joint research projects",
-      partners: "50+ companies",
-      projects: "80+ collaborative",
-      icon: "🤝",
-    },
-    {
-      name: "Research Internships",
-      description:
-        "Opportunities for students to work on cutting-edge research",
-      students: "200+ annually",
-      stipend: "₹10K-25K/month",
-      icon: "👨‍🔬",
-    },
-  ];
+  const innovationPrograms = researchInnovationPage.innovationPrograms || [];
 
-  const fundingSources = [
-    {
-      name: "DST (Department of Science & Technology)",
-      projects: 25,
-      amount: "₹15 Cr",
-    },
-    {
-      name: "SERB (Science & Engineering Research Board)",
-      projects: 18,
-      amount: "₹8 Cr",
-    },
-    {
-      name: "AICTE (All India Council for Technical Education)",
-      projects: 15,
-      amount: "₹5 Cr",
-    },
-    {
-      name: "ICSSR (Indian Council of Social Science Research)",
-      projects: 10,
-      amount: "₹3 Cr",
-    },
-    { name: "Industry Funded Projects", projects: 35, amount: "₹12 Cr" },
-    { name: "International Collaborations", projects: 12, amount: "₹7 Cr" },
-  ];
+  const fundingSources = researchInnovationPage.fundingSources || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -243,11 +38,8 @@ export default function ResearchInnovation() {
             <span className="mx-2">/</span>
             <span>Research & Development</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Research & Development</h1>
-          <p className="text-xl opacity-90">
-            Advancing knowledge through cutting-edge research and fostering
-            innovation
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{researchInnovationPage.heroTitle}</h1>
+          <p className="text-xl opacity-90">{researchInnovationPage.heroSubtitle}</p>
         </div>
       </section>
 

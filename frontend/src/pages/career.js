@@ -1,10 +1,16 @@
+import useSWR from "swr";
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
 export default function Career() {
   const [selectedTab, setSelectedTab] = useState("placements");
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const careerPage = siteSettings.careerPage || defaultPublicSettings.careerPage;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -18,12 +24,8 @@ export default function Career() {
             <span className="mx-2">/</span>
             <span>Career</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">
-            Career Development & Placements
-          </h1>
-          <p className="text-xl opacity-90">
-            Building careers and connecting talent with opportunities
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{careerPage.heroTitle}</h1>
+          <p className="text-xl opacity-90">{careerPage.heroSubtitle}</p>
         </div>
       </section>
 
@@ -31,32 +33,12 @@ export default function Career() {
       <section className="bg-white py-12 shadow-md">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-green-900 mb-2">95%</div>
-              <div className="text-gray-600">Placement Rate</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-900 mb-2">
-                ₹12 LPA
+            {(careerPage.stats || []).map((stat) => (
+              <div key={stat.label}>
+                <div className="text-4xl font-bold text-green-900 mb-2">{stat.value}</div>
+                <div className="text-gray-600">{stat.label}</div>
               </div>
-              <div className="text-gray-600">Average Package</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-900 mb-2">
-                ₹45 LPA
-              </div>
-              <div className="text-gray-600">Highest Package</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-900 mb-2">300+</div>
-              <div className="text-gray-600">Recruiters</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-green-900 mb-2">
-                2000+
-              </div>
-              <div className="text-gray-600">Offers (2024)</div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

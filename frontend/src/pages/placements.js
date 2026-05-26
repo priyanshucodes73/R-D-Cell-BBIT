@@ -1,17 +1,18 @@
+import useSWR from "swr";
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
 export default function Placements() {
   const [activeTab, setActiveTab] = useState("overview");
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const placementsPage = siteSettings.placementsPage || defaultPublicSettings.placementsPage;
 
-  const placementStats = [
-    { label: "Placement Rate", value: "95%", icon: "📈", color: "green" },
-    { label: "Average Package", value: "₹12 LPA", icon: "💰", color: "blue" },
-    { label: "Highest Package", value: "₹45 LPA", icon: "🚀", color: "purple" },
-    { label: "Companies Visited", value: "300+", icon: "🏢", color: "orange" },
-  ];
+  const placementStats = placementsPage.placementStats || [];
 
   const topRecruiters = [
     { name: "Google", logo: "🔵", package: "₹45 LPA", offers: 8 },
@@ -31,150 +32,13 @@ export default function Placements() {
     { name: "Cisco", logo: "🔵", package: "₹18 LPA", offers: 12 },
   ];
 
-  const placementProcess = [
-    {
-      step: "1",
-      title: "Pre-Placement Training",
-      description:
-        "Comprehensive training on aptitude, technical skills, and soft skills",
-      duration: "6 months",
-    },
-    {
-      step: "2",
-      title: "Resume Building",
-      description:
-        "Professional guidance to create impactful resumes and portfolios",
-      duration: "2 weeks",
-    },
-    {
-      step: "3",
-      title: "Mock Interviews",
-      description: "Multiple rounds of mock interviews with industry experts",
-      duration: "Ongoing",
-    },
-    {
-      step: "4",
-      title: "Company Registration",
-      description:
-        "Students register for companies based on eligibility criteria",
-      duration: "As per schedule",
-    },
-    {
-      step: "5",
-      title: "Placement Drives",
-      description:
-        "On-campus and virtual recruitment drives throughout the year",
-      duration: "Sep - Apr",
-    },
-    {
-      step: "6",
-      title: "Offer & Onboarding",
-      description: "Final offers, documentation, and joining formalities",
-      duration: "Post selection",
-    },
-  ];
+  const placementProcess = placementsPage.placementProcess || [];
 
-  const industryWise = [
-    {
-      industry: "IT Services",
-      companies: 120,
-      avgPackage: "₹8 LPA",
-      placements: "450+",
-    },
-    {
-      industry: "Product Based",
-      companies: 45,
-      avgPackage: "₹18 LPA",
-      placements: "80+",
-    },
-    {
-      industry: "Consulting",
-      companies: 35,
-      avgPackage: "₹12 LPA",
-      placements: "65+",
-    },
-    {
-      industry: "Core Engineering",
-      companies: 40,
-      avgPackage: "₹9 LPA",
-      placements: "70+",
-    },
-    {
-      industry: "Finance & Banking",
-      companies: 25,
-      avgPackage: "₹15 LPA",
-      placements: "40+",
-    },
-    {
-      industry: "Analytics",
-      companies: 20,
-      avgPackage: "₹10 LPA",
-      placements: "35+",
-    },
-    {
-      industry: "EdTech",
-      companies: 15,
-      avgPackage: "₹8 LPA",
-      placements: "25+",
-    },
-  ];
+  const industryWise = placementsPage.industryWise || [];
 
-  const successStories = [
-    {
-      name: "Ananya Gupta",
-      company: "Google",
-      package: "₹45 LPA",
-      branch: "B.Tech CSE",
-      year: "2024",
-      quote:
-        "The placement cell prepared me thoroughly for Google's rigorous interview process.",
-    },
-    {
-      name: "Vikram Singh",
-      company: "Microsoft",
-      package: "₹42 LPA",
-      branch: "B.Tech CSE",
-      year: "2024",
-      quote:
-        "Mock interviews and coding practice sessions were instrumental in my success.",
-    },
-    {
-      name: "Sneha Reddy",
-      company: "Goldman Sachs",
-      package: "₹40 LPA",
-      branch: "MBA Finance",
-      year: "2024",
-      quote:
-        "The industry exposure and mentorship helped me land my dream finance role.",
-    },
-  ];
+  const successStories = placementsPage.successStories || [];
 
-  const placementTeam = [
-    {
-      name: "Prof. Rajesh Khanna",
-      designation: "Director - Training & Placements",
-      experience: "20+ years",
-      specialization: "Career Guidance",
-    },
-    {
-      name: "Dr. Meera Sharma",
-      designation: "Deputy Director - Placements",
-      experience: "15+ years",
-      specialization: "Industry Relations",
-    },
-    {
-      name: "Mr. Amit Patel",
-      designation: "Training Coordinator",
-      experience: "10+ years",
-      specialization: "Technical Training",
-    },
-    {
-      name: "Ms. Priya Kapoor",
-      designation: "Soft Skills Trainer",
-      experience: "8+ years",
-      specialization: "Communication & Personality",
-    },
-  ];
+  const placementTeam = placementsPage.placementTeam || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -188,13 +52,8 @@ export default function Placements() {
             <span className="mx-2">/</span>
             <span>Placements</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">
-            Placement & Career Development
-          </h1>
-          <p className="text-xl opacity-90">
-            Empowering students with skills and opportunities for successful
-            careers
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{placementsPage.heroTitle}</h1>
+          <p className="text-xl opacity-90">{placementsPage.heroSubtitle}</p>
         </div>
       </section>
 

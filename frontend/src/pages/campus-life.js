@@ -1,10 +1,16 @@
+import useSWR from "swr";
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
 export default function CampusLife() {
   const [selectedCategory, setSelectedCategory] = useState("clubs");
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const campusLifePage = siteSettings.campusLifePage || defaultPublicSettings.campusLifePage;
 
   const clubs = [
     {
@@ -225,11 +231,8 @@ export default function CampusLife() {
             <span className="mx-2">/</span>
             <span>Campus Life</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Vibrant Campus Life</h1>
-          <p className="text-xl opacity-90">
-            Experience a dynamic blend of academics, culture, sports, and
-            innovation
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{campusLifePage.heroTitle}</h1>
+          <p className="text-xl opacity-90">{campusLifePage.heroSubtitle}</p>
         </div>
       </section>
 
@@ -237,22 +240,12 @@ export default function CampusLife() {
       <section className="bg-white py-8 shadow-md">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-900">50+</div>
-              <div className="text-gray-600 mt-2">Student Clubs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-900">200+</div>
-              <div className="text-gray-600 mt-2">Annual Events</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-900">15,000+</div>
-              <div className="text-gray-600 mt-2">Active Students</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-900">40+</div>
-              <div className="text-gray-600 mt-2">Sports Facilities</div>
-            </div>
+            {(campusLifePage.stats || []).map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-4xl font-bold text-purple-900">{stat.value}</div>
+                <div className="text-gray-600 mt-2">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

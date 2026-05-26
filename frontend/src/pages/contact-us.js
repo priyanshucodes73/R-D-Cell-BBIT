@@ -1,9 +1,15 @@
+import useSWR from "swr";
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
 export default function ContactUs() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const contactPage = siteSettings.contactPage || defaultPublicSettings.contactPage;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,42 +36,15 @@ export default function ContactUs() {
             <span className="mx-2">/</span>
             <span>Contact Us</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Get in Touch</h1>
-          <p className="text-xl opacity-90">
-            We're here to answer your questions and assist you
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{contactPage.heroTitle}</h1>
+          <p className="text-xl opacity-90">{contactPage.heroSubtitle}</p>
         </div>
       </section>
 
       {/* Quick Contact Cards */}
       <section className="max-w-6xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-6">
-          {[
-            {
-              icon: "📞",
-              title: "Call Us",
-              content: "(033) 2482 0641",
-              subtext: "Mon-Sat: 9 AM - 6 PM",
-            },
-            {
-              icon: "📧",
-              title: "Email Us",
-              content: "contact@bbit.edu.in",
-              subtext: "Response within 24 hours",
-            },
-            {
-              icon: "📍",
-              title: "Visit Us",
-              content: "Nischintapur, Budge Budge",
-              subtext: "Kolkata - 700138, West Bengal",
-            },
-            {
-              icon: "💬",
-              title: "Admission Helpline",
-              content: "8420123333 / 9836888444",
-              subtext: "B.Tech & Polytechnic",
-            },
-          ].map((item, idx) => (
+          {contactPage.cards.map((item, idx) => (
             <div
               key={idx}
               className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-2xl transition transform hover:-translate-y-2"
@@ -207,11 +186,12 @@ export default function ContactUs() {
                       Main Campus
                     </div>
                     <div className="text-gray-700">
-                      Budge Budge Institute of Technology (BBIT)
-                      <br />
-                      Nischintapur, Budge Budge
-                      <br />
-                      Kolkata - 700138, West Bengal, India
+                      {contactPage.officeAddress.map((line) => (
+                        <span key={line}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -222,9 +202,12 @@ export default function ContactUs() {
                       Contact Numbers
                     </div>
                     <div className="text-gray-700">
-                      Phone: (033) 2482 0641
-                      <br />
-                      Admission: 8420123333 / 9836888444
+                      {contactPage.contactNumbers.map((line) => (
+                        <span key={line}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -237,22 +220,14 @@ export default function ContactUs() {
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl">
               <h4 className="font-bold text-blue-900 mb-4">Office Hours</h4>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Monday - Friday</span>
-                  <span className="font-semibold text-blue-900">
-                    9:00 AM - 6:00 PM
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Saturday</span>
-                  <span className="font-semibold text-blue-900">
-                    9:00 AM - 2:00 PM
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Sunday</span>
-                  <span className="font-semibold text-red-600">Closed</span>
-                </div>
+                {contactPage.officeHours.map((item) => (
+                  <div key={item.day} className="flex justify-between">
+                    <span className="text-gray-700">{item.day}</span>
+                    <span className={`font-semibold ${item.time === "Closed" ? "text-red-600" : "text-blue-900"}`}>
+                      {item.time}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

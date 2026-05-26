@@ -1,94 +1,5 @@
 import React from "react";
-
-const footerLinks = [
-  {
-    title: "Apply Here",
-    links: [
-      { name: "BBIT Admissions", href: "/admissions" },
-      { name: "BBIT Education Loan", href: "/education-loan" },
-      { name: "How to Apply?", href: "/how-to-apply" },
-      { name: "BBIT Scholarship", href: "/scholarship" },
-      { name: "BBIT Admission Office", href: "/admission-office" },
-      { name: "BBIT Student Feedback", href: "/student-feedback" },
-      { name: "BBIT Student Facilitation", href: "/student-services" },
-      {
-        name: "BBIT International Student Facilitation",
-        href: "/international",
-      },
-      { name: "BBIT Alumni Membership", href: "/alumni" },
-      { name: "eSanad", href: "/esanad" },
-      { name: "Guinness World Records", href: "/guinness" },
-    ],
-  },
-  {
-    title: "Learn Here",
-    links: [
-      { name: "IQAC", href: "/iqac" },
-      { name: "Organogram", href: "/organogram" },
-      { name: "Other Committees", href: "/committees" },
-      { name: "Pay Fee Online", href: "/pay-fee" },
-      { name: "BBIT Institutes", href: "/institutes" },
-      { name: "Teaching Practices", href: "/teaching-practices" },
-      { name: "System of Evaluation", href: "/evaluation" },
-      { name: "BBIT Placements", href: "/placements" },
-      { name: "Clubs & Groups", href: "/clubs" },
-      { name: "BBIT Edge", href: "/bbit-edge" },
-      { name: "QS Asia Rankings 2024", href: "/qs-rankings" },
-      { name: "NIRF Rankings 2025", href: "/nirf-rankings" },
-      { name: "BBIT Unnao Campus", href: "/campuses" },
-    ],
-  },
-  {
-    title: "Visit Here",
-    links: [
-      { name: "RTI", href: "/rti" },
-      { name: "Grievance", href: "/grievance" },
-      { name: "BBIT News", href: "/news" },
-      { name: "BBIT Blog", href: "/blog" },
-      { name: "Alumni", href: "/alumni" },
-      { name: "Maps", href: "/maps" },
-      { name: "Distance Calculator", href: "/distance-calculator" },
-      { name: "About Budge Budge", href: "/about-budge-budge" },
-      { name: "QS World University Rankings", href: "/qs-world-rankings" },
-      { name: "ABET Accreditation", href: "/abet" },
-      {
-        name: "QS World University Rankings by Subject 2025",
-        href: "/qs-subject-rankings",
-      },
-    ],
-  },
-  {
-    title: "Live Here",
-    links: [
-      { name: "BBIT Hostels", href: "/hostels" },
-      { name: "BBIT Transport", href: "/transport" },
-      { name: "BBIT Sports", href: "/sports" },
-      { name: "Cultural Activities", href: "/cultural" },
-      { name: "BBIT Student Welfare", href: "/student-welfare" },
-      { name: "BBIT Libraries", href: "/library" },
-      { name: "e-Samadhan", href: "/e-samadhan" },
-      { name: "Discipline & Student Conduct", href: "/discipline" },
-    ],
-  },
-  {
-    title: "Others",
-    links: [
-      { name: "Courses Fee Details", href: "/fee-details" },
-      { name: "Student Grievance Redressal Cell", href: "/grievance-cell" },
-      { name: "Ombudsperson", href: "/ombudsperson" },
-      { name: "Procedures And Policies", href: "/policies" },
-      { name: "PPCB Report", href: "/ppcb-report" },
-      { name: "Mandatory Disclosure", href: "/mandatory-disclosure" },
-      { name: "Disclaimer", href: "/disclaimer" },
-      {
-        name: "UGC - Public Self Disclosure document",
-        href: "/ugc-disclosure",
-      },
-      { name: "e-SCR Report", href: "/escr-report" },
-    ],
-  },
-];
-
+import useSWR from "swr";
 import {
   FaWhatsapp,
   FaPhoneAlt,
@@ -99,52 +10,38 @@ import {
   FaYoutube,
   FaCompass,
 } from "react-icons/fa";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
-const footerSocialLinks = [
-  {
-    name: "Whatsapp",
-    href: "#",
-    icon: (
-      <span className="flex items-center gap-1">
-        <FaWhatsapp className="w-4 h-4" />
-        <span className="ml-1 hidden sm:inline">Whatsapp</span>
-      </span>
-    ),
-  },
-  {
-    name: "Call",
-    href: "tel:03324820641",
-    icon: (
-      <span className="flex items-center gap-1">
-        <FaPhoneAlt className="w-4 h-4" />
-        <span className="ml-1 hidden sm:inline">Call Us</span>
-      </span>
-    ),
-  },
-  {
-    name: "360",
-    href: "#",
-    icon: (
-      <span className="flex items-center gap-1">
-        <span>360°</span>
-        <FaCompass className="w-4 h-4 ml-1" />
-      </span>
-    ),
-  },
-  { name: "Facebook", href: "https://www.facebook.com/bbitofficial", icon: <FaFacebookF className="w-4 h-4" /> },
-  { name: "Twitter", href: "https://x.com/BbitCollege", icon: <FaTwitter className="w-4 h-4" /> },
-  { name: "LinkedIn", href: "#", icon: <FaLinkedinIn className="w-4 h-4" /> },
-  { name: "Instagram", href: "https://www.instagram.com/bbitofficials/", icon: <FaInstagram className="w-4 h-4" /> },
-  { name: "YouTube", href: "https://www.youtube.com/@bbitengg", icon: <FaYoutube className="w-4 h-4" /> },
-];
+function SocialIcon({ name }) {
+  if (name === "Whatsapp") return <FaWhatsapp className="w-4 h-4" />;
+  if (name === "Call") return <FaPhoneAlt className="w-4 h-4" />;
+  if (name === "360") return <FaCompass className="w-4 h-4 ml-1" />;
+  if (name === "Facebook") return <FaFacebookF className="w-4 h-4" />;
+  if (name === "Twitter") return <FaTwitter className="w-4 h-4" />;
+  if (name === "LinkedIn") return <FaLinkedinIn className="w-4 h-4" />;
+  if (name === "Instagram") return <FaInstagram className="w-4 h-4" />;
+  if (name === "YouTube") return <FaYoutube className="w-4 h-4" />;
+  return <span className="w-4 h-4 inline-block" />;
+}
 
 export default function Footer() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const editableFooterLinks = Array.isArray(siteSettings.footerLinks) && siteSettings.footerLinks.length
+    ? siteSettings.footerLinks
+    : defaultPublicSettings.footerLinks;
+  const editableSocialLinks = Array.isArray(siteSettings.socialLinks) && siteSettings.socialLinks.length
+    ? siteSettings.socialLinks
+    : defaultPublicSettings.socialLinks;
+  const footerAddressLines = String(siteSettings.footerAddress || "").split("\n").filter(Boolean);
+
   return (
     <>
       {/* Main Footer */}
       <footer className="bg-black text-white pt-10 pb-4 px-2 md:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-          {footerLinks.map((col) => (
+          {editableFooterLinks.map((col) => (
             <div key={col.title}>
               <div className="text-lg font-semibold mb-3 text-cyan-400">
                 {col.title}
@@ -168,21 +65,21 @@ export default function Footer() {
               Get in Touch
             </div>
             <div className="text-white/90 text-sm">
-              Budge Budge Institute of Technology
-              <br />
-              Nischintapur, Budge Budge
-              <br />
-              Kolkata - 700 138, West Bengal, India
-              <br />
-              <span className="text-cyan-400">Phone:</span> 033-2482-0641
+              {footerAddressLines.map((line, index) => (
+                <span key={line + index}>
+                  {line}
+                  <br />
+                </span>
+              ))}
+              <span className="text-cyan-400">Phone:</span> {siteSettings.footerPhone}
               <br />
               <span className="text-cyan-400">Student Helpline:</span>
               <br />
-              8420123333 / 9836888444
+              {siteSettings.footerHelpline}
               <br />
               <span className="text-cyan-400">Email:</span>
               <br />
-              contact@bbit.edu.in
+              {siteSettings.footerEmail}
             </div>
           </div>
         </div>
@@ -205,7 +102,7 @@ export default function Footer() {
             </a>
           </div>
           <div className="flex gap-4 mt-2 md:mt-0">
-            {footerSocialLinks.map((item) => (
+            {editableSocialLinks.map((item) => (
               <a
                 key={item.name}
                 href={item.href}
@@ -214,7 +111,12 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {item.icon}
+                <span className="flex items-center gap-1">
+                  <SocialIcon name={item.name} />
+                  {item.name === "Whatsapp" && <span className="ml-1 hidden sm:inline">Whatsapp</span>}
+                  {item.name === "Call" && <span className="ml-1 hidden sm:inline">Call Us</span>}
+                  {item.name === "360" && <span className="hidden sm:inline">360°</span>}
+                </span>
               </a>
             ))}
           </div>
@@ -223,7 +125,7 @@ export default function Footer() {
         {/* Copyright Section */}
         <div className="mt-6 pt-4 border-t border-white/10 text-center">
           <p className="text-white/70 text-sm">
-            Copyright © 2025. BBIT. All Rights Reserved.
+            {siteSettings.footerCopyright}
           </p>
         </div>
       </footer>

@@ -3,6 +3,7 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
+import { fetcher, getApiBase, normalizeSiteSettings, defaultPublicSettings } from "../lib/siteSettings";
 import {
   FaWhatsapp,
   FaPhoneAlt,
@@ -22,44 +23,17 @@ import {
   FaDiscord,
 } from "react-icons/fa";
 
-// Social icons SVG (simple inline for now)
-const socialIcons = [
-  {
-    name: "Whatsapp",
-    href: "#",
-    icon: (
-      <span className="flex items-center gap-1">
-        <FaWhatsapp className="w-4 h-4" />
-        <span>Whatsapp</span>
-      </span>
-    ),
-  },
-  {
-    name: "Call",
-    href: "tel:03324820641",
-    icon: (
-      <span className="flex items-center gap-1">
-        <FaPhoneAlt className="w-4 h-4" />
-        <span>Call Us</span>
-      </span>
-    ),
-  },
-  {
-    name: "360",
-    href: "#",
-    icon: (
-      <span className="flex items-center gap-1">
-        <span>360°</span>
-        <FaCompass className="w-4 h-4 ml-1" />
-      </span>
-    ),
-  },
-  { name: "Facebook", href: "https://www.facebook.com/bbitofficial", icon: <FaFacebookF className="w-4 h-4" /> },
-  { name: "Twitter", href: "https://x.com/BbitCollege", icon: <FaTwitter className="w-4 h-4" /> },
-  { name: "LinkedIn", href: "https://www.linkedin.com/school/budge-budge-institute-of-technology/", icon: <FaLinkedinIn className="w-4 h-4" /> },
-  { name: "Instagram", href: "https://www.instagram.com/bbitofficials/", icon: <FaInstagram className="w-4 h-4" /> },
-  { name: "YouTube", href: "https://www.youtube.com/@bbitengg", icon: <FaYoutube className="w-4 h-4" /> },
-];
+function SocialIcon({ name }) {
+  if (name === "Whatsapp") return <FaWhatsapp className="w-4 h-4" />;
+  if (name === "Call") return <FaPhoneAlt className="w-4 h-4" />;
+  if (name === "360") return <FaCompass className="w-4 h-4 ml-1" />;
+  if (name === "Facebook") return <FaFacebookF className="w-4 h-4" />;
+  if (name === "Twitter") return <FaTwitter className="w-4 h-4" />;
+  if (name === "LinkedIn") return <FaLinkedinIn className="w-4 h-4" />;
+  if (name === "Instagram") return <FaInstagram className="w-4 h-4" />;
+  if (name === "YouTube") return <FaYoutube className="w-4 h-4" />;
+  return <span className="w-4 h-4 inline-block" />;
+}
 
 const upperNavLinks = [
   { name: "CAMPUSES", href: "/campuses" },
@@ -69,8 +43,6 @@ const upperNavLinks = [
   { name: "CAREER", href: "/career" },
   { name: "CONTACT US", href: "/contact-us" },
 ];
-
-const fetcher = (url) => fetch(url).then((r) => r.json());
 
 const navLinks = [
   { name: "ABOUT", href: "/about", menu: [] },
@@ -198,12 +170,26 @@ export default function Home() {
   // Carousel auto-slide
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 4);
+      setCurrentSlide((prev) => (prev + 1) % (editableHeroSlides.length || 1));
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  }, [editableHeroSlides.length]);
+  const apiBase = getApiBase();
   const { data, error } = useSWR(apiBase + "/api/publications", fetcher);
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const editableUpperNavLinks = Array.isArray(siteSettings.upperNavLinks) && siteSettings.upperNavLinks.length
+    ? siteSettings.upperNavLinks
+    : defaultPublicSettings.upperNavLinks;
+  const editableSocialLinks = Array.isArray(siteSettings.socialLinks) && siteSettings.socialLinks.length
+    ? siteSettings.socialLinks
+    : defaultPublicSettings.socialLinks;
+  const editableNavLinks = Array.isArray(siteSettings.mainNavLinks) && siteSettings.mainNavLinks.length
+    ? siteSettings.mainNavLinks.map((link) => ({ ...link, menu: link.menu || [] }))
+    : defaultPublicSettings.mainNavLinks.map((link) => ({ ...link, menu: [] }));
+  const editableHeroSlides = Array.isArray(siteSettings.heroSlides) && siteSettings.heroSlides.length
+    ? siteSettings.heroSlides
+    : defaultPublicSettings.heroSlides;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -213,7 +199,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-3 lg:gap-0">
             {/* Left: Navigation Links */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 lg:gap-5">
-              {upperNavLinks.map((link) => (
+              {editableUpperNavLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
@@ -228,7 +214,7 @@ export default function Home() {
 
             {/* Right: Social Links */}
             <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
-              {socialIcons.map((item) => (
+              {editableSocialLinks.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
@@ -237,7 +223,17 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <span className="relative z-10">{item.icon}</span>
+                  <span className="relative z-10 flex items-center gap-1">
+                    <SocialIcon name={item.name} />
+                    {item.name === "360" ? <span>360°</span> : null}
+                    {item.name === "Whatsapp" ? <span>Whatsapp</span> : null}
+                    {item.name === "Call" ? <span>Call Us</span> : null}
+                    {item.name === "Facebook" ? <span className="sr-only">Facebook</span> : null}
+                    {item.name === "Twitter" ? <span className="sr-only">Twitter</span> : null}
+                    {item.name === "LinkedIn" ? <span className="sr-only">LinkedIn</span> : null}
+                    {item.name === "Instagram" ? <span className="sr-only">Instagram</span> : null}
+                    {item.name === "YouTube" ? <span className="sr-only">YouTube</span> : null}
+                  </span>
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/30 group-hover:to-purple-500/30 rounded-full transition-all duration-300"></div>
                 </a>
               ))}
@@ -253,7 +249,7 @@ export default function Home() {
             {/* Left: Registration Info */}
             <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-start">
               <span className="text-center sm:text-left text-xs md:text-sm font-medium px-2 py-1 bg-blue-800/50 rounded-md backdrop-blur-sm">
-                Register Now for Admission at BBIT - Budge Budge Institute of Technology
+                {siteSettings.topAnnouncement}
               </span>
               <Link href="/register">
                 <span className="group relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 font-bold px-5 py-2 rounded-lg hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 cursor-pointer inline-block shadow-md hover:shadow-xl transform hover:-translate-y-0.5 text-sm whitespace-nowrap">
@@ -275,7 +271,7 @@ export default function Home() {
                 Admission Helpline
               </span>
               <span className="bg-gradient-to-r from-blue-700 to-blue-600 px-4 py-1.5 rounded-lg font-bold tracking-wide text-sm md:text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 border border-blue-500/30">
-                8420123333/9836888444
+                {siteSettings.admissionHelpline}
               </span>
             </div>
           </div>
@@ -320,7 +316,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col items-start">
                   <span className="font-extrabold text-2xl md:text-3xl text-white tracking-wider whitespace-nowrap flex-shrink-0 group-hover:text-yellow-400 transition-colors duration-300">
-                    BBIT
+                    {siteSettings.siteName}
                   </span>
                   <span className="text-white/90 font-semibold text-[10px] md:text-xs whitespace-nowrap -mt-1 tracking-wide group-hover:text-yellow-300 transition-colors duration-300">
                     Research & Development
@@ -332,7 +328,7 @@ export default function Home() {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center flex-1 justify-end">
               <div className="flex items-center gap-0.5 xl:gap-1">
-                {navLinks.map((link) => (
+                {editableNavLinks.map((link) => (
                   <div key={link.name}>
                     <DropdownMenu link={link} />
                   </div>
@@ -378,7 +374,7 @@ export default function Home() {
           <nav className="lg:hidden bg-gradient-to-b from-blue-900/98 via-blue-800/98 to-blue-900/98 backdrop-blur-xl border-t border-blue-700/50 shadow-2xl animate-fade-in">
             <div className="max-w-7xl mx-auto px-4 py-6">
               <div className="flex flex-col gap-2">
-                {navLinks.map((link, index) => (
+                {editableNavLinks.map((link, index) => (
                   <div
                     key={link.name}
                     className="animate-slide-in"
@@ -473,19 +469,12 @@ export default function Home() {
               boxSizing: "border-box",
             }}
           >
-            {[0, 1, 2, 3].map((i) => (
+            {editableHeroSlides.map((slide, i) => (
               <div
                 key={i}
                 className="w-full h-full flex-shrink-0 flex flex-col md:flex-row items-center justify-center relative min-w-0"
                 style={{
-                  background:
-                    i === 0
-                      ? `url(/event-slide-1.jpg) center/cover no-repeat`
-                      : i === 1
-                      ? `url(/campus-slide-2.jpg) center/cover no-repeat`
-                      : i === 2
-                      ? `url(/campus-slide-3.jpg) center/cover no-repeat`
-                      : `url(/students-slide-4.jpg) center/cover no-repeat`,
+                  background: `url(${slide.image}) center/cover no-repeat`,
                   minHeight: 700,
                   maxWidth: "100%",
                   boxSizing: "border-box",
@@ -498,19 +487,14 @@ export default function Home() {
                 {i === 0 && (
                   <div className="flex-1 text-center md:text-left z-10 px-4 relative">
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white drop-shadow-2xl">
-                      Innovation &{" "}
-                      <span className="text-yellow-400">Entrepreneurship</span>
+                      {slide.title}
                     </h1>
                     <p className="max-w-xl text-lg md:text-xl mb-6 text-white drop-shadow-lg">
-                      Firmly established as a rapidly rising hub of excellence
-                      for innovation and entrepreneurship, BBIT actively
-                      nurtures and empowers creative ideas across diverse
-                      fields, transforming them into valuable and viable
-                      business opportunities.
+                      {slide.subtitle}
                     </p>
-                    <Link href="/innovation-entrepreneurship">
+                    <Link href={slide.ctaHref}>
                       <span className="inline-block bg-yellow-400 text-blue-900 font-bold px-6 py-3 rounded-lg shadow-xl hover:bg-yellow-300 transition transform hover:scale-105 cursor-pointer">
-                        Read More
+                        {slide.ctaLabel}
                       </span>
                     </Link>
                   </div>
@@ -521,7 +505,7 @@ export default function Home() {
         </div>
         {/* Carousel controls */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-          {[0, 1, 2, 3].map((i) => (
+          {editableHeroSlides.map((_, i) => (
             <button
               key={i}
               className={`w-3 h-3 rounded-full border-2 ${
@@ -568,19 +552,14 @@ export default function Home() {
       <section className="max-w-6xl mx-auto mt-20 px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4 text-blue-900">
-            About BBIT R&D Cell
+            {siteSettings.aboutTitle}
           </h2>
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
         </div>
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <p className="text-gray-700 text-lg mb-4 leading-relaxed">
-              Budge Budge Institute of Technology (BBIT) has promoted
-              significant research and development activities with a vision and
-              mission to continue and promote research excellence. Our R&D Cell
-              is at the forefront of fostering innovation across our
-              NBA-accredited departments (CSE, EE, ECE, ME) and other
-              engineering disciplines.
+              {siteSettings.aboutBody}
             </p>
             <p className="text-gray-700 text-lg mb-4 leading-relaxed">
               As a NAAC-accredited and MAKAUT-affiliated institution, we

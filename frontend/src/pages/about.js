@@ -1,8 +1,15 @@
+import useSWR from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
 export default function About() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const aboutPage = siteSettings.aboutPage || defaultPublicSettings.aboutPage;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -15,11 +22,8 @@ export default function About() {
             <span className="mx-2">/</span>
             <span>About Us</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">About BBIT</h1>
-          <p className="text-xl opacity-90">
-            Building future leaders through excellence in education, research,
-            and innovation
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{aboutPage.heroTitle}</h1>
+          <p className="text-xl opacity-90">{aboutPage.heroSubtitle}</p>
         </div>
       </section>
 
@@ -28,33 +32,11 @@ export default function About() {
         <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
           <h2 className="text-3xl font-bold text-blue-900 mb-6">Overview</h2>
           <div className="prose max-w-none">
-            <p className="text-gray-700 text-lg mb-4">
-              Budge Budge Institute of Technology (BBIT) is a technical
-              institute whose main objective is to produce result-oriented and
-              skilled professionals to meet the ever-growing demands of
-              industries. The success story of an institution weaves around its
-              pillars, which supports and facilitates the growth of individuals.
-              These pillars are students, parents, teachers, and administration.
-              The Institute seeks to set up a supportive environment the essence
-              of which is "care".
-            </p>
-            <p className="text-gray-700 text-lg mb-4">
-              We care for each one who enters the portal of our institution for
-              we know the power of a gentle touch, a friendly smile, a kind
-              word, a listening ear, and an honest compliment – all of which
-              embody parental care. With nurturing philosophy, it views each one
-              of you as unique and is committed to grooming you into a strong
-              individual, a global citizen with your feet firmly rooted in
-              values and traditions that embody a true BBITian.
-            </p>
-            <p className="text-gray-700 text-lg mb-4">
-              In a larger context the BBIT intends to provide quality education
-              on which the country can depend. The curriculum is up to date to
-              effectively fulfill the technological requirement of India. It is
-              tuned to the requirements of research institutes and industries so
-              that the benefits of your education can find application in
-              improving the people's quality of life.
-            </p>
+            {aboutPage.overview.map((paragraph) => (
+              <p key={paragraph} className="text-gray-700 text-lg mb-4">
+                {paragraph}
+              </p>
+            ))}
           </div>
         </div>
 
@@ -65,11 +47,7 @@ export default function About() {
             <h3 className="text-2xl font-bold text-blue-900 mb-4">
               Our Vision
             </h3>
-            <p className="text-gray-700">
-              To realize the full potential of knowledge through universal
-              education and research so as to foster a new era of development
-              and growth through innovations.
-            </p>
+            <p className="text-gray-700">{aboutPage.vision}</p>
           </div>
 
           <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl shadow-lg p-8 border-t-4 border-green-600">
@@ -78,26 +56,12 @@ export default function About() {
               Our Mission
             </h3>
             <ul className="space-y-2 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>
-                  To open new horizons of knowledge and to promote academic
-                  growth by offering state-of-the-art undergraduate,
-                  postgraduate and research programmes
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>To keep pace with regional, national and global needs</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">✓</span>
-                <span>
-                  To play a pioneering role in shaping future generations
-                  through collaboration between academia and industry as well as
-                  between different national and international institutions
-                </span>
-              </li>
+              {aboutPage.mission.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <span className="text-green-600 mt-1">✓</span>
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -108,46 +72,12 @@ export default function About() {
             Aims and Objectives
           </h2>
           <ul className="space-y-3 text-gray-700">
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Latest technology to meet the demands of front-end industries.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>High teacher-student ratio to ensure better interface</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Impart personality traits in students to ensure bright career</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Expose the students to industrial climate and practical problems</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Improve communication skills, creativity and leadership qualities among students</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Encourage participation in co-curricular activities</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Develop social awareness</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Provide facilities for faculty upgradation</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Encourage in subsequent publication of research papers in National and International Journals.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-blue-600 mt-1">◦</span>
-              <span>Establish a close bond between the teachers and the students</span>
-            </li>
+            {aboutPage.aims.map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <span className="text-blue-600 mt-1">◦</span>
+                <span>{item}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -157,48 +87,13 @@ export default function About() {
             Our Core Values
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="text-4xl mb-3">⭐</div>
-              <h3 className="font-bold text-lg mb-2">Excellence</h3>
-              <p className="text-sm text-gray-600">
-                Striving for the highest standards in everything we do
-              </p>
-            </div>
-            <div className="text-center p-6 bg-green-50 rounded-lg">
-              <div className="text-4xl mb-3">🤝</div>
-              <h3 className="font-bold text-lg mb-2">Integrity</h3>
-              <p className="text-sm text-gray-600">
-                Upholding honesty, transparency, and ethical conduct
-              </p>
-            </div>
-            <div className="text-center p-6 bg-purple-50 rounded-lg">
-              <div className="text-4xl mb-3">💡</div>
-              <h3 className="font-bold text-lg mb-2">Innovation</h3>
-              <p className="text-sm text-gray-600">
-                Encouraging creativity and out-of-the-box thinking
-              </p>
-            </div>
-            <div className="text-center p-6 bg-yellow-50 rounded-lg">
-              <div className="text-4xl mb-3">📚</div>
-              <h3 className="font-bold text-lg mb-2">Learning</h3>
-              <p className="text-sm text-gray-600">
-                Fostering continuous learning and development
-              </p>
-            </div>
-            <div className="text-center p-6 bg-red-50 rounded-lg">
-              <div className="text-4xl mb-3">🌎</div>
-              <h3 className="font-bold text-lg mb-2">Diversity</h3>
-              <p className="text-sm text-gray-600">
-                Celebrating inclusive and multicultural environment
-              </p>
-            </div>
-            <div className="text-center p-6 bg-indigo-50 rounded-lg">
-              <div className="text-4xl mb-3">🤝</div>
-              <h3 className="font-bold text-lg mb-2">Responsibility</h3>
-              <p className="text-sm text-gray-600">
-                Contributing positively to society and environment
-              </p>
-            </div>
+            {aboutPage.values.map((value, index) => (
+              <div key={value.title} className={`text-center p-6 rounded-lg ${index % 2 === 0 ? "bg-blue-50" : index % 3 === 0 ? "bg-yellow-50" : index % 3 === 1 ? "bg-green-50" : "bg-purple-50"}`}>
+                <div className="text-4xl mb-3">{["⭐", "🤝", "💡", "📚", "🌎", "🤝"][index % 6]}</div>
+                <h3 className="font-bold text-lg mb-2">{value.title}</h3>
+                <p className="text-sm text-gray-600">{value.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
 

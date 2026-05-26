@@ -303,6 +303,7 @@ let Publication,
   Registration,
   NewsEvent,
   Patent,
+  SiteSetting,
   User;
 
 function defineModels(sq) {
@@ -414,6 +415,20 @@ function defineModels(sq) {
     { timestamps: true }
   );
 
+  SiteSetting = sequelize.define(
+    "SiteSetting",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      key: { type: DataTypes.STRING, allowNull: false, unique: true },
+      value: { type: DataTypes.TEXT, allowNull: false },
+      section: { type: DataTypes.STRING, defaultValue: "general" },
+      description: { type: DataTypes.TEXT },
+      type: { type: DataTypes.STRING, defaultValue: "text" },
+      isPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
+    },
+    { timestamps: true }
+  );
+
   Patent = sequelize.define(
     "Patent",
     {
@@ -474,6 +489,566 @@ function defineModels(sq) {
 
   User.prototype.generateAuthToken = function () {
     return jwt.sign({ id: this.id, email: this.email, role: this.role }, JWT_SECRET, { expiresIn: "7d" });
+  };
+}
+
+const defaultSiteSettings = [
+  {
+    key: "siteName",
+    value: "BBIT R&D Cell",
+    section: "branding",
+    description: "Displayed as the site name across the website.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "topAnnouncement",
+    value: "Register Now for Admission at BBIT - Budge Budge Institute of Technology",
+    section: "header",
+    description: "Top announcement bar text on the homepage.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "admissionHelpline",
+    value: "8420123333/9836888444",
+    section: "header",
+    description: "Admission helpline number shown on the homepage.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "heroTitle",
+    value: "Research, Innovation, and Entrepreneurship at BBIT",
+    section: "home",
+    description: "Primary hero title on the homepage.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "heroSubtitle",
+    value: "A living research platform where faculty, students, and industry collaborate.",
+    section: "home",
+    description: "Supporting text under the hero title.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "upperNavLinks",
+    value: JSON.stringify([
+      { name: "CAMPUSES", href: "/campuses" },
+      { name: "INTERNATIONAL", href: "/international" },
+      { name: "LIBRARY", href: "/library" },
+      { name: "STUDENT SERVICES", href: "/student-services" },
+      { name: "CAREER", href: "/career" },
+      { name: "CONTACT US", href: "/contact-us" },
+    ]),
+    section: "navigation",
+    description: "Top utility navigation links.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "socialLinks",
+    value: JSON.stringify([
+      { name: "Whatsapp", href: "#" },
+      { name: "Call", href: "tel:03324820641" },
+      { name: "360", href: "#" },
+      { name: "Facebook", href: "https://www.facebook.com/bbitofficial" },
+      { name: "Twitter", href: "https://x.com/BbitCollege" },
+      { name: "LinkedIn", href: "https://www.linkedin.com/school/budge-budge-institute-of-technology/" },
+      { name: "Instagram", href: "https://www.instagram.com/bbitofficials/" },
+      { name: "YouTube", href: "https://www.youtube.com/@bbitengg" },
+    ]),
+    section: "navigation",
+    description: "Homepage social bar links.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "mainNavLinks",
+    value: JSON.stringify([
+      { name: "ABOUT", href: "/about" },
+      { name: "PROGRAMS", href: "/programs" },
+      { name: "ACADEMICS", href: "/academics" },
+      { name: "ADMISSIONS", href: "/register" },
+      { name: "CAMPUS LIFE", href: "/campus-life" },
+      { name: "CLUBS & GROUPS", href: "/clubs" },
+      { name: "PLACEMENTS", href: "/placements" },
+      { name: "RESEARCH & DEVELOPMENT", href: "/research-innovation" },
+    ]),
+    section: "navigation",
+    description: "Main navigation links in the homepage header.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "heroSlides",
+    value: JSON.stringify([
+      {
+        image: "/event-slide-1.jpg",
+        title: "Innovation & Entrepreneurship",
+        subtitle:
+          "Firmly established as a rapidly rising hub of excellence for innovation and entrepreneurship, BBIT actively nurtures and empowers creative ideas across diverse fields.",
+        ctaLabel: "Read More",
+        ctaHref: "/innovation-entrepreneurship",
+      },
+      {
+        image: "/campus-slide-2.jpg",
+        title: "Research-led Campus Life",
+        subtitle:
+          "Modern labs, collaborative learning, and an ecosystem designed for applied research and discovery.",
+        ctaLabel: "Explore Research",
+        ctaHref: "/explore-research",
+      },
+      {
+        image: "/campus-slide-3.jpg",
+        title: "Industry Collaboration",
+        subtitle:
+          "Partnerships with industry and research institutes that convert ideas into impact.",
+        ctaLabel: "Our Projects",
+        ctaHref: "/all-projects",
+      },
+      {
+        image: "/students-slide-4.jpg",
+        title: "Student Innovation",
+        subtitle:
+          "Students drive innovation through clubs, research, hackathons, and entrepreneurship activities.",
+        ctaLabel: "Join Our Team",
+        ctaHref: "/join-our-team",
+      },
+    ]),
+    section: "homepage",
+    description: "Homepage carousel slides.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "aboutTitle",
+    value: "About BBIT R&D Cell",
+    section: "home",
+    description: "Heading for the about section on the homepage.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "aboutBody",
+    value: "BBIT R&D Cell promotes research excellence, innovation, and entrepreneurship through projects, publications, patents, and industry collaboration.",
+    section: "home",
+    description: "About section body text on the homepage.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "aboutPage",
+    value: JSON.stringify({
+      heroTitle: "About BBIT",
+      heroSubtitle:
+        "Building future leaders through excellence in education, research, and innovation",
+      overview: [
+        "Budge Budge Institute of Technology (BBIT) is a technical institute whose main objective is to produce result-oriented and skilled professionals to meet the ever-growing demands of industries.",
+        "The Institute seeks to set up a supportive environment the essence of which is care. We care for each one who enters the portal of our institution.",
+        "In a larger context the BBIT intends to provide quality education on which the country can depend. The curriculum is up to date to effectively fulfill the technological requirement of India.",
+      ],
+      vision: "To realize the full potential of knowledge through universal education and research so as to foster a new era of development and growth through innovations.",
+      mission: [
+        "To open new horizons of knowledge and to promote academic growth by offering state-of-the-art undergraduate, postgraduate and research programmes.",
+        "To keep pace with regional, national and global needs.",
+        "To play a pioneering role in shaping future generations through collaboration between academia and industry as well as between different national and international institutions.",
+      ],
+      aims: [
+        "Latest technology to meet the demands of front-end industries.",
+        "High teacher-student ratio to ensure better interface.",
+        "Impart personality traits in students to ensure bright career.",
+        "Expose the students to industrial climate and practical problems.",
+        "Improve communication skills, creativity and leadership qualities among students.",
+      ],
+      values: [
+        { title: "Excellence", desc: "Striving for the highest standards in everything we do." },
+        { title: "Integrity", desc: "Upholding honesty, transparency, and ethical conduct." },
+        { title: "Innovation", desc: "Encouraging creativity and out-of-the-box thinking." },
+        { title: "Learning", desc: "Fostering continuous learning and development." },
+        { title: "Diversity", desc: "Celebrating inclusive and multicultural environment." },
+        { title: "Responsibility", desc: "Contributing positively to society and environment." },
+      ],
+    }),
+    section: "pages",
+    description: "About page content blocks.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "contactPage",
+    value: JSON.stringify({
+      heroTitle: "Get in Touch",
+      heroSubtitle: "We're here to answer your questions and assist you",
+      cards: [
+        { icon: "📞", title: "Call Us", content: "(033) 2482 0641", subtext: "Mon-Sat: 9 AM - 6 PM" },
+        { icon: "📧", title: "Email Us", content: "contact@bbit.edu.in", subtext: "Response within 24 hours" },
+        { icon: "📍", title: "Visit Us", content: "Nischintapur, Budge Budge", subtext: "Kolkata - 700138, West Bengal" },
+        { icon: "💬", title: "Admission Helpline", content: "8420123333 / 9836888444", subtext: "B.Tech & Polytechnic" },
+      ],
+      officeAddress: [
+        "Budge Budge Institute of Technology (BBIT)",
+        "Nischintapur, Budge Budge",
+        "Kolkata - 700138, West Bengal, India",
+      ],
+      contactNumbers: [
+        "Phone: (033) 2482 0641",
+        "Admission: 8420123333 / 9836888444",
+      ],
+      officeHours: [
+        { day: "Monday - Friday", time: "9:00 AM - 6:00 PM" },
+        { day: "Saturday", time: "9:00 AM - 2:00 PM" },
+        { day: "Sunday", time: "Closed" },
+      ],
+    }),
+    section: "pages",
+    description: "Contact page content blocks.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "admissionsPage",
+    value: JSON.stringify({
+      heroTitle: "BBIT Admissions 2025",
+      heroSubtitle: "Begin your journey to excellence. Join BBIT's world-class academic programs",
+      quickLinks: [
+        { title: "How to Apply", href: "/how-to-apply", desc: "Step-by-step application process", icon: "FaFileAlt" },
+        { title: "Scholarships", href: "/scholarship", desc: "Financial aid options available", icon: "FaRupeeSign" },
+        { title: "Education Loan", href: "/education-loan", desc: "Easy financing options", icon: "FaRupeeSign" },
+        { title: "Apply Now", href: "/register", desc: "Start your application today", icon: "FaUserGraduate" },
+      ],
+      process: [
+        { step: "1", title: "Registration", desc: "Create your account and fill the application form online" },
+        { step: "2", title: "Entrance Exam", desc: "Appear for JEE Main/WBJEE or BBIT entrance test" },
+        { step: "3", title: "Counseling", desc: "Participate in counseling process based on your rank" },
+        { step: "4", title: "Document Verification", desc: "Submit all required documents for verification" },
+        { step: "5", title: "Fee Payment", desc: "Complete admission by paying the fees" },
+      ],
+      programs: [
+        { level: "B.Tech", programs: ["Computer Science", "Electronics", "Mechanical", "Civil", "Electrical", "IT"], seats: 60 },
+        { level: "M.Tech", programs: ["CSE", "ECE", "Mechanical", "Structural"], seats: 18 },
+        { level: "MBA", programs: ["General Management", "Marketing", "Finance", "HR"], seats: 120 },
+        { level: "MCA", programs: ["Computer Applications", "Data Science"], seats: 60 },
+        { level: "B.Sc", programs: ["Physics", "Chemistry", "Mathematics"], seats: 40 },
+        { level: "M.Sc", programs: ["Physics", "Chemistry", "Mathematics"], seats: 20 },
+      ],
+    }),
+    section: "pages",
+    description: "Admissions page content blocks.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "footerAddress",
+    value: "Budge Budge Institute of Technology\nNischintapur, Budge Budge\nKolkata - 700 138, West Bengal, India",
+    section: "footer",
+    description: "Postal address shown in the footer.",
+    type: "textarea",
+    isPublic: true,
+  },
+  {
+    key: "footerPhone",
+    value: "033-2482-0641",
+    section: "footer",
+    description: "Main phone number in the footer.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "footerHelpline",
+    value: "8420123333 / 9836888444",
+    section: "footer",
+    description: "Student helpline number in the footer.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "footerEmail",
+    value: "contact@bbit.edu.in",
+    section: "footer",
+    description: "Contact email shown in the footer.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "footerCopyright",
+    value: "Copyright © 2025. BBIT. All Rights Reserved.",
+    section: "footer",
+    description: "Footer copyright notice.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "footerLinks",
+    value: JSON.stringify([
+      {
+        title: "Apply Here",
+        links: [
+          { name: "BBIT Admissions", href: "/admissions" },
+          { name: "BBIT Education Loan", href: "/education-loan" },
+          { name: "How to Apply?", href: "/how-to-apply" },
+          { name: "BBIT Scholarship", href: "/scholarship" },
+          { name: "BBIT Admission Office", href: "/admission-office" },
+          { name: "BBIT Student Feedback", href: "/student-feedback" },
+          { name: "BBIT Student Facilitation", href: "/student-services" },
+          { name: "BBIT International Student Facilitation", href: "/international" },
+          { name: "BBIT Alumni Membership", href: "/alumni" },
+          { name: "eSanad", href: "/esanad" },
+          { name: "Guinness World Records", href: "/guinness" },
+        ],
+      },
+      {
+        title: "Learn Here",
+        links: [
+          { name: "IQAC", href: "/iqac" },
+          { name: "Organogram", href: "/organogram" },
+          { name: "Other Committees", href: "/committees" },
+          { name: "Pay Fee Online", href: "/pay-fee" },
+          { name: "BBIT Institutes", href: "/institutes" },
+          { name: "Teaching Practices", href: "/teaching-practices" },
+          { name: "System of Evaluation", href: "/evaluation" },
+          { name: "BBIT Placements", href: "/placements" },
+          { name: "Clubs & Groups", href: "/clubs" },
+          { name: "BBIT Edge", href: "/bbit-edge" },
+          { name: "QS Asia Rankings 2024", href: "/qs-rankings" },
+          { name: "NIRF Rankings 2025", href: "/nirf-rankings" },
+          { name: "BBIT Unnao Campus", href: "/campuses" },
+        ],
+      },
+      {
+        title: "Visit Here",
+        links: [
+          { name: "RTI", href: "/rti" },
+          { name: "Grievance", href: "/grievance" },
+          { name: "BBIT News", href: "/news" },
+          { name: "BBIT Blog", href: "/blog" },
+          { name: "Alumni", href: "/alumni" },
+          { name: "Maps", href: "/maps" },
+          { name: "Distance Calculator", href: "/distance-calculator" },
+          { name: "About Budge Budge", href: "/about-budge-budge" },
+          { name: "QS World University Rankings", href: "/qs-world-rankings" },
+          { name: "ABET Accreditation", href: "/abet" },
+          { name: "QS World University Rankings by Subject 2025", href: "/qs-subject-rankings" },
+        ],
+      },
+      {
+        title: "Live Here",
+        links: [
+          { name: "BBIT Hostels", href: "/hostels" },
+          { name: "BBIT Transport", href: "/transport" },
+          { name: "BBIT Sports", href: "/sports" },
+          { name: "Cultural Activities", href: "/cultural" },
+          { name: "BBIT Student Welfare", href: "/student-welfare" },
+          { name: "BBIT Libraries", href: "/library" },
+          { name: "e-Samadhan", href: "/e-samadhan" },
+          { name: "Discipline & Student Conduct", href: "/discipline" },
+        ],
+      },
+      {
+        title: "Others",
+        links: [
+          { name: "Courses Fee Details", href: "/fee-details" },
+          { name: "Student Grievance Redressal Cell", href: "/grievance-cell" },
+          { name: "Ombudsperson", href: "/ombudsperson" },
+          { name: "Procedures And Policies", href: "/policies" },
+          { name: "PPCB Report", href: "/ppcb-report" },
+          { name: "Mandatory Disclosure", href: "/mandatory-disclosure" },
+          { name: "Disclaimer", href: "/disclaimer" },
+          { name: "UGC - Public Self Disclosure document", href: "/ugc-disclosure" },
+          { name: "e-SCR Report", href: "/escr-report" },
+        ],
+      },
+    ]),
+    section: "footer",
+    description: "Footer navigation columns and link groups.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "facebookUrl",
+    value: "https://www.facebook.com/bbitofficial",
+    section: "social",
+    description: "Facebook profile URL.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "twitterUrl",
+    value: "https://x.com/BbitCollege",
+    section: "social",
+    description: "Twitter/X profile URL.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "linkedinUrl",
+    value: "https://www.linkedin.com/school/budge-budge-institute-of-technology/",
+    section: "social",
+    description: "LinkedIn profile URL.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "instagramUrl",
+    value: "https://www.instagram.com/bbitofficials/",
+    section: "social",
+    description: "Instagram profile URL.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "youtubeUrl",
+    value: "https://www.youtube.com/@bbitengg",
+    section: "social",
+    description: "YouTube channel URL.",
+    type: "text",
+    isPublic: true,
+  },
+  {
+    key: "placementsPage",
+    value: JSON.stringify({
+      heroTitle: "Placement & Career Development",
+      heroSubtitle: "Empowering students with skills and opportunities for successful careers",
+      placementStats: [
+        { label: "Placement Rate", value: "95%", icon: "📈", color: "green" },
+        { label: "Average Package", value: "₹12 LPA", icon: "💰", color: "blue" },
+        { label: "Highest Package", value: "₹45 LPA", icon: "🚀", color: "purple" },
+        { label: "Companies Visited", value: "300+", icon: "🏢", color: "orange" },
+      ],
+      placementProcess: [
+        { step: "1", title: "Pre-Placement Training", description: "Comprehensive training on aptitude, technical skills, and soft skills", duration: "6 months" },
+        { step: "2", title: "Resume Building", description: "Professional guidance to create impactful resumes and portfolios", duration: "2 weeks" },
+        { step: "3", title: "Mock Interviews", description: "Multiple rounds of mock interviews with industry experts", duration: "Ongoing" },
+        { step: "4", title: "Company Registration", description: "Students register for companies based on eligibility criteria", duration: "As per schedule" },
+        { step: "5", title: "Placement Drives", description: "On-campus and virtual recruitment drives throughout the year", duration: "Sep - Apr" },
+        { step: "6", title: "Offer & Onboarding", description: "Final offers, documentation, and joining formalities", duration: "Post selection" },
+      ],
+      industryWise: [
+        { industry: "IT Services", companies: 120, avgPackage: "₹8 LPA", placements: "450+" },
+        { industry: "Product Based", companies: 45, avgPackage: "₹18 LPA", placements: "80+" },
+        { industry: "Consulting", companies: 35, avgPackage: "₹12 LPA", placements: "65+" },
+        { industry: "Core Engineering", companies: 40, avgPackage: "₹9 LPA", placements: "70+" },
+        { industry: "Finance & Banking", companies: 25, avgPackage: "₹15 LPA", placements: "40+" },
+        { industry: "Analytics", companies: 20, avgPackage: "₹10 LPA", placements: "35+" },
+        { industry: "EdTech", companies: 15, avgPackage: "₹8 LPA", placements: "25+" },
+      ],
+      successStories: [
+        { name: "Ananya Gupta", company: "Google", package: "₹45 LPA", branch: "B.Tech CSE", year: "2024", quote: "The placement cell prepared me thoroughly for Google's rigorous interview process." },
+        { name: "Vikram Singh", company: "Microsoft", package: "₹42 LPA", branch: "B.Tech CSE", year: "2024", quote: "Mock interviews and coding practice sessions were instrumental in my success." },
+        { name: "Sneha Reddy", company: "Goldman Sachs", package: "₹40 LPA", branch: "MBA Finance", year: "2024", quote: "The industry exposure and mentorship helped me land my dream finance role." },
+      ],
+      placementTeam: [
+        { name: "Prof. Rajesh Khanna", designation: "Director - Training & Placements", experience: "20+ years", specialization: "Career Guidance" },
+        { name: "Dr. Meera Sharma", designation: "Deputy Director - Placements", experience: "15+ years", specialization: "Industry Relations" },
+        { name: "Mr. Amit Patel", designation: "Training Coordinator", experience: "10+ years", specialization: "Technical Training" },
+        { name: "Ms. Priya Kapoor", designation: "Soft Skills Trainer", experience: "8+ years", specialization: "Communication & Personality" },
+      ],
+    }),
+    section: "pages",
+    description: "Placements page content blocks.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "researchInnovationPage",
+    value: JSON.stringify({
+      heroTitle: "Research & Development",
+      heroSubtitle: "Advancing knowledge through cutting-edge research and fostering innovation",
+      researchStats: [
+        { label: "Research Projects", value: "150+", icon: "🧪" },
+        { label: "Publications (2024)", value: "250+", icon: "📝" },
+        { label: "Patents Filed", value: "35", icon: "📜" },
+        { label: "Research Grants", value: "₹50Cr+", icon: "💵" },
+      ],
+      researchCenters: [
+        { name: "AI & Machine Learning Lab", head: "Dr. Rajesh Kumar", focus: "Deep Learning, NLP, Computer Vision", projects: 25, publications: 45, funding: "₹5 Cr", icon: "🧠" },
+        { name: "IoT Research Center", head: "Dr. Priya Sharma", focus: "Smart Cities, Industrial IoT, Edge Computing", projects: 20, publications: 35, funding: "₹4 Cr", icon: "📡" },
+        { name: "Cybersecurity Lab", head: "Dr. Amit Verma", focus: "Blockchain, Ethical Hacking, Data Privacy", projects: 18, publications: 30, funding: "₹3.5 Cr", icon: "🔒" },
+        { name: "Robotics & Automation Center", head: "Dr. Sunita Reddy", focus: "Industrial Robots, Drones, Autonomous Systems", projects: 15, publications: 28, funding: "₹4.5 Cr", icon: "🤖" },
+        { name: "Data Science Lab", head: "Dr. Vikram Singh", focus: "Big Data Analytics, Predictive Modeling, BI", projects: 22, publications: 40, funding: "₹3 Cr", icon: "📊" },
+        { name: "Renewable Energy Lab", head: "Dr. Meena Joshi", focus: "Solar Energy, Wind Power, Energy Storage", projects: 12, publications: 25, funding: "₹6 Cr", icon: "⚡" },
+      ],
+      ongoingProjects: [
+        { title: "AI-Powered Healthcare Diagnostics", pi: "Dr. Rajesh Kumar", funding: "SERB - ₹80 Lakhs", duration: "2023-2026", status: "Ongoing", progress: 65, desc: "Developing AI models for early detection of diseases using medical imaging" },
+        { title: "Smart City Infrastructure Monitoring", pi: "Dr. Priya Sharma", funding: "DST - ₹1.2 Cr", duration: "2024-2027", status: "Ongoing", progress: 40, desc: "IoT-based real-time monitoring system for urban infrastructure" },
+        { title: "Blockchain for Supply Chain Security", pi: "Dr. Amit Verma", funding: "ICSSR - ₹60 Lakhs", duration: "2023-2025", status: "Ongoing", progress: 80, desc: "Implementing blockchain technology for transparent supply chain management" },
+        { title: "Autonomous Agricultural Robots", pi: "Dr. Sunita Reddy", funding: "ICAR - ₹1.5 Cr", duration: "2024-2028", status: "Ongoing", progress: 35, desc: "Developing autonomous robots for precision agriculture and crop monitoring" },
+      ],
+      publications: [
+        { title: "Deep Learning Approaches for Medical Image Analysis", authors: "Dr. Rajesh Kumar, et al.", journal: "IEEE Transactions on Medical Imaging", year: "2024", impact: "10.5" },
+        { title: "IoT-Enabled Smart Grid Management System", authors: "Dr. Priya Sharma, et al.", journal: "Journal of Network and Computer Applications", year: "2024", impact: "7.2" },
+        { title: "Blockchain-Based Secure Data Sharing Framework", authors: "Dr. Amit Verma, et al.", journal: "Computers & Security", year: "2024", impact: "5.8" },
+        { title: "Autonomous Navigation for Mobile Robots", authors: "Dr. Sunita Reddy, et al.", journal: "Robotics and Autonomous Systems", year: "2024", impact: "6.5" },
+      ],
+      patents: [
+        { title: "AI-Based Disease Prediction System", inventors: "Dr. Rajesh Kumar, Dr. Meena Joshi", number: "IN 202411023456", status: "Granted", year: "2024" },
+        { title: "Smart Energy Management Device", inventors: "Dr. Priya Sharma, Dr. Vikram Singh", number: "IN 202411034567", status: "Granted", year: "2024" },
+        { title: "Blockchain-Based Authentication System", inventors: "Dr. Amit Verma", number: "IN 202411045678", status: "Filed", year: "2024" },
+        { title: "Autonomous Crop Monitoring Robot", inventors: "Dr. Sunita Reddy, Dr. Rajesh Kumar", number: "IN 202411056789", status: "Filed", year: "2024" },
+      ],
+      innovationPrograms: [
+        { name: "Innovation Hub", description: "State-of-the-art facility for prototyping and product development", capacity: "100 projects", equipment: "3D Printers, Laser Cutters, Electronics Lab", icon: "💡" },
+        { name: "Startup Incubator", description: "Support for student and faculty startups with funding and mentorship", startups: "25 active", funding: "Up to ₹10 Lakhs/startup", icon: "🚀" },
+        { name: "Industry Collaboration", description: "Partnerships with leading companies for joint research projects", partners: "50+ companies", projects: "80+ collaborative", icon: "🤝" },
+        { name: "Research Internships", description: "Opportunities for students to work on cutting-edge research", students: "200+ annually", stipend: "₹10K-25K/month", icon: "👨‍🔬" },
+      ],
+      fundingSources: [
+        { name: "DST (Department of Science & Technology)", projects: 25, amount: "₹15 Cr" },
+        { name: "SERB (Science & Engineering Research Board)", projects: 18, amount: "₹8 Cr" },
+        { name: "AICTE (All India Council for Technical Education)", projects: 15, amount: "₹5 Cr" },
+        { name: "ICSSR (Indian Council of Social Science Research)", projects: 10, amount: "₹3 Cr" },
+        { name: "Industry Funded Projects", projects: 35, amount: "₹12 Cr" },
+        { name: "International Collaborations", projects: 12, amount: "₹7 Cr" },
+      ],
+    }),
+    section: "pages",
+    description: "Research & development page content blocks.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "careerPage",
+    value: JSON.stringify({
+      heroTitle: "Career Development & Placements",
+      heroSubtitle: "Building careers and connecting talent with opportunities",
+      stats: [
+        { value: "95%", label: "Placement Rate" },
+        { value: "₹12 LPA", label: "Average Package" },
+        { value: "₹45 LPA", label: "Highest Package" },
+        { value: "300+", label: "Recruiters" },
+        { value: "2000+", label: "Offers (2024)" },
+      ],
+    }),
+    section: "pages",
+    description: "Career page content blocks.",
+    type: "json",
+    isPublic: true,
+  },
+  {
+    key: "campusLifePage",
+    value: JSON.stringify({
+      heroTitle: "Vibrant Campus Life",
+      heroSubtitle: "Experience a dynamic blend of academics, culture, sports, and innovation",
+      stats: [
+        { value: "50+", label: "Student Clubs" },
+        { value: "200+", label: "Annual Events" },
+        { value: "15,000+", label: "Active Students" },
+        { value: "40+", label: "Sports Facilities" },
+      ],
+    }),
+    section: "pages",
+    description: "Campus life page content blocks.",
+    type: "json",
+    isPublic: true,
+  },
+];
+
+function normalizeDefaultSetting(setting) {
+  return {
+    ...setting,
+    value: typeof setting.value === "string" ? setting.value : JSON.stringify(setting.value),
   };
 }
 
@@ -671,6 +1246,13 @@ async function init() {
       console.log(`Existing user promoted to admin: ${adminEmail}`);
     }
 
+    // Seed editable site settings
+    const settingCount = await SiteSetting.count();
+    if (settingCount === 0) {
+      await SiteSetting.bulkCreate(defaultSiteSettings.map(normalizeDefaultSetting));
+      console.log("Seeded site settings");
+    }
+
   } catch (err) {
     console.error("DB init error", err);
     process.exit(1);
@@ -720,6 +1302,76 @@ const heavyLimiter = rateLimit({
 
 // Health Check
 app.get("/api/health", (req, res) => res.json({ ok: true, timestamp: new Date() }));
+
+function parseSiteSettingValue(setting) {
+  if (!setting) return null;
+  if (setting.type === "json") {
+    try {
+      return JSON.parse(setting.value);
+    } catch {
+      return setting.value;
+    }
+  }
+  return setting.value;
+}
+
+function toSiteSettingsObject(settings) {
+  return settings.reduce((acc, setting) => {
+    acc[setting.key] = parseSiteSettingValue(setting);
+    return acc;
+  }, {});
+}
+
+app.get("/api/site-settings", async (req, res) => {
+  try {
+    const settings = await SiteSetting.findAll({ where: { isPublic: true }, order: [["section", "ASC"], ["key", "ASC"]] });
+    res.json({ settings: toSiteSettingsObject(settings) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/api/site-settings/admin", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const settings = await SiteSetting.findAll({ order: [["section", "ASC"], ["key", "ASC"]] });
+    res.json(settings);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put("/api/site-settings/:key", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value, section, description, type, isPublic } = req.body;
+
+    const payload = {
+      value: typeof value === "string" ? value : JSON.stringify(value ?? ""),
+    };
+
+    if (section !== undefined) payload.section = section;
+    if (description !== undefined) payload.description = description;
+    if (type !== undefined) payload.type = type;
+    if (isPublic !== undefined) payload.isPublic = Boolean(isPublic);
+
+    await SiteSetting.upsert({ key, ...payload });
+    const setting = await SiteSetting.findOne({ where: { key } });
+    res.json({ message: "Site setting saved", setting });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/site-settings/reset", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    for (const setting of defaultSiteSettings.map(normalizeDefaultSetting)) {
+      await SiteSetting.upsert(setting);
+    }
+    res.json({ message: "Site settings reset to defaults" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ===== PUBLICATIONS =====
 app.get("/api/publications", async (req, res) => {

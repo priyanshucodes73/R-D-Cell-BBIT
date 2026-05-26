@@ -1,3 +1,4 @@
+import useSWR from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
@@ -8,8 +9,14 @@ import {
   FaUserGraduate,
   FaRupeeSign,
 } from "react-icons/fa";
+import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
 export default function Admissions() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const admissionsPage = siteSettings.admissionsPage || defaultPublicSettings.admissionsPage;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -22,49 +29,23 @@ export default function Admissions() {
             <span className="mx-2">/</span>
             <span>Admissions</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">BBIT Admissions 2025</h1>
-          <p className="text-xl opacity-90">
-            Begin your journey to excellence. Join BBIT's world-class academic
-            programs
-          </p>
+          <h1 className="text-5xl font-bold mb-4">{admissionsPage.heroTitle}</h1>
+          <p className="text-xl opacity-90">{admissionsPage.heroSubtitle}</p>
         </div>
       </section>
 
       {/* Quick Links */}
       <section className="max-w-6xl mx-auto px-4 -mt-10 relative z-10">
         <div className="grid md:grid-cols-4 gap-4">
-          <Link href="/how-to-apply">
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-t-4 border-blue-600">
-              <FaFileAlt className="text-4xl text-blue-600 mb-3" />
-              <h3 className="font-bold text-lg mb-2">How to Apply</h3>
-              <p className="text-sm text-gray-600">
-                Step-by-step application process
-              </p>
-            </div>
-          </Link>
-          <Link href="/scholarship">
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-t-4 border-green-600">
-              <FaRupeeSign className="text-4xl text-green-600 mb-3" />
-              <h3 className="font-bold text-lg mb-2">Scholarships</h3>
-              <p className="text-sm text-gray-600">
-                Financial aid options available
-              </p>
-            </div>
-          </Link>
-          <Link href="/education-loan">
-            <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-t-4 border-purple-600">
-              <FaRupeeSign className="text-4xl text-purple-600 mb-3" />
-              <h3 className="font-bold text-lg mb-2">Education Loan</h3>
-              <p className="text-sm text-gray-600">Easy financing options</p>
-            </div>
-          </Link>
-          <Link href="/register">
-            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 text-white">
-              <FaUserGraduate className="text-4xl mb-3" />
-              <h3 className="font-bold text-lg mb-2">Apply Now</h3>
-              <p className="text-sm">Start your application today</p>
-            </div>
-          </Link>
+          {admissionsPage.quickLinks.map((link, index) => (
+            <Link key={link.title} href={link.href}>
+              <div className={`bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-t-4 ${index === 0 ? "border-blue-600" : index === 1 ? "border-green-600" : index === 2 ? "border-purple-600" : "border-orange-500"} ${index === 3 ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white" : ""}`}>
+                {index === 0 ? <FaFileAlt className="text-4xl text-blue-600 mb-3" /> : index === 1 || index === 2 ? <FaRupeeSign className={`text-4xl mb-3 ${index === 1 ? "text-green-600" : "text-purple-600"}`} /> : <FaUserGraduate className="text-4xl mb-3" />}
+                <h3 className="font-bold text-lg mb-2">{link.title}</h3>
+                <p className="text-sm">{link.desc}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -74,33 +55,7 @@ export default function Admissions() {
           Admission Process
         </h2>
         <div className="grid md:grid-cols-5 gap-6">
-          {[
-            {
-              step: "1",
-              title: "Registration",
-              desc: "Create your account and fill the application form online",
-            },
-            {
-              step: "2",
-              title: "Entrance Exam",
-              desc: "Appear for JEE Main/WBJEE or BBIT entrance test",
-            },
-            {
-              step: "3",
-              title: "Counseling",
-              desc: "Participate in counseling process based on your rank",
-            },
-            {
-              step: "4",
-              title: "Document Verification",
-              desc: "Submit all required documents for verification",
-            },
-            {
-              step: "5",
-              title: "Fee Payment",
-              desc: "Complete admission by paying the fees",
-            },
-          ].map((item, index) => (
+          {admissionsPage.process.map((item, index) => (
             <div key={index} className="relative">
               <div className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300">
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
@@ -126,45 +81,7 @@ export default function Admissions() {
             Programs Offered
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                level: "B.Tech",
-                programs: [
-                  "Computer Science",
-                  "Electronics",
-                  "Mechanical",
-                  "Civil",
-                  "Electrical",
-                  "IT",
-                ],
-                seats: 60,
-              },
-              {
-                level: "M.Tech",
-                programs: ["CSE", "ECE", "Mechanical", "Structural"],
-                seats: 18,
-              },
-              {
-                level: "MBA",
-                programs: ["General Management", "Marketing", "Finance", "HR"],
-                seats: 120,
-              },
-              {
-                level: "MCA",
-                programs: ["Computer Applications", "Data Science"],
-                seats: 60,
-              },
-              {
-                level: "B.Sc",
-                programs: ["Physics", "Chemistry", "Mathematics"],
-                seats: 40,
-              },
-              {
-                level: "M.Sc",
-                programs: ["Physics", "Chemistry", "Mathematics"],
-                seats: 20,
-              },
-            ].map((program, index) => (
+            {admissionsPage.programs.map((program, index) => (
               <div
                 key={index}
                 className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-blue-600"

@@ -18,6 +18,7 @@ import {
   FaTrash,
   FaPlus,
   FaEye,
+  FaCog,
 } from "react-icons/fa";
 
 export default function AdminDashboard() {
@@ -70,6 +71,7 @@ export default function AdminDashboard() {
     { id: "patents", name: "Patents", icon: <FaCertificate />, href: "/admin/patents" },
     { id: "contacts", name: "Contact Inquiries", icon: <FaEnvelope />, href: "/admin/contacts" },
     { id: "registrations", name: "Registrations", icon: <FaUserGraduate />, href: "/admin/registrations" },
+    { id: "site-settings", name: "Site Settings", icon: <FaCog />, href: "/admin/site-settings" },
   ];
 
   return (
@@ -231,6 +233,12 @@ export default function AdminDashboard() {
                     <button className="flex flex-col items-center justify-center p-6 bg-orange-50 hover:bg-orange-100 rounded-lg transition">
                       <FaPlus className="text-3xl text-orange-600 mb-2" />
                       <span className="text-sm font-semibold text-gray-700">Add News</span>
+                    </button>
+                  </Link>
+                  <Link href="/admin/site-settings">
+                    <button className="flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+                      <FaCog className="text-3xl text-slate-700 mb-2" />
+                      <span className="text-sm font-semibold text-gray-700">Site Settings</span>
                     </button>
                   </Link>
                 </div>
