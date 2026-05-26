@@ -18,24 +18,33 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ["http://localhost:3000", "http://localhost:3005"];
 
 // Build patterns to support exact origins and simple wildcards like '*.vercel.app' or 'https://*.vercel.app'
-const originPatterns = allowedOrigins.map((o) => {
-  if (o.includes("*")) {
-    // If protocol not provided, match http/https
-    if (!/^https?:\/\//.test(o)) {
-      // convert domain wildcard to a regex: *.vercel.app -> https?://[subdomain].vercel.app
-      const domainPattern = o.replace(/\./g, "\\.").replace(/\*/g, "[\\w-]+");
-      return new RegExp(`^https?:\\/\\/${domainPattern}$`);
-    }
-    // protocol provided, escape and replace * with .* for regex
-    const escaped = o.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*");
-    return new RegExp(`^${escaped}$`);
+function patternToRegex(pattern) {
+  // Allow a special '*' entry to mean allow-all
+  if (pattern === "*") return "*";
+
+  // Replace '*' with a placeholder, escape other regex chars, then restore '.*'
+  const placeholder = '<<<WILDCARD>>>';
+  const withPlaceholder = pattern.replace(/\*/g, placeholder);
+  const escaped = withPlaceholder.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+  const regexBody = escaped.replace(new RegExp(placeholder, 'g'), '.*');
+
+  if (!/^https?:\/\//.test(pattern)) {
+    // match http or https, allow optional port
+    return new RegExp(`^https?:\\/\\/${regexBody}(?::\\d+)?$`);
   }
+
+  return new RegExp(`^${regexBody}$`);
+}
+
+const originPatterns = allowedOrigins.map((o) => {
+  if (o.includes("*") || o === "*") return patternToRegex(o);
   return o; // exact string
 });
 
 function isOriginAllowed(origin) {
   if (!origin) return true; // allow server-to-server or same-origin requests without Origin
   for (const p of originPatterns) {
+    if (p === "*") return true;
     if (p instanceof RegExp) {
       if (p.test(origin)) return true;
     } else {
