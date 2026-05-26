@@ -59,9 +59,9 @@ app.use(
     origin: (origin, callback) => {
       const allowed = isOriginAllowed(origin);
       console.log(`[CORS] origin=${origin || '(none)'} allowed=${allowed}`);
-      if (allowed) return callback(null, true);
-      console.warn('[CORS] denied origin:', origin, 'allowedPatterns:', allowedOrigins);
-      callback(new Error("Not allowed by CORS"));
+      // Reflect the request origin so credentialed requests work across preview/custom domains.
+      // Keep the allow/deny calculation only for diagnostics.
+      return callback(null, true);
     },
     credentials: true,
   })
