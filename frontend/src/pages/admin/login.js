@@ -77,6 +77,10 @@ export default function AdminLogin() {
             Sign In
           </h2>
 
+          <p className="mb-6 text-sm text-gray-600 text-center">
+            Authorized admins can sign in with their assigned credentials.
+          </p>
+
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 animate-shake">
               <p className="text-sm font-semibold">{error}</p>
@@ -101,7 +105,7 @@ export default function AdminLogin() {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition"
-                  placeholder="admin@bbit.edu.in"
+                  placeholder="Enter admin email"
                 />
               </div>
             </div>
@@ -156,6 +160,10 @@ export default function AdminLogin() {
               </a>
             </div>
 
+            <p className="text-xs text-gray-500 leading-relaxed">
+              If you need access, contact the system administrator. Never share credentials publicly.
+            </p>
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -193,19 +201,6 @@ export default function AdminLogin() {
               )}
             </button>
           </form>
-
-          {/* Admin Credentials Info */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs text-blue-800 font-semibold mb-2">
-              🔐 Default Admin Credentials:
-            </p>
-            <p className="text-xs text-blue-700">
-              <strong>Email:</strong> admin@bbit.edu.in
-            </p>
-            <p className="text-xs text-blue-700">
-              <strong>Password:</strong> Admin@BBIT2026
-            </p>
-          </div>
         </div>
 
         {/* Footer */}
