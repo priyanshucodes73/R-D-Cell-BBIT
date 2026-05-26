@@ -149,6 +149,22 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollingUp, setScrollingUp] = useState(false);
+  const apiBase = getApiBase();
+  const { data, error } = useSWR(apiBase + "/api/publications", fetcher);
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const editableUpperNavLinks = Array.isArray(siteSettings.upperNavLinks) && siteSettings.upperNavLinks.length
+    ? siteSettings.upperNavLinks
+    : defaultPublicSettings.upperNavLinks;
+  const editableSocialLinks = Array.isArray(siteSettings.socialLinks) && siteSettings.socialLinks.length
+    ? siteSettings.socialLinks
+    : defaultPublicSettings.socialLinks;
+  const editableNavLinks = Array.isArray(siteSettings.mainNavLinks) && siteSettings.mainNavLinks.length
+    ? siteSettings.mainNavLinks.map((link) => ({ ...link, menu: link.menu || [] }))
+    : defaultPublicSettings.mainNavLinks.map((link) => ({ ...link, menu: [] }));
+  const editableHeroSlides = Array.isArray(siteSettings.heroSlides) && siteSettings.heroSlides.length
+    ? siteSettings.heroSlides
+    : defaultPublicSettings.heroSlides;
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -174,22 +190,6 @@ export default function Home() {
     }, 4000);
     return () => clearInterval(interval);
   }, [editableHeroSlides.length]);
-  const apiBase = getApiBase();
-  const { data, error } = useSWR(apiBase + "/api/publications", fetcher);
-  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
-  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
-  const editableUpperNavLinks = Array.isArray(siteSettings.upperNavLinks) && siteSettings.upperNavLinks.length
-    ? siteSettings.upperNavLinks
-    : defaultPublicSettings.upperNavLinks;
-  const editableSocialLinks = Array.isArray(siteSettings.socialLinks) && siteSettings.socialLinks.length
-    ? siteSettings.socialLinks
-    : defaultPublicSettings.socialLinks;
-  const editableNavLinks = Array.isArray(siteSettings.mainNavLinks) && siteSettings.mainNavLinks.length
-    ? siteSettings.mainNavLinks.map((link) => ({ ...link, menu: link.menu || [] }))
-    : defaultPublicSettings.mainNavLinks.map((link) => ({ ...link, menu: [] }));
-  const editableHeroSlides = Array.isArray(siteSettings.heroSlides) && siteSettings.heroSlides.length
-    ? siteSettings.heroSlides
-    : defaultPublicSettings.heroSlides;
 
   return (
     <div className="bg-gray-50 min-h-screen">
