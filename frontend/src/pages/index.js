@@ -151,6 +151,7 @@ export default function Home() {
   const [scrollingUp, setScrollingUp] = useState(false);
   const apiBase = getApiBase();
   const { data, error } = useSWR(apiBase + "/api/publications", fetcher);
+  const { data: facultyData } = useSWR(apiBase + "/api/faculty", fetcher);
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
   const editableUpperNavLinks = Array.isArray(siteSettings.upperNavLinks) && siteSettings.upperNavLinks.length
@@ -165,6 +166,14 @@ export default function Home() {
   const editableHeroSlides = Array.isArray(siteSettings.heroSlides) && siteSettings.heroSlides.length
     ? siteSettings.heroSlides
     : defaultPublicSettings.heroSlides;
+  const displayedFaculty = Array.isArray(facultyData) ? facultyData.slice(0, 8) : [];
+
+  const getFacultyInitials = (name = "") => {
+    const parts = name.split(" ").filter(Boolean);
+    if (parts.length === 0) return "F";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  };
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
