@@ -189,7 +189,11 @@ export default function Home() {
   const { data, error } = useSWR(apiBase + "/api/publications", fetcher);
   const { data: facultyData } = useSWR(apiBase + "/api/faculty", fetcher);
   const { data: projectsData } = useSWR(apiBase + "/api/projects", fetcher);
-  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
+  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher, {
+    refreshInterval: 1000,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+  });
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
   const editableUpperNavLinks = Array.isArray(siteSettings.upperNavLinks) && siteSettings.upperNavLinks.length
     ? siteSettings.upperNavLinks

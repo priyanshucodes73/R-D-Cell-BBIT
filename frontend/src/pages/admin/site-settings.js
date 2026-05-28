@@ -1,18 +1,136 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { FaArrowLeft, FaPlus, FaSave, FaRedoAlt, FaSearch } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaSave, FaTrash, FaUpload, FaEye, FaBullhorn, FaBars, FaShareAlt, FaImage } from "react-icons/fa";
 import { defaultPublicSettings, getApiBase } from "../../lib/siteSettings";
-import auth, { fetchWithAuth } from "../../lib/auth";
+import { fetchWithAuth } from "../../lib/auth";
 
-const emptyNewSetting = {
-  key: "",
-  value: "",
-  section: "general",
-  description: "",
-  type: "text",
-  isPublic: true,
+const homepageTextBlocks = [
+  {
+    key: "siteName",
+    label: "Site Name",
+    description: "Logo text shown in the homepage header.",
+    section: "branding",
+    type: "text",
+  },
+  {
+    key: "topAnnouncement",
+    label: "Top Announcement",
+    description: "Scrolling/announcement text in the top bar.",
+    section: "header",
+    type: "text",
+  },
+  {
+    key: "admissionHelpline",
+    label: "Admission Helpline",
+    description: "Phone numbers displayed in the header.",
+    section: "header",
+    type: "text",
+  },
+  {
+    key: "heroTitle",
+    label: "Hero Title",
+    description: "Main hero headline on the homepage.",
+    section: "home",
+    type: "text",
+  },
+  {
+    key: "heroSubtitle",
+    label: "Hero Subtitle",
+    description: "Subheading under the hero title.",
+    section: "home",
+    type: "text",
+  },
+  {
+    key: "aboutTitle",
+    label: "About Title",
+    description: "Heading for the about section on the homepage.",
+    section: "home",
+    type: "text",
+  },
+  {
+    key: "aboutBody",
+    label: "About Body",
+    description: "Body copy for the homepage about section.",
+    section: "home",
+    type: "text",
+  },
+];
+
+const listBlocks = [
+  {
+    key: "upperNavLinks",
+    label: "Top Bar Buttons",
+    description: "Edit the quick links shown in the top bar.",
+    section: "navigation",
+    type: "links",
+    addLabel: "Add Top Bar Link",
+  },
+  {
+    key: "socialLinks",
+    label: "Top Bar Social Buttons",
+    description: "Edit the social icons/buttons shown in the top bar.",
+    section: "navigation",
+    type: "links",
+    addLabel: "Add Social Link",
+  },
+  {
+    key: "mainNavLinks",
+    label: "Main Navigation",
+    description: "Edit the main menu items in the homepage header.",
+    section: "navigation",
+    type: "links",
+    addLabel: "Add Menu Item",
+  },
+];
+
+const jsonBlocks = [
+  {
+    key: "researchInnovationPage",
+    label: "Research & Development Section",
+    description: "Homepage research section content and cards.",
+    section: "pages",
+    type: "json",
+  },
+];
+
+const heroSlidesKey = "heroSlides";
+
+const blankSlide = {
+  image: "",
+  title: "",
+  subtitle: "",
+  ctaLabel: "Read More",
+  ctaHref: "/",
 };
+
+const blankLink = { name: "", href: "" };
+
+function safeParseJson(value, fallback) {
+  if (value == null || value === "") return fallback;
+  if (typeof value === "object") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+function readSetting(setting, fallback) {
+  const raw = setting?.draftValue ?? setting?.publishedValue ?? setting?.value ?? fallback;
+  return typeof raw === "string" ? raw : JSON.stringify(raw ?? fallback ?? "");
+}
+
+function readList(setting, fallback) {
+  const raw = setting?.draftValue ?? setting?.publishedValue ?? setting?.value ?? fallback;
+  const parsed = safeParseJson(raw, fallback);
+  return Array.isArray(parsed) ? parsed : fallback;
+}
+
+function readSlides(setting, fallback) {
+  const parsed = safeParseJson(setting?.draftValue ?? setting?.publishedValue ?? setting?.value ?? fallback, fallback);
+  return Array.isArray(parsed) && parsed.length ? parsed : fallback;
+}
 
 export default function SiteSettingsPage() {
   const router = useRouter();
@@ -20,47 +138,32 @@ export default function SiteSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState(null);
   const [settings, setSettings] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [newSetting, setNewSetting] = useState(emptyNewSetting);
-  const [quickEditKey, setQuickEditKey] = useState("");
-  const [quickEditDraft, setQuickEditDraft] = useState("");
-  const [quickEditType, setQuickEditType] = useState("text");
-  const [uploadFile, setUploadFile] = useState(null);
-  const [uploadingMedia, setUploadingMedia] = useState(false);
-  const [uploadedUrl, setUploadedUrl] = useState("");
-
-  const homepagePresets = [
-    { key: "heroTitle", label: "Homepage Hero Title", section: "home", type: "text" },
-    { key: "heroSubtitle", label: "Homepage Hero Subtitle", section: "home", type: "text" },
-    { key: "aboutTitle", label: "Homepage About Title", section: "home", type: "text" },
-    { key: "aboutBody", label: "Homepage About Body", section: "home", type: "text" },
-    { key: "heroSlides", label: "Homepage Hero Slides", section: "homepage", type: "json" },
-    { key: "researchInnovationPage", label: "Research & Innovation Page", section: "pages", type: "json" },
-    { key: "placementsPage", label: "Placements Page", section: "pages", type: "json" },
-    { key: "campusLifePage", label: "Campus Life Page", section: "pages", type: "json" },
-    { key: "aboutPage", label: "About Page", section: "pages", type: "json" },
-    { key: "contactPage", label: "Contact Page", section: "pages", type: "json" },
-    { key: "programsPage", label: "Programs Page", section: "pages", type: "json" },
-  ];
+  const [heroSlidesDraft, setHeroSlidesDraft] = useState(defaultPublicSettings.heroSlides);
+  const [uploadingIndex, setUploadingIndex] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("adminToken");
-      if (!isAuth) {
-        router.push("/admin/login");
-        return;
-      }
+    if (typeof window !== "undefined" && !localStorage.getItem("adminToken")) {
+      router.push("/admin/login");
+      return;
     }
-
     fetchSettings();
   }, []);
 
+  const settingMap = useMemo(() => {
+    return settings.reduce((acc, setting) => {
+      acc[setting.key] = setting;
+      return acc;
+    }, {});
+  }, [settings]);
+
   const fetchSettings = async () => {
     try {
-      const res = await fetchWithAuth("/api/site-settings/admin");
-      if (!res.ok) throw new Error("Failed to fetch settings");
-      const data = await res.json();
-      setSettings(Array.isArray(data) ? data : []);
+      const response = await fetchWithAuth("/api/site-settings/admin");
+      if (!response.ok) throw new Error("Failed to fetch settings");
+      const data = await response.json();
+      const list = Array.isArray(data) ? data : [];
+      setSettings(list);
+      setHeroSlidesDraft(readSlides(list.find((item) => item.key === heroSlidesKey), defaultPublicSettings.heroSlides));
     } catch (error) {
       console.error("Error fetching site settings:", error);
       alert("Failed to fetch site settings");
@@ -69,162 +172,103 @@ export default function SiteSettingsPage() {
     }
   };
 
-  const saveSetting = async (setting) => {
-    setSavingKey(setting.key);
+  const saveDraft = async (key, draftValue, meta = {}) => {
+    setSavingKey(key);
     try {
-      // send as draft by default
-      const payload = {
-        draftValue: setting.draftValue ?? setting.value ?? setting.publishedValue ?? "",
-        section: setting.section,
-        description: setting.description,
-        type: setting.type,
-        isPublic: setting.isPublic,
-      };
-
-      const response = await fetchWithAuth(`/api/site-settings/${encodeURIComponent(setting.key)}`, {
+      const response = await fetchWithAuth(`/api/site-settings/${encodeURIComponent(key)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          draftValue,
+          section: meta.section,
+          description: meta.description,
+          type: meta.type,
+          isPublic: true,
+        }),
       });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to save setting");
+        throw new Error(data.error || "Failed to save draft");
       }
 
       await fetchSettings();
-      alert(`Saved ${setting.key}`);
+      alert(`Saved draft: ${key}`);
     } catch (error) {
-      console.error("Error saving site setting:", error);
-      alert(error.message || "Failed to save site setting");
+      console.error(error);
+      alert(error.message || "Failed to save draft");
     } finally {
       setSavingKey(null);
     }
   };
 
-  const addSetting = async (e) => {
-    e.preventDefault();
-    if (!newSetting.key.trim()) {
-      alert("Setting key is required");
-      return;
-    }
-    await saveSetting(newSetting);
-    setNewSetting(emptyNewSetting);
-  };
-
-  const findSettingByKey = (key) => settings.find((setting) => setting.key === key) || null;
-
-  const openQuickEdit = (key) => {
-    const setting = findSettingByKey(key) || defaultPublicSettings[key] || null;
-    const preset = homepagePresets.find((item) => item.key === key);
-    const type = preset?.type || setting?.type || (typeof setting?.value === "object" ? "json" : "text");
-    const rawValue = setting ? (setting.draftValue ?? setting.publishedValue ?? setting.value) : defaultPublicSettings[key];
-
-    setQuickEditKey(key);
-    setQuickEditType(type);
-    if (type === "json") {
-      try {
-        const parsed = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
-        setQuickEditDraft(JSON.stringify(parsed ?? {}, null, 2));
-      } catch {
-        setQuickEditDraft(typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue ?? {}, null, 2));
-      }
-    } else {
-      setQuickEditDraft(typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue ?? "", null, 2));
-    }
-  };
-
-  const saveQuickEdit = async () => {
-    if (!quickEditKey) return;
-    let valueToSave = quickEditDraft;
-    if (quickEditType === "json") {
-      try {
-        valueToSave = JSON.stringify(JSON.parse(quickEditDraft));
-      } catch (error) {
-        alert("Invalid JSON. Please fix the content before saving.");
-        return;
-      }
-    }
-    const existing = findSettingByKey(quickEditKey);
-    await saveSetting({
-      key: quickEditKey,
-      draftValue: valueToSave,
-      section: existing?.section || homepagePresets.find((item) => item.key === quickEditKey)?.section || "pages",
-      description: existing?.description || homepagePresets.find((item) => item.key === quickEditKey)?.label || "Homepage content block",
-      type: quickEditType,
-      isPublic: existing?.isPublic ?? true,
-    });
-  };
-
-  const uploadMedia = async () => {
-    if (!uploadFile) {
-      alert("Please choose a file first");
-      return;
-    }
-
+  const publishNow = async (key) => {
+    setSavingKey(key);
     try {
-      setUploadingMedia(true);
-      const formData = new FormData();
-      formData.append("file", uploadFile);
-
-      const response = await fetchWithAuth(`/api/uploads`, {
+      const response = await fetchWithAuth(`/api/site-settings/${encodeURIComponent(key)}/publish`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
       });
-
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Upload failed");
-      }
-
-      const data = await response.json();
-      setUploadedUrl(data.url);
-      setUploadFile(null);
-      alert("File uploaded successfully");
-    } catch (error) {
-      console.error("Error uploading media:", error);
-      alert(error.message || "Failed to upload file");
-    } finally {
-      setUploadingMedia(false);
-    }
-  };
-
-  const resetDefaults = async () => {
-    if (!confirm("Reset all site settings to the default values?")) return;
-    try {
-      const response = await fetchWithAuth(`/api/site-settings/reset`, { method: "POST" });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to reset settings");
+        throw new Error(data.error || "Failed to publish");
       }
       await fetchSettings();
-      alert("Site settings restored to defaults");
+      alert(`Published: ${key}`);
     } catch (error) {
-      console.error("Error resetting site settings:", error);
-      alert(error.message || "Failed to reset settings");
+      console.error(error);
+      alert(error.message || "Failed to publish");
+    } finally {
+      setSavingKey(null);
     }
   };
 
-  const filteredSettings = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    return settings.filter((setting) => {
-      return (
-        setting.key.toLowerCase().includes(term) ||
-        (setting.section || "").toLowerCase().includes(term) ||
-        (setting.description || "").toLowerCase().includes(term) ||
-        String(setting.value || "").toLowerCase().includes(term)
-      );
-    });
-  }, [settings, searchTerm]);
+  const uploadMedia = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetchWithAuth("/api/uploads", { method: "POST", body: formData });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Upload failed");
+    }
+    const data = await response.json();
+    return data.url;
+  };
 
-  const groupedSettings = useMemo(() => {
-    return filteredSettings.reduce((acc, setting) => {
-      const section = setting.section || "general";
-      if (!acc[section]) acc[section] = [];
-      acc[section].push(setting);
-      return acc;
-    }, {});
-  }, [filteredSettings]);
+  const updateHeroSlide = (index, field, value) => {
+    setHeroSlidesDraft((current) => current.map((slide, slideIndex) => (slideIndex === index ? { ...slide, [field]: value } : slide)));
+  };
+
+  const addHeroSlide = () => setHeroSlidesDraft((current) => [...current, { ...blankSlide }]);
+  const removeHeroSlide = (index) => setHeroSlidesDraft((current) => current.filter((_, slideIndex) => slideIndex !== index));
+
+  const saveHeroSlides = async () => {
+    await saveDraft(heroSlidesKey, JSON.stringify(heroSlidesDraft), {
+      section: "homepage",
+      description: "Homepage hero slider images and copy.",
+      type: "json",
+    });
+  };
+
+  const publishHeroSlides = async () => {
+    await saveHeroSlides();
+    await publishNow(heroSlidesKey);
+  };
+
+  const homepagePreview = {
+    siteName: readSetting(settingMap.siteName, defaultPublicSettings.siteName),
+    topAnnouncement: readSetting(settingMap.topAnnouncement, defaultPublicSettings.topAnnouncement),
+    admissionHelpline: readSetting(settingMap.admissionHelpline, defaultPublicSettings.admissionHelpline),
+    heroTitle: readSetting(settingMap.heroTitle, defaultPublicSettings.heroTitle),
+    heroSubtitle: readSetting(settingMap.heroSubtitle, defaultPublicSettings.heroSubtitle),
+    aboutTitle: readSetting(settingMap.aboutTitle, defaultPublicSettings.aboutTitle),
+    aboutBody: readSetting(settingMap.aboutBody, defaultPublicSettings.aboutBody),
+    upperNavLinks: readList(settingMap.upperNavLinks, defaultPublicSettings.upperNavLinks),
+    socialLinks: readList(settingMap.socialLinks, defaultPublicSettings.socialLinks),
+    mainNavLinks: readList(settingMap.mainNavLinks, defaultPublicSettings.mainNavLinks),
+    heroSlides: heroSlidesDraft,
+  };
 
   if (loading) {
     return (
@@ -235,7 +279,7 @@ export default function SiteSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
@@ -245,429 +289,420 @@ export default function SiteSettingsPage() {
               </button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Site Settings</h1>
-              <p className="text-gray-600">Edit live website content, contact details, and branding without code changes.</p>
+              <h1 className="text-3xl font-bold text-gray-900">Homepage Editor</h1>
+              <p className="text-gray-600">Everything here updates the main homepage after publish. The homepage refreshes automatically.</p>
             </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={resetDefaults}
-              className="flex items-center gap-2 px-5 py-3 bg-white text-gray-800 rounded-lg shadow hover:bg-gray-50"
-            >
-              <FaRedoAlt /> Reset Defaults
-            </button>
+          <div className="flex items-center gap-3 text-sm text-gray-600 bg-white px-4 py-2 rounded-full shadow">
+            <FaEye /> Live preview enabled
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow p-4">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by key, section, or text..."
-              className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
-            />
-          </div>
-        </div>
+        <div className="grid xl:grid-cols-[1.4fr_.9fr] gap-6 items-start">
+          <div className="space-y-6">
+            <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <div className="flex items-center justify-between gap-4 mb-5">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Top Bar and Header</h2>
+                  <p className="text-gray-600">Edit the announcement, helpline, site name, social buttons, and top navigation buttons.</p>
+                </div>
+                <FaBullhorn className="text-3xl text-blue-600" />
+              </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Create or Update Setting</h2>
-            <form onSubmit={addSetting} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Key</label>
-                  <input
-                    type="text"
-                    required
-                    value={newSetting.key}
-                    onChange={(e) => setNewSetting({ ...newSetting, key: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                    placeholder="heroTitle"
+                {homepageTextBlocks.map((block) => (
+                  <TextSettingCard
+                    key={block.key}
+                    block={block}
+                    setting={settingMap[block.key]}
+                    defaultValue={defaultPublicSettings[block.key]}
+                    saving={savingKey === block.key}
+                    onSave={saveDraft}
+                    onPublish={publishNow}
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Section</label>
-                  <input
-                    type="text"
-                    value={newSetting.section}
-                    onChange={(e) => setNewSetting({ ...newSetting, section: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                    placeholder="home"
+                ))}
+              </div>
+
+              <div className="grid lg:grid-cols-3 gap-4 mt-6">
+                {listBlocks.map((block) => (
+                  <LinkSettingCard
+                    key={block.key}
+                    block={block}
+                    setting={settingMap[block.key]}
+                    defaultValue={defaultPublicSettings[block.key]}
+                    saving={savingKey === block.key}
+                    onSave={saveDraft}
+                    onPublish={publishNow}
                   />
-                </div>
+                ))}
               </div>
+            </section>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                <textarea
-                  rows="2"
-                  value={newSetting.description}
-                  onChange={(e) => setNewSetting({ ...newSetting, description: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Where this setting is used"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Value</label>
-                <textarea
-                  rows="4"
-                  value={newSetting.value}
-                  onChange={(e) => setNewSetting({ ...newSetting, value: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Editable text or JSON"
-                />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4 items-center">
+            <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <div className="flex items-center justify-between gap-4 mb-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
-                  <select
-                    value={newSetting.type}
-                    onChange={(e) => setNewSetting({ ...newSetting, type: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="text">Text</option>
-                    <option value="textarea">Textarea</option>
-                    <option value="json">JSON</option>
-                  </select>
+                  <h2 className="text-2xl font-bold text-gray-900">Homepage Section Content</h2>
+                  <p className="text-gray-600">These blocks render directly on the homepage and can be published independently.</p>
                 </div>
-                <label className="flex items-center gap-3 mt-7 md:mt-0">
-                  <input
-                    type="checkbox"
-                    checked={newSetting.isPublic}
-                    onChange={(e) => setNewSetting({ ...newSetting, isPublic: e.target.checked })}
-                    className="h-4 w-4"
+                <FaBars className="text-3xl text-violet-600" />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {jsonBlocks.map((block) => (
+                  <JsonSettingCard
+                    key={block.key}
+                    block={block}
+                    setting={settingMap[block.key]}
+                    defaultValue={defaultPublicSettings[block.key]}
+                    saving={savingKey === block.key}
+                    onSave={saveDraft}
+                    onPublish={publishNow}
                   />
-                  <span className="text-sm font-semibold text-gray-700">Public</span>
-                </label>
-                <div className="md:justify-self-end mt-2 md:mt-7">
-                  <button
-                    type="submit"
-                    disabled={savingKey === newSetting.key}
-                    className="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow disabled:opacity-60"
-                  >
-                    <FaPlus /> {savingKey === newSetting.key ? "Saving..." : "Save Setting"}
-                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 space-y-5">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Hero Slider Images</h2>
+                  <p className="text-gray-600">Upload new images, edit captions, and publish slides. The homepage pulls updates automatically.</p>
                 </div>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Live Settings Overview</h2>
-            <div className="space-y-3 text-sm text-gray-600">
-              <div className="p-4 rounded-lg bg-blue-50">
-                <div className="font-semibold text-blue-900">Homepage copy</div>
-                <div>{defaultPublicSettings.heroTitle}</div>
-              </div>
-              <div className="p-4 rounded-lg bg-green-50">
-                <div className="font-semibold text-green-900">Footer / contact</div>
-                <div>Address, phone, helpline, email, and copyright are editable here.</div>
-              </div>
-              <div className="p-4 rounded-lg bg-yellow-50">
-                <div className="font-semibold text-yellow-900">Public visibility</div>
-                <div>Mark a setting public to expose it through the website API.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow p-6">
-          <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Homepage Content Controls</h2>
-              <p className="text-sm text-gray-600">
-
-        <div className="bg-white rounded-xl shadow p-6">
-          <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Media Upload</h2>
-              <p className="text-sm text-gray-600">
-                Upload an image/file and use the returned URL inside homepage JSON blocks or text settings.
-              </p>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-[1fr_auto] gap-4 items-end">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">File</label>
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                className="w-full px-4 py-2 border rounded-lg bg-white"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={uploadMedia}
-              disabled={uploadingMedia}
-              className="px-5 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-            >
-              {uploadingMedia ? "Uploading..." : "Upload File"}
-            </button>
-          </div>
-          {uploadedUrl ? (
-            <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-              <div className="text-sm font-semibold text-blue-800 mb-2">Uploaded URL</div>
-              <div className="break-all text-sm text-gray-700">{uploadedUrl}</div>
-              <div className="flex flex-wrap gap-3 mt-3">
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard?.writeText(uploadedUrl)}
-                  className="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50"
-                >
-                  Copy URL
-                </button>
-                {quickEditKey ? (
+                <div className="flex gap-3 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (quickEditType === "json") {
-                        setQuickEditDraft((current) => `${current}\n${uploadedUrl}`);
-                      } else {
-                        setQuickEditDraft(uploadedUrl);
-                      }
-                    }}
-                    className="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50"
+                    onClick={saveHeroSlides}
+                    disabled={savingKey === heroSlidesKey}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
                   >
-                    Insert into current block
+                    <FaSave /> Save Draft
                   </button>
-                ) : null}
+                  <button
+                    type="button"
+                    onClick={publishHeroSlides}
+                    disabled={savingKey === heroSlidesKey}
+                    className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                  >
+                    Publish Slides
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : null}
-        </div>
-                Edit the main page and page-level JSON blocks from a single place.
-              </p>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
-            {homepagePresets.map((preset) => {
-              const existing = findSettingByKey(preset.key);
-              return (
-                <button
-                  key={preset.key}
-                  onClick={() => openQuickEdit(preset.key)}
-                  className="text-left p-4 rounded-xl border bg-gray-50 hover:bg-blue-50 hover:border-blue-300 transition"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="font-semibold text-gray-800">{preset.label}</div>
-                      <div className="text-xs text-gray-500">{preset.section} • {preset.type.toUpperCase()}</div>
+
+              <div className="grid gap-4">
+                {heroSlidesDraft.map((slide, index) => (
+                  <div key={`${slide.title || "slide"}-${index}`} className="rounded-2xl border bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Slide {index + 1}</h3>
+                        <p className="text-xs text-gray-500">Edit the image and CTA used in the homepage carousel.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeHeroSlide(index)}
+                        className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-sm"
+                      >
+                        <FaTrash /> Remove
+                      </button>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${existing ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-                      {existing ? "Saved" : "Default"}
-                    </span>
+
+                    <div className="grid lg:grid-cols-[230px_1fr] gap-4">
+                      <div className="space-y-3">
+                        <div className="aspect-[4/3] rounded-xl bg-white border overflow-hidden flex items-center justify-center shadow-inner">
+                          {slide.image ? (
+                            <img src={slide.image} alt={slide.title || `Slide ${index + 1}`} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="text-center text-gray-400 px-4">
+                              <FaImage className="mx-auto mb-2 text-2xl" />
+                              No image selected
+                            </div>
+                          )}
+                        </div>
+                        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium w-full justify-center">
+                          <FaUpload /> {uploadingIndex === index ? "Uploading..." : "Upload Image"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingIndex === index}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0] || null;
+                              if (!file) return;
+                              try {
+                                setUploadingIndex(index);
+                                const url = await uploadMedia(file);
+                                updateHeroSlide(index, "image", url);
+                              } catch (error) {
+                                alert(error.message || "Failed to upload image");
+                              } finally {
+                                setUploadingIndex(null);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <InputField label="Image URL" value={slide.image || ""} onChange={(value) => updateHeroSlide(index, "image", value)} placeholder="/slides/hero-1.jpg" />
+                        <InputField label="Title" value={slide.title || ""} onChange={(value) => updateHeroSlide(index, "title", value)} placeholder="Slide title" />
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Subtitle</label>
+                          <textarea
+                            rows="3"
+                            value={slide.subtitle || ""}
+                            onChange={(e) => updateHeroSlide(index, "subtitle", e.target.value)}
+                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <InputField label="CTA Label" value={slide.ctaLabel || ""} onChange={(value) => updateHeroSlide(index, "ctaLabel", value)} placeholder="Read More" />
+                        <InputField label="CTA Link" value={slide.ctaHref || ""} onChange={(value) => updateHeroSlide(index, "ctaHref", value)} placeholder="/innovation-entrepreneurship" />
+                      </div>
+                    </div>
                   </div>
-                </button>
-              );
-            })}
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setHeroSlidesDraft((current) => [...current, { ...blankSlide }])}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800"
+              >
+                <FaPlus /> Add Slide
+              </button>
+            </section>
           </div>
 
-          {quickEditKey ? (
-            <div className="border rounded-xl p-4 bg-blue-50">
-              <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
-                <div>
-                  <div className="text-sm text-blue-700 font-semibold uppercase">Editing</div>
-                  <h3 className="text-lg font-bold text-gray-800">{quickEditKey}</h3>
+          <aside className="space-y-6 sticky top-6">
+            <section className="bg-white rounded-2xl shadow-lg p-5 border border-gray-100">
+              <div className="flex items-center gap-2 mb-4 text-gray-900 font-bold text-lg">
+                <FaEye className="text-blue-600" /> Live Homepage Preview
+              </div>
+              <div className="rounded-2xl overflow-hidden border bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 text-white">
+                <div className="px-4 py-3 text-xs bg-black/20 flex items-center justify-between">
+                  <span>{homepagePreview.topAnnouncement}</span>
+                  <span>{homepagePreview.admissionHelpline}</span>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setQuickEditKey("")}
-                    className="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50"
-                  >
-                    Close
-                  </button>
-                  <button
-                    type="button"
-                    onClick={saveQuickEdit}
-                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    Save Block
-                  </button>
+                <div className="px-4 py-4 flex items-center justify-between gap-4 border-t border-white/10">
+                  <div>
+                    <div className="text-lg font-extrabold">{homepagePreview.siteName}</div>
+                    <div className="text-xs text-white/75">Research & Development</div>
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2 text-[11px]">
+                    {homepagePreview.upperNavLinks.slice(0, 4).map((item) => (
+                      <span key={item.name} className="px-2 py-1 rounded-full bg-white/10">{item.name}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="px-4 py-6 border-t border-white/10">
+                  <div className="text-2xl font-bold leading-tight">{homepagePreview.heroTitle}</div>
+                  <div className="mt-2 text-sm text-white/80">{homepagePreview.heroSubtitle}</div>
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                    {homepagePreview.mainNavLinks.slice(0, 6).map((item) => (
+                      <span key={item.name} className="px-2 py-1 rounded-full bg-yellow-400/20 text-yellow-100">{item.name}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="px-4 py-4 border-t border-white/10 bg-black/15 space-y-3">
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/65">
+                    <FaShareAlt /> Top Bar Buttons
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {homepagePreview.upperNavLinks.map((item) => (
+                      <span key={item.name} className="px-2 py-1 rounded-full bg-white/10 text-[11px]">{item.name}</span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/65">
+                    Social Buttons
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {homepagePreview.socialLinks.map((item) => (
+                      <span key={item.name} className="px-2 py-1 rounded-full bg-white/10 text-[11px]">{item.name}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <textarea
-                rows="16"
-                value={quickEditDraft}
-                onChange={(e) => setQuickEditDraft(e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500"
-              />
-              <p className="text-xs text-gray-600 mt-2">
-                {quickEditType === "json"
-                  ? "This block is saved as JSON. Keep it valid or the save will be rejected."
-                  : "This block is saved as plain text."}
-              </p>
-            </div>
-          ) : null}
-        </div>
+            </section>
 
-        <div className="space-y-6">
-          {Object.keys(groupedSettings).length === 0 ? (
-            <div className="bg-white rounded-xl shadow p-6 text-gray-600">No settings found.</div>
-          ) : (
-            Object.entries(groupedSettings).map(([section, items]) => (
-              <div key={section} className="bg-white rounded-xl shadow p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-4 capitalize">{section}</h2>
-                <div className="grid gap-4">
-                  {items.map((setting) => (
-                    <SettingRow
-                      key={setting.key}
-                      setting={setting}
-                      onSave={saveSetting}
-                      saving={savingKey === setting.key}
-                      onChange={(updated) => {
-                        setSettings((current) => current.map((row) => (row.key === setting.key ? updated : row)));
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))
-          )}
+            <section className="bg-white rounded-2xl shadow-lg p-5 border border-gray-100">
+              <h3 className="font-bold text-gray-900 mb-2">What updates live?</h3>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li>• Main homepage hero text and carousel images</li>
+                <li>• Top announcement and admission helpline</li>
+                <li>• Top bar buttons, social links, and main navigation</li>
+                <li>• About section copy and research block content</li>
+              </ul>
+              <p className="text-xs text-gray-500 mt-3">Published changes appear on the public homepage automatically within a few seconds.</p>
+            </section>
+          </aside>
         </div>
       </div>
     </div>
   );
 }
 
-function SettingRow({ setting, onSave, saving, onChange }) {
-  const [local, setLocal] = useState(setting);
+function TextSettingCard({ block, setting, defaultValue, saving, onSave, onPublish }) {
+  const [draft, setDraft] = useState("");
 
   useEffect(() => {
-    setLocal(setting);
-  }, [setting]);
+    setDraft(readSetting(setting, defaultValue));
+  }, [setting, defaultValue]);
 
-  const handleChange = (field, value) => {
-    const updated = { ...local, [field]: value };
-    setLocal(updated);
-    onChange(updated);
+  const save = async () => {
+    await onSave(block.key, draft, {
+      section: block.section,
+      description: block.description,
+      type: block.type,
+    });
   };
 
   return (
-    <div className="border rounded-xl p-4 bg-gray-50">
-      <div className="grid md:grid-cols-2 gap-4">
+    <div className="rounded-2xl border bg-gray-50 p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Key</label>
-          <input
-            value={local.key}
-            disabled
-            className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-600"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Section</label>
-          <input
-            value={local.section || ""}
-            onChange={(e) => handleChange("section", e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-          />
+          <h3 className="font-semibold text-gray-900">{block.label}</h3>
+          <p className="text-xs text-gray-500">{block.description}</p>
         </div>
       </div>
+      <textarea
+        rows="3"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+      />
+      <div className="flex gap-3 flex-wrap mt-3">
+        <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60">
+          <FaSave /> {saving ? "Saving..." : "Save Draft"}
+        </button>
+        <button type="button" onClick={async () => { await save(); await onPublish(block.key); }} disabled={saving} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">
+          Publish
+        </button>
+      </div>
+    </div>
+  );
+}
 
-              <div className="grid md:grid-cols-2 gap-4 mt-4">
-        <div>
-          <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Description</label>
-          <textarea
-            rows="2"
-            value={local.description || ""}
-            onChange={(e) => handleChange("description", e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Value</label>
-                  <div className="text-xs text-gray-500 mb-1">Published</div>
-                  <textarea
-                    rows="2"
-                    value={local.publishedValue ?? local.value ?? ""}
-                    disabled
-                    className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-600"
-                  />
-                  <div className="text-xs text-gray-500 my-2">Draft (editable)</div>
-                  <textarea
-                    rows="4"
-                    value={local.draftValue ?? local.value ?? ""}
-                    onChange={(e) => handleChange("draftValue", e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm"
-                  />
-        </div>
-      </div>
+function LinkSettingCard({ block, setting, defaultValue, saving, onSave, onPublish }) {
+  const [items, setItems] = useState([]);
 
-        <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
-        <div className="flex items-center gap-4 text-sm">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={Boolean(local.isPublic)}
-              onChange={(e) => handleChange("isPublic", e.target.checked)}
-            />
-            Public
-          </label>
-          <label className="flex items-center gap-2">
-            Type
-            <select
-              value={local.type || "text"}
-              onChange={(e) => handleChange("type", e.target.value)}
-              className="px-3 py-2 border rounded-lg bg-white"
-            >
-              <option value="text">Text</option>
-              <option value="textarea">Textarea</option>
-              <option value="json">JSON</option>
-            </select>
-          </label>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => onSave(local)}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow disabled:opacity-60"
-          >
-            <FaSave /> {saving ? "Saving..." : "Save Draft"}
-          </button>
-          <button
-            onClick={async () => {
-              if (!confirm("Publish this draft to the live site?")) return;
-              try {
-                const res = await fetchWithAuth(`/api/site-settings/${encodeURIComponent(local.key)}/publish`, {
-                  method: "POST",
-                });
-                if (!res.ok) throw new Error("Publish failed");
-                alert("Published");
-                // refresh
-                const refreshed = await fetchWithAuth("/api/site-settings/admin");
-                const data = await refreshed.json();
-                // eslint-disable-next-line no-use-before-define
-                window.location.reload();
-              } catch (err) {
-                alert(err.message || "Publish failed");
-              }
-            }}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            Publish
-          </button>
-          <button
-            onClick={() => {
-              // Preview: show draftValue in a new window/tab as simple HTML or JSON
-              const preview = local.draftValue ?? local.value ?? local.publishedValue ?? "";
-              const w = window.open("about:blank", "preview");
-              if (w) {
-                w.document.write(preview);
-                w.document.close();
-              }
-            }}
-            className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50"
-          >
-            Preview
-          </button>
+  useEffect(() => {
+    setItems(readList(setting, defaultValue).map((item) => ({ ...item })));
+  }, [setting, defaultValue]);
+
+  const save = async () => {
+    const normalized = items.map((item) => ({
+      name: item.name || "",
+      href: item.href || "",
+      ...(Array.isArray(item.menu) && item.menu.length ? { menu: item.menu } : {}),
+    }));
+    await onSave(block.key, JSON.stringify(normalized), {
+      section: block.section,
+      description: block.description,
+      type: "json",
+    });
+  };
+
+  const updateItem = (index, field, value) => {
+    setItems((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)));
+  };
+
+  return (
+    <div className="rounded-2xl border bg-gray-50 p-4 lg:col-span-1">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 className="font-semibold text-gray-900">{block.label}</h3>
+          <p className="text-xs text-gray-500">{block.description}</p>
         </div>
       </div>
+      <div className="space-y-3 max-h-[420px] overflow-auto pr-1">
+        {items.map((item, index) => (
+          <div key={`${block.key}-${index}`} className="rounded-xl border bg-white p-3 space-y-3">
+            <div className="grid grid-cols-1 gap-2">
+              <InputField label="Label" value={item.name || ""} onChange={(value) => updateItem(index, "name", value)} placeholder="HOME" />
+              <InputField label="Link" value={item.href || ""} onChange={(value) => updateItem(index, "href", value)} placeholder="/home" />
+            </div>
+            <button type="button" onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-sm">
+              <FaTrash /> Remove
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-3 flex-wrap mt-3">
+        <button type="button" onClick={() => setItems((current) => [...current, { ...blankLink }])} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border hover:bg-gray-50">
+          <FaPlus /> {block.addLabel}
+        </button>
+        <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60">
+          <FaSave /> {saving ? "Saving..." : "Save Draft"}
+        </button>
+        <button type="button" onClick={async () => { await save(); await onPublish(block.key); }} disabled={saving} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">
+          Publish
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function JsonSettingCard({ block, setting, defaultValue, saving, onSave, onPublish }) {
+  const [draft, setDraft] = useState("");
+
+  useEffect(() => {
+    const value = setting?.draftValue ?? setting?.publishedValue ?? setting?.value ?? defaultValue;
+    try {
+      const parsed = typeof value === "string" ? JSON.parse(value) : value;
+      setDraft(JSON.stringify(parsed ?? defaultValue ?? {}, null, 2));
+    } catch {
+      setDraft(typeof value === "string" ? value : JSON.stringify(value ?? defaultValue ?? {}, null, 2));
+    }
+  }, [setting, defaultValue]);
+
+  const save = async () => {
+    try {
+      const parsed = JSON.parse(draft);
+      await onSave(block.key, JSON.stringify(parsed), {
+        section: block.section,
+        description: block.description,
+        type: block.type,
+      });
+    } catch {
+      alert("Invalid JSON");
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border bg-gray-50 p-4 md:col-span-2">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 className="font-semibold text-gray-900">{block.label}</h3>
+          <p className="text-xs text-gray-500">{block.description}</p>
+        </div>
+      </div>
+      <textarea
+        rows="14"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        className="w-full px-4 py-3 border rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500"
+      />
+      <div className="flex gap-3 flex-wrap mt-3">
+        <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60">
+          <FaSave /> {saving ? "Saving..." : "Save Draft"}
+        </button>
+        <button type="button" onClick={async () => { await save(); await onPublish(block.key); }} disabled={saving} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">
+          Publish
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InputField({ label, value, onChange, placeholder }) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+      />
     </div>
   );
 }
