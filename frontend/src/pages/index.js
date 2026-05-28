@@ -189,6 +189,12 @@ export default function Home() {
   const { data, error } = useSWR(apiBase + "/api/publications", fetcher);
   const { data: facultyData } = useSWR(apiBase + "/api/faculty", fetcher);
   const { data: projectsData } = useSWR(apiBase + "/api/projects", fetcher);
+  const { data: newsData } = useSWR(apiBase + "/api/news-events", fetcher);
+  // Try fetching featured items first for a better homepage
+  const { data: featuredPubs } = useSWR(apiBase + "/api/publications?featured=true&limit=6", fetcher);
+  const { data: allPubs } = useSWR(apiBase + "/api/publications?limit=6", fetcher);
+  const { data: featuredProjects } = useSWR(apiBase + "/api/projects?featured=true&limit=6", fetcher);
+  const { data: allProjects } = useSWR(apiBase + "/api/projects?limit=6", fetcher);
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher, {
     refreshInterval: 1000,
     revalidateOnFocus: true,
@@ -209,6 +215,10 @@ export default function Home() {
     : defaultPublicSettings.heroSlides;
   const researchInnovationPage = siteSettings.researchInnovationPage || defaultPublicSettings.researchInnovationPage;
   const displayedFaculty = Array.isArray(facultyData) ? facultyData.slice(0, 8) : [];
+  const publications = Array.isArray(featuredPubs) && featuredPubs.length ? featuredPubs : (Array.isArray(allPubs) ? allPubs : (Array.isArray(data) ? data : []));
+  const displayedPublications = Array.isArray(publications) ? publications.slice(0, 6) : [];
+  const projects = Array.isArray(featuredProjects) && featuredProjects.length ? featuredProjects : (Array.isArray(allProjects) ? allProjects : (Array.isArray(projectsData) ? projectsData : []));
+  const displayedProjects = Array.isArray(projects) ? projects.slice(0, 6) : [];
 
   const getFacultyInitials = (name = "") => {
     const parts = name.split(" ").filter(Boolean);
@@ -575,26 +585,16 @@ export default function Home() {
       <section className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-16 mt-0">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">
-                15,000+
-              </div>
-              <div className="text-lg opacity-90">Students Studied</div>
-            </div>
-            <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">
-                10,500+
-              </div>
-              <div className="text-lg opacity-90">Students Placed</div>
-            </div>
-            <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">135</div>
-              <div className="text-lg opacity-90">Our Recruiters</div>
-            </div>
-            <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">14</div>
-              <div className="text-lg opacity-90">Awards Won</div>
-            </div>
+            {(Array.isArray(researchInnovationPage.researchStats) && researchInnovationPage.researchStats.length
+              ? researchInnovationPage.researchStats
+              : (defaultPublicSettings.researchInnovationPage && defaultPublicSettings.researchInnovationPage.researchStats) || [])
+              .slice(0, 4)
+              .map((stat, idx) => (
+                <div key={idx}>
+                  <div className="text-5xl font-bold text-yellow-400 mb-2">{stat.value}</div>
+                  <div className="text-lg opacity-90">{stat.label}</div>
+                </div>
+              ))}
           </div>
         </div>
       </section>
@@ -921,7 +921,7 @@ export default function Home() {
             Recent Student Startups
           </h3>
           <div className="grid md:grid-cols-2 gap-6">
-            {(Array.isArray(projectsData) && projectsData.length ? projectsData : [
+            {(Array.isArray(displayedProjects) && displayedProjects.length ? displayedProjects : [
               { title: "EduTech Solutions", pi: "Rahul Verma, Priya Singh", description: "AI-powered personalized learning platform for K-12 students", fundingAgency: "Seed Funded", id: "fb1" },
               { title: "AgriSense", pi: "Amit Kumar, Sneha Patel", description: "IoT-based crop monitoring and precision agriculture system", fundingAgency: "Pre-Incubation", id: "fb2" },
               { title: "HealthConnect", pi: "Neha Sharma, Vikram Reddy", description: "Telemedicine platform connecting rural patients with doctors", fundingAgency: "Angel Investment", id: "fb3" },
@@ -1154,73 +1154,47 @@ export default function Home() {
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
         </div>
         <div className="space-y-6">
-          {[
-            {
-              id: 1,
-              title: "Deep Learning Approaches for Early Detection of Cardiovascular Diseases Using ECG Analysis",
-              authors: "Dr. Jayanta Basak, Dr. Moumita Paul, Dr. Sagar Chakraborty",
-              year: 2024,
-              type: "Journal",
-              journal: "IEEE Transactions on Medical Imaging",
-              impactFactor: "10.5",
-              abstract: "This paper presents a novel deep learning framework for early detection of cardiovascular diseases through automated ECG analysis. We propose a hybrid CNN-LSTM architecture that achieves 97.2% accuracy in identifying cardiac abnormalities.",
-            },
-            {
-              id: 2,
-              title: "IoT-Based Smart Campus Infrastructure for Sustainable Energy Management",
-              authors: "Dr. Sandeep Malik, Dr. Uddyalok Chakraborty, Priya Sharma",
-              year: 2024,
-              type: "Journal",
-              journal: "Journal of Network and Computer Applications",
-              impactFactor: "7.2",
-              abstract: "This research presents a comprehensive IoT-based infrastructure for campus-wide energy management. The system integrates 500+ sensors for real-time monitoring and control, reducing energy usage by 28%.",
-            },
-            {
-              id: 3,
-              title: "Blockchain-Enabled Secure Pharmaceutical Supply Chain Management",
-              authors: "Dr. Munsi Yusuf Alam, Dr. Ashok Shaw, Sneha Patel",
-              year: 2024,
-              type: "Journal",
-              journal: "Computers & Security",
-              impactFactor: "5.8",
-              abstract: "We propose a blockchain-based framework for pharmaceutical supply chain management that ensures product authenticity and prevents counterfeiting using Hyperledger Fabric with 99.7% traceability accuracy.",
-            },
-          ].map((pub) => (
-            <div
-              key={pub.id}
-              className="p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-700 hover:shadow-2xl transition"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="text-xl font-semibold text-blue-900 flex-1 pr-4">
-                  {pub.title}
-                </h3>
-                <div className="flex gap-2 flex-shrink-0">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
-                    {pub.type}
-                  </span>
-                  {pub.impactFactor && (
-                    <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
-                      IF: {pub.impactFactor}
-                    </span>
-                  )}
+            {(() => {
+            const recent = Array.isArray(displayedPublications) && displayedPublications.length ? displayedPublications.slice(0, 3) : (defaultPublicSettings.researchInnovationPage?.publications || []);
+            return recent.map((pub) => {
+              const citations = pub.citation_count ?? pub.citations ?? 0;
+              const impact = pub.impactFactor || pub.impact;
+              return (
+                <div
+                  key={pub.id || pub.title}
+                  className="p-8 bg-white rounded-xl shadow-lg border-l-4 border-blue-700 hover:shadow-2xl transition"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-xl font-semibold text-blue-900 flex-1 pr-4">
+                      {pub.title}
+                    </h3>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                        {pub.type || "Publication"}
+                      </span>
+                      {impact ? (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">IF: {impact}</span>
+                      ) : (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">Citations: {citations}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600 mb-2">
+                    <strong>Authors:</strong> {pub.authors}
+                  </div>
+                  <div className="text-sm text-gray-600 mb-3">
+                    <strong>Journal:</strong> {pub.journal} | <strong>Year:</strong> {pub.year}
+                  </div>
+                  <p className="text-gray-700 leading-relaxed mb-4">
+                    {pub.abstract}
+                  </p>
+                  <Link href="/all-publications">
+                    <span className="text-blue-700 font-semibold hover:underline cursor-pointer">Read Full Paper →</span>
+                  </Link>
                 </div>
-              </div>
-              <div className="text-sm text-gray-600 mb-2">
-                <strong>Authors:</strong> {pub.authors}
-              </div>
-              <div className="text-sm text-gray-600 mb-3">
-                <strong>Journal:</strong> {pub.journal} | <strong>Year:</strong> {pub.year}
-              </div>
-              <p className="text-gray-700 leading-relaxed mb-4">
-                {pub.abstract}
-              </p>
-              <Link href="/all-publications">
-                <span className="text-blue-700 font-semibold hover:underline cursor-pointer">
-                  Read Full Paper →
-                </span>
-              </Link>
-            </div>
-          ))}
+              );
+            });
+          })()}
         </div>
         <div className="text-center mt-8">
           <Link href="/all-publications">
@@ -1240,68 +1214,23 @@ export default function Home() {
             <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                date: "March 15, 2025",
-                category: "Award",
-                title: "BBIT Wins National Innovation Challenge",
-                desc: "Our student team secured first place at the National Level Innovation Challenge with their AI-powered healthcare solution.",
-                image: "🏆",
-              },
-              {
-                date: "March 10, 2025",
-                category: "Event",
-                title: "International Research Symposium 2025",
-                desc: "Join us for our annual research symposium featuring keynote speakers from MIT, Stanford, and IITs.",
-                image: "🎤",
-              },
-              {
-                date: "March 5, 2025",
-                category: "Achievement",
-                title: "₹50 Lakhs Research Grant Awarded",
-                desc: "Dr. Priya Sharma receives DST-SERB grant for groundbreaking AI research in medical diagnostics.",
-                image: "💰",
-              },
-              {
-                date: "Feb 28, 2025",
-                category: "Publication",
-                title: "Paper Published in IEEE Transactions",
-                desc: "Faculty research on quantum computing applications accepted in top-tier IEEE journal.",
-                image: "📄",
-              },
-              {
-                date: "Feb 20, 2025",
-                category: "Startup",
-                title: "Student Startup Raises Angel Investment",
-                desc: "EduTech Solutions, incubated at BBIT, secures ₹25 lakhs in angel funding from industry veterans.",
-                image: "🚀",
-              },
-              {
-                date: "Feb 15, 2025",
-                category: "Collaboration",
-                title: "New Partnership with Microsoft Research",
-                desc: "BBIT signs MoU with Microsoft Research for collaborative AI and cloud computing projects.",
-                image: "🤝",
-              },
-            ].map((news, idx) => (
+            {(Array.isArray(newsData) ? newsData : []).slice(0, 6).map((news, idx) => (
               <div
-                key={idx}
+                key={news.id || idx}
                 className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-2"
               >
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
                   <div className="text-4xl text-center mb-2">{news.image}</div>
-                  <div className="text-xs text-center opacity-90">
-                    {news.date}
-                  </div>
+                  <div className="text-xs text-center opacity-90">{news.date || news.publishedAt}</div>
                 </div>
                 <div className="p-6">
                   <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
-                    {news.category}
+                    {news.category || news.type}
                   </span>
                   <h3 className="text-lg font-bold text-blue-900 mb-3">
                     {news.title}
                   </h3>
-                  <p className="text-gray-700 text-sm mb-4">{news.description || news.desc}</p>
+                  <p className="text-gray-700 text-sm mb-4">{news.summary || news.description || news.desc || news.body}</p>
                   <a
                     href="#"
                     className="text-blue-700 font-semibold hover:underline text-sm"

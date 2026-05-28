@@ -24,6 +24,8 @@ export default function ProjectsManager() {
     description: "",
     objectives: "",
     outcomes: "",
+    featured: false,
+    file: null,
   });
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
@@ -79,6 +81,23 @@ export default function ProjectsManager() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        if (formData.file) {
+          try {
+            const fd = new FormData();
+            fd.append("file", formData.file);
+            fd.append("featured", formData.featured ? "true" : "false");
+            const upRes = await fetchWithAuth(`/api/projects/${data.id}/image`, { method: "POST", body: fd });
+            if (!upRes.ok) {
+              console.error("Project image attach failed", await upRes.text());
+              alert("Project saved but image upload failed");
+            }
+          } catch (err) {
+            console.error("Upload error", err);
+            alert("Project saved but image upload failed");
+          }
+        }
+
         alert(`Project ${editMode ? "updated" : "added"} successfully!`);
         setShowForm(false);
         setEditMode(false);
@@ -107,6 +126,8 @@ export default function ProjectsManager() {
       objectives: project.objectives || "",
       outcomes: project.outcomes || "",
       progress: project.progress || 0,
+      featured: !!project.featured,
+      file: null,
     });
     setEditMode(true);
     setShowForm(true);
@@ -296,6 +317,16 @@ export default function ProjectsManager() {
                     ></textarea>
                   </div>
                   <div className="md:col-span-2">
+                    <label className="block text-gray-700 font-semibold mb-2">Image</label>
+                    <input type="file" accept="image/*" onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="inline-flex items-center gap-2">
+                      <input type="checkbox" checked={!!formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} />
+                      <span className="text-sm text-gray-700">Featured</span>
+                    </label>
+                  </div>
+                  <div className="md:col-span-2">
                     <label className="block text-gray-700 font-semibold mb-2">Objectives</label>
                     <textarea
                       rows="3"
@@ -348,7 +379,17 @@ export default function ProjectsManager() {
             {filteredProjects.map((proj) => (
               <div key={proj.id} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-800">{proj.title}</h3>
+                  <div className="flex items-start gap-4">
+                    {proj.imageUrl ? (
+                      <img src={proj.imageUrl} alt={proj.title} className="h-16 w-16 object-cover rounded-md mr-2" />
+                    ) : (
+                      <div className="h-16 w-16 bg-gray-100 rounded-md mr-2 flex items-center justify-center text-xs text-gray-400">No Img</div>
+                    )}
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800">{proj.title}</h3>
+                      {proj.featured && <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">Featured</span>}
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(proj)}

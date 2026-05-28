@@ -22,6 +22,9 @@ export default function PublicationsManager() {
     type: "Journal",
     abstract: "",
     keywords: "",
+    impactFactor: "",
+    featured: false,
+    file: null,
   });
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
@@ -69,6 +72,8 @@ export default function PublicationsManager() {
         type: formData.type,
         abstract: formData.abstract,
         keywords: formData.keywords,
+        impactFactor: formData.impactFactor || undefined,
+        featured: formData.featured || false,
       };
 
       const response = await fetchWithAuth(url.replace(apiBase, ""), {
@@ -78,6 +83,29 @@ export default function PublicationsManager() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+
+        // If a file was selected, upload and attach using dedicated endpoint
+        if (formData.file) {
+          try {
+            const fd = new FormData();
+            fd.append("file", formData.file);
+            fd.append("featured", formData.featured ? "true" : "false");
+            if (formData.impactFactor) fd.append("impactFactor", String(formData.impactFactor));
+            const upRes = await fetchWithAuth(`/api/publications/${data.id}/image`, {
+              method: "POST",
+              body: fd,
+            });
+            if (!upRes.ok) {
+              console.error("Image attach failed", await upRes.text());
+              alert("Publication saved but image upload failed");
+            }
+          } catch (err) {
+            console.error("Upload error", err);
+            alert("Publication saved but image upload failed");
+          }
+        }
+
         alert(`Publication ${editMode ? "updated" : "added"} successfully!`);
         setShowForm(false);
         setEditMode(false);
@@ -102,6 +130,9 @@ export default function PublicationsManager() {
       type: publication.type || "Journal",
       abstract: publication.abstract || "",
       keywords: publication.keywords || "",
+      impactFactor: publication.impactFactor || "",
+      featured: !!publication.featured,
+      file: null,
     });
     setEditMode(true);
     setShowForm(true);
@@ -271,6 +302,27 @@ export default function PublicationsManager() {
                     />
                   </div>
                   <div>
+                    <label className="block text-gray-700 font-semibold mb-2">Impact Factor</label>
+                    <input
+                      type="text"
+                      value={formData.impactFactor}
+                      onChange={(e) => setFormData({ ...formData, impactFactor: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                      placeholder="e.g. 7.2"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={!!formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} />
+                      <span className="text-sm text-gray-700">Featured</span>
+                    </label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-700 font-semibold mb-2">Image</label>
+                    <input type="file" accept="image/*" onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })} />
+                    {formData.file && <div className="text-xs text-gray-500 mt-1">Selected: {formData.file.name}</div>}
+                  </div>
+                  <div>
                     <label className="block text-gray-700 font-semibold mb-2">Keywords</label>
                     <input
                       type="text"
@@ -326,7 +378,18 @@ export default function PublicationsManager() {
               <div key={pub.id} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">{pub.title}</h3>
+                      <div className="flex items-start gap-4">
+                        {pub.imageUrl ? (
+                          <img src={pub.imageUrl} alt={pub.title} className="h-20 w-20 object-cover rounded-md mr-4" />
+                        ) : (
+                          <div className="h-20 w-20 bg-gray-100 rounded-md mr-4 flex items-center justify-center text-xs text-gray-400">No Image</div>
+                        )}
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">{pub.title}</h3>
+                          {pub.featured && <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold mr-2">Featured</span>}
+                          {pub.impactFactor && <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-semibold">IF: {pub.impactFactor}</span>}
+                        </div>
+                      </div>
                     <p className="text-gray-600 mb-2"><strong>Authors:</strong> {pub.authors}</p>
                     <p className="text-gray-600 mb-2"><strong>Journal:</strong> {pub.journal}</p>
                     <div className="flex gap-4 text-sm text-gray-500">

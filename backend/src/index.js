@@ -513,10 +513,13 @@ function defineModels(sq) {
       journal: { type: DataTypes.STRING },
       year: { type: DataTypes.INTEGER },
       doi: { type: DataTypes.STRING },
+      impactFactor: { type: DataTypes.STRING },
       citation_count: { type: DataTypes.INTEGER, defaultValue: 0 },
       type: { type: DataTypes.STRING },
       abstract: { type: DataTypes.TEXT },
       keywords: { type: DataTypes.STRING },
+      imageUrl: { type: DataTypes.STRING },
+      featured: { type: DataTypes.BOOLEAN, defaultValue: false },
     },
     { timestamps: true }
   );
@@ -532,6 +535,8 @@ function defineModels(sq) {
       fundingAmount: { type: DataTypes.STRING },
       startDate: { type: DataTypes.DATEONLY },
       endDate: { type: DataTypes.DATEONLY },
+      imageUrl: { type: DataTypes.STRING },
+      featured: { type: DataTypes.BOOLEAN, defaultValue: false },
       status: { type: DataTypes.STRING, defaultValue: "Ongoing" },
       description: { type: DataTypes.TEXT },
       progress: { type: DataTypes.INTEGER, defaultValue: 0 },
@@ -1293,6 +1298,8 @@ async function init() {
           year: 2024,
           doi: "10.1109/TMI.2024.12345",
           citation_count: 45,
+          impactFactor: "10.5",
+          imageUrl: "/pubs/dl-cvd.jpg",
           type: "Journal",
           abstract: "Novel deep learning framework for early detection of cardiovascular diseases through automated ECG analysis.",
           keywords: "Deep Learning, Healthcare, ECG, Cardiovascular",
@@ -1304,6 +1311,8 @@ async function init() {
           year: 2024,
           doi: "10.1016/j.jnca.2024.45678",
           citation_count: 32,
+          impactFactor: "7.2",
+          imageUrl: "/pubs/iot-campus.jpg",
           type: "Journal",
           abstract: "Comprehensive IoT-based infrastructure for campus-wide energy management.",
           keywords: "IoT, Smart Campus, Energy Management, Sustainability",
@@ -1699,6 +1708,12 @@ app.get("/api/publications", async (req, res) => {
   try {
     const { year, type, limit } = req.query;
     const where = {};
+    // support featured filter: ?featured=true
+    if (req.query.featured !== undefined) {
+      const val = String(req.query.featured).toLowerCase();
+      if (val === "true" || val === "1") where.featured = true;
+      else if (val === "false" || val === "0") where.featured = false;
+    }
     if (year) where.year = year;
     if (type) where.type = type;
     
@@ -1754,11 +1769,76 @@ app.delete("/api/publications/:id", authenticateToken, requireAdmin, async (req,
   }
 });
 
+// Attach uploaded image to a publication (atomic upload + attach)
+app.post(
+  "/api/publications/:id/image",
+  authenticateToken,
+  requireAdmin,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const pub = await Publication.findByPk(req.params.id);
+      if (!pub) return res.status(404).json({ error: "Publication not found" });
+
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+      // Reuse S3/local upload logic from /api/uploads
+      let url;
+      if (useS3 && s3Client) {
+        const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET;
+        if (!bucket) return res.status(500).json({ error: "S3 bucket not configured (S3_BUCKET)" });
+
+        const safeName = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const key = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${safeName}`;
+        const params = {
+          Bucket: bucket,
+          Key: key,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype || "application/octet-stream",
+          ACL: process.env.S3_ACL || "public-read",
+        };
+        const cmd = new PutObjectCommand(params);
+        await s3Client.send(cmd);
+        if (process.env.S3_PUBLIC_URL) {
+          url = `${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/${encodeURIComponent(key)}`;
+        } else {
+          const region = process.env.AWS_REGION || process.env.S3_REGION || "us-east-1";
+          if (region === "us-east-1") {
+            url = `https://${bucket}.s3.amazonaws.com/${encodeURIComponent(key)}`;
+          } else {
+            url = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(key)}`;
+          }
+        }
+      } else {
+        // local disk
+        url = `${process.env.FRONTEND_URL || "http://localhost:3005"}/uploads/${req.file.filename}`;
+      }
+
+      const updates = {};
+      if (req.body.featured !== undefined) updates.featured = req.body.featured === "true" || req.body.featured === true;
+      if (req.body.impactFactor !== undefined) updates.impactFactor = req.body.impactFactor;
+      updates.imageUrl = url;
+
+      await pub.update(updates);
+      res.status(200).json(pub);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
 // ===== RESEARCH PROJECTS =====
 app.get("/api/projects", async (req, res) => {
   try {
     const { status, department } = req.query;
     const where = {};
+    // support featured filter: ?featured=true
+    if (req.query.featured !== undefined) {
+      const val = String(req.query.featured).toLowerCase();
+      if (val === "true" || val === "1") where.featured = true;
+      else if (val === "false" || val === "0") where.featured = false;
+    }
     if (status) where.status = status;
     if (department) where.department = department;
     
@@ -1812,6 +1892,61 @@ app.delete("/api/projects/:id", authenticateToken, requireAdmin, async (req, res
     res.status(500).json({ error: e.message });
   }
 });
+
+// Attach uploaded image to a project (atomic upload + attach)
+app.post(
+  "/api/projects/:id/image",
+  authenticateToken,
+  requireAdmin,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const project = await ResearchProject.findByPk(req.params.id);
+      if (!project) return res.status(404).json({ error: "Project not found" });
+
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+      let url;
+      if (useS3 && s3Client) {
+        const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET;
+        if (!bucket) return res.status(500).json({ error: "S3 bucket not configured (S3_BUCKET)" });
+
+        const safeName = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const key = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${safeName}`;
+        const params = {
+          Bucket: bucket,
+          Key: key,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype || "application/octet-stream",
+          ACL: process.env.S3_ACL || "public-read",
+        };
+        const cmd = new PutObjectCommand(params);
+        await s3Client.send(cmd);
+        if (process.env.S3_PUBLIC_URL) {
+          url = `${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/${encodeURIComponent(key)}`;
+        } else {
+          const region = process.env.AWS_REGION || process.env.S3_REGION || "us-east-1";
+          if (region === "us-east-1") {
+            url = `https://${bucket}.s3.amazonaws.com/${encodeURIComponent(key)}`;
+          } else {
+            url = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(key)}`;
+          }
+        }
+      } else {
+        url = `${process.env.FRONTEND_URL || "http://localhost:3005"}/uploads/${req.file.filename}`;
+      }
+
+      const updates = {};
+      if (req.body.featured !== undefined) updates.featured = req.body.featured === "true" || req.body.featured === true;
+      updates.imageUrl = url;
+      await project.update(updates);
+      res.status(200).json(project);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 // ===== FACULTY =====
 app.get("/api/faculty", async (req, res) => {
