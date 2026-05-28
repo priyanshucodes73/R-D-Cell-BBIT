@@ -1,9 +1,26 @@
 import { useState } from "react";
+import useSWR from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 
 export default function Register() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(
+    apiBase ? `${apiBase}/api/site-settings` : null,
+    fetcher
+  );
+  const siteSettings = {
+    ...defaultPublicSettings,
+    ...normalizeSiteSettings(siteSettingsData),
+  };
+  const pageSettings = siteSettings.registerPage || {};
   const [selectedType, setSelectedType] = useState("admission");
   const [formData, setFormData] = useState({
     // Common fields
@@ -44,7 +61,7 @@ export default function Register() {
     });
   };
 
-  const registrationTypes = [
+  const defaultRegistrationTypes = [
     {
       id: "admission",
       title: "Admission Registration",
@@ -75,6 +92,8 @@ export default function Register() {
     },
   ];
 
+  const registrationTypes = pageSettings.registrationTypes || defaultRegistrationTypes;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -88,11 +107,11 @@ export default function Register() {
             <span>Registration</span>
           </div>
           <h1 className="text-5xl font-bold mb-4">
-            Student Registration Portal
+            {pageSettings.heroTitle || "Student Registration Portal"}
           </h1>
           <p className="text-xl opacity-90">
-            Start your journey with BBIT - Register now for various programs and
-            opportunities
+            {pageSettings.heroSubtitle ||
+              "Start your journey with BBIT - Register now for various programs and opportunities"}
           </p>
         </div>
       </section>
@@ -100,7 +119,7 @@ export default function Register() {
       {/* Registration Type Selection */}
       <section className="max-w-6xl mx-auto px-4 py-12">
         <h2 className="text-3xl font-bold text-blue-900 text-center mb-8">
-          Select Registration Type
+          {pageSettings.sectionTitle || "Select Registration Type"}
         </h2>
         <div className="grid md:grid-cols-4 gap-6 mb-12">
           {registrationTypes.map((type) => (
@@ -227,7 +246,7 @@ export default function Register() {
             {selectedType === "admission" && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">
-                  Academic Details
+                  {pageSettings.academicDetailsTitle || "Academic Details"}
                 </h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
@@ -321,7 +340,7 @@ export default function Register() {
             {selectedType === "placement" && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">
-                  Academic & Professional Details
+                  {pageSettings.professionalDetailsTitle || "Academic & Professional Details"}
                 </h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
@@ -405,7 +424,7 @@ export default function Register() {
             {selectedType === "event" && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">
-                  Event Details
+                  {pageSettings.eventDetailsTitle || "Event Details"}
                 </h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
@@ -483,7 +502,7 @@ export default function Register() {
             {selectedType === "research" && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">
-                  Research Program Details
+                  {pageSettings.researchDetailsTitle || "Research Program Details"}
                 </h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
@@ -579,16 +598,16 @@ export default function Register() {
                   className="mt-1 w-5 h-5 text-blue-600"
                 />
                 <span className="text-sm text-gray-700">
-                  I agree to the{" "}
+                  {pageSettings.termsPrefix || "I agree to the"}{" "}
                   <a href="#" className="text-blue-600 hover:underline">
-                    Terms and Conditions
+                    {pageSettings.termsLinkLabel || "Terms and Conditions"}
                   </a>{" "}
                   and{" "}
                   <a href="#" className="text-blue-600 hover:underline">
-                    Privacy Policy
+                    {pageSettings.privacyLinkLabel || "Privacy Policy"}
                   </a>
                   . I understand that the information provided will be used for
-                  registration and communication purposes.
+                  {pageSettings.termsBody || "registration and communication purposes."}
                 </span>
               </label>
             </div>
@@ -601,7 +620,7 @@ export default function Register() {
                   registrationTypes.find((t) => t.id === selectedType)?.color
                 } text-white py-4 rounded-lg font-bold text-lg hover:shadow-2xl transition transform hover:scale-105`}
               >
-                Submit Registration
+                {pageSettings.submitLabel || "Submit Registration"}
               </button>
               <button
                 type="button"
@@ -623,7 +642,7 @@ export default function Register() {
                 }
                 className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
               >
-                Reset
+                {pageSettings.resetLabel || "Reset"}
               </button>
             </div>
           </form>
@@ -634,11 +653,11 @@ export default function Register() {
       <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-blue-900 mb-6">
-            Need Help with Registration?
+            {pageSettings.helpTitle || "Need Help with Registration?"}
           </h2>
           <p className="text-gray-700 text-lg mb-8">
-            Our admissions team is here to assist you throughout the
-            registration process.
+            {pageSettings.helpBody ||
+              "Our admissions team is here to assist you throughout the registration process."}
           </p>
           <div className="flex flex-wrap justify-center gap-6">
             <div className="bg-white p-6 rounded-xl shadow-lg">

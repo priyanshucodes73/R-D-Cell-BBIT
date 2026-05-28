@@ -1,30 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 
-export default function AllPublications() {
-  const [publications, setPublications] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function AllPublications({ initialPublications = [] }) {
+  const [publications, setPublications] = useState(Array.isArray(initialPublications) ? initialPublications : []);
+  const [loading, setLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const response = await fetch(`${apiBase}/api/publications`);
-        const data = await response.json();
-        setPublications(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error loading publications:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [apiBase]);
+  // initialPublications provided via getServerSideProps
 
   const normalizedPublications = useMemo(
     () =>
@@ -146,3 +133,14 @@ export default function AllPublications() {
     </div>
   );
 }
+
+    export async function getServerSideProps(ctx) {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+      try {
+        const res = await fetch(`${apiBase}/api/publications`);
+        const data = await res.ok ? await res.json() : [];
+        return { props: { initialPublications: Array.isArray(data) ? data : [] } };
+      } catch (e) {
+        return { props: { initialPublications: [] } };
+      }
+    }

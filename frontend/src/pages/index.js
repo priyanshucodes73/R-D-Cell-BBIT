@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Footer from "../components/Footer";
@@ -179,7 +179,7 @@ function DropdownMenu({ link }) {
   );
 }
 
-export default function Home() {
+export default function Home({ fallback }) {
   const [scrolled, setScrolled] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -253,6 +253,7 @@ export default function Home() {
   }, [editableHeroSlides.length]);
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="bg-gray-50 min-h-screen">
       {/* 1st Top Bar - Upper Bar with extra links and social icons - Desktop Only */}
       <div className="hidden lg:block bg-gradient-to-r from-[#1a1f24] via-[#23272b] to-[#1a1f24] text-white text-xs w-full shadow-md border-b border-gray-700">
@@ -1251,8 +1252,43 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
-      <Chatbot />
-    </div>
-  );
-}
+          <Footer />
+          <Chatbot />
+        </div>
+        </SWRConfig>
+      );
+    }
+
+    export async function getServerSideProps(context) {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+      const fetchJson = async (url) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return null;
+          return await res.json();
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const [siteSettingsData, featuredPubs, allPubs, featuredProjects, allProjects, facultyData, newsData] = await Promise.all([
+        fetchJson(`${apiBase}/api/site-settings`),
+        fetchJson(`${apiBase}/api/publications?featured=true&limit=6`),
+        fetchJson(`${apiBase}/api/publications?limit=6`),
+        fetchJson(`${apiBase}/api/projects?featured=true&limit=6`),
+        fetchJson(`${apiBase}/api/projects?limit=6`),
+        fetchJson(`${apiBase}/api/faculty`),
+        fetchJson(`${apiBase}/api/news-events`),
+      ]);
+
+      const fallback = {};
+      if (siteSettingsData) fallback[apiBase + "/api/site-settings"] = siteSettingsData;
+      if (featuredPubs) fallback[apiBase + "/api/publications?featured=true&limit=6"] = featuredPubs;
+      if (allPubs) fallback[apiBase + "/api/publications?limit=6"] = allPubs;
+      if (featuredProjects) fallback[apiBase + "/api/projects?featured=true&limit=6"] = featuredProjects;
+      if (allProjects) fallback[apiBase + "/api/projects?limit=6"] = allProjects;
+      if (facultyData) fallback[apiBase + "/api/faculty"] = facultyData;
+      if (newsData) fallback[apiBase + "/api/news-events"] = newsData;
+
+      return { props: { fallback } };
+    }

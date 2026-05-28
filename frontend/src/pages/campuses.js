@@ -1,12 +1,29 @@
 import { useState } from "react";
+import useSWR from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 
 export default function Campuses() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(
+    apiBase ? `${apiBase}/api/site-settings` : null,
+    fetcher
+  );
+  const siteSettings = {
+    ...defaultPublicSettings,
+    ...normalizeSiteSettings(siteSettingsData),
+  };
+  const pageSettings = siteSettings.campusesPage || {};
   const [selectedCampus, setSelectedCampus] = useState(0);
 
-  const campuses = [
+  const campuses = pageSettings.campuses || [
     {
       name: "BBIT Campus - Kolkata",
       location: "Nischintapur, Budge Budge, Kolkata - 700138, West Bengal, India",
@@ -56,6 +73,22 @@ export default function Campuses() {
     },
   ];
 
+  const campusStats = pageSettings.stats || [
+    { value: "15,000+", label: "Students Studied" },
+    { value: "10,500+", label: "Students Placed" },
+    { value: "135+", label: "Recruiters" },
+    { value: "14+", label: "Awards" },
+  ];
+
+  const campusHighlights = pageSettings.highlights || [
+    { icon: "🎓", title: "Academic Excellence", desc: "State-of-the-art classrooms and laboratories" },
+    { icon: "🏆", title: "Sports & Fitness", desc: "Modern sports facilities and fitness centers" },
+    { icon: "🎭", title: "Cultural Activities", desc: "Vibrant cultural clubs and annual festivals" },
+    { icon: "🍔", title: "Dining Options", desc: "Multiple food courts and cafeterias" },
+    { icon: "🏠", title: "Hostel Facilities", desc: "Comfortable and secure accommodation" },
+    { icon: "🚌", title: "Transportation", desc: "Campus-wide shuttle and city connectivity" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header/Breadcrumb */}
@@ -68,9 +101,9 @@ export default function Campuses() {
             <span className="mx-2">/</span>
             <span>Campuses</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Our Campus</h1>
+          <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "Our Campus"}</h1>
           <p className="text-xl opacity-90">
-            Premier Engineering Institute in Kolkata - NBA & NAAC Accredited
+            {pageSettings.heroSubtitle || "Premier Engineering Institute in Kolkata - NBA & NAAC Accredited"}
           </p>
         </div>
       </section>
@@ -79,24 +112,12 @@ export default function Campuses() {
       <section className="bg-white py-12 shadow-md">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-blue-900 mb-2">15,000+</div>
-              <div className="text-gray-600">Students Studied</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-900 mb-2">10,500+</div>
-              <div className="text-gray-600">Students Placed</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-900 mb-2">
-                135+
+            {campusStats.map((stat, index) => (
+              <div key={index}>
+                <div className="text-4xl font-bold text-blue-900 mb-2">{stat.value}</div>
+                <div className="text-gray-600">{stat.label}</div>
               </div>
-              <div className="text-gray-600">Recruiters</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-900 mb-2">14+</div>
-              <div className="text-gray-600">Awards</div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -244,41 +265,10 @@ export default function Campuses() {
       <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-blue-900 text-center mb-12">
-            Campus Life Highlights
+            {pageSettings.highlightsTitle || "Campus Life Highlights"}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: "🎓",
-                title: "Academic Excellence",
-                desc: "State-of-the-art classrooms and laboratories",
-              },
-              {
-                icon: "🏆",
-                title: "Sports & Fitness",
-                desc: "Modern sports facilities and fitness centers",
-              },
-              {
-                icon: "🎭",
-                title: "Cultural Activities",
-                desc: "Vibrant cultural clubs and annual festivals",
-              },
-              {
-                icon: "🍔",
-                title: "Dining Options",
-                desc: "Multiple food courts and cafeterias",
-              },
-              {
-                icon: "🏠",
-                title: "Hostel Facilities",
-                desc: "Comfortable and secure accommodation",
-              },
-              {
-                icon: "🚌",
-                title: "Transportation",
-                desc: "Campus-wide shuttle and city connectivity",
-              },
-            ].map((highlight, idx) => (
+            {campusHighlights.map((highlight, idx) => (
               <div
                 key={idx}
                 className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-2xl transition"

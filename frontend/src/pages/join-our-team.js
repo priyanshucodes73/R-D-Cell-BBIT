@@ -2,7 +2,7 @@ import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 import {
   defaultPublicSettings,
   fetcher,
@@ -81,7 +81,7 @@ const defaultHiringProcess = [
   { step: "6", title: "Offer Letter", description: "Receive offer and complete joining formalities" },
 ];
 
-export default function JoinOurTeam() {
+export default function JoinOurTeam({ fallback }) {
   const [selectedPosition, setSelectedPosition] = useState(null);
   const apiBase = getApiBase();
   const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
@@ -92,6 +92,7 @@ export default function JoinOurTeam() {
   const hiringProcess = pageSettings.hiringProcess || defaultHiringProcess;
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-green-900 via-teal-900 to-blue-900 text-white py-20">
@@ -275,5 +276,19 @@ export default function JoinOurTeam() {
       <Footer />
       <Chatbot />
     </div>
+    </SWRConfig>
   );
+}
+
+export async function getServerSideProps() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+  try {
+    const res = await fetch(`${apiBase}/api/site-settings`);
+    const siteSettingsData = await (res.ok ? res.json() : null);
+    const fallback = {};
+    if (siteSettingsData) fallback[apiBase + "/api/site-settings"] = siteSettingsData;
+    return { props: { fallback } };
+  } catch (e) {
+    return { props: { fallback: {} } };
+  }
 }

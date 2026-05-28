@@ -1,11 +1,11 @@
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
-export default function Placements() {
+export default function Placements({ fallback }) {
   const [activeTab, setActiveTab] = useState("overview");
   const apiBase = getApiBase();
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
@@ -41,6 +41,7 @@ export default function Placements() {
   const placementTeam = placementsPage.placementTeam || [];
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-green-900 via-teal-900 to-green-900 text-white py-20">
@@ -445,5 +446,19 @@ export default function Placements() {
       <Footer />
       <Chatbot />
     </div>
+    </SWRConfig>
   );
+}
+
+export async function getServerSideProps() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+  try {
+    const res = await fetch(`${apiBase}/api/site-settings`);
+    const siteSettingsData = await (res.ok ? res.json() : null);
+    const fallback = {};
+    if (siteSettingsData) fallback[apiBase + "/api/site-settings"] = siteSettingsData;
+    return { props: { fallback } };
+  } catch (e) {
+    return { props: { fallback: {} } };
+  }
 }

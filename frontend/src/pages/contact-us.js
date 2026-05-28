@@ -4,8 +4,9 @@ import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
+import { SWRConfig } from "swr";
 
-export default function ContactUs() {
+export default function ContactUs({ fallback }) {
   const apiBase = getApiBase();
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
@@ -25,6 +26,7 @@ export default function ContactUs() {
   };
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-blue-900 to-indigo-700 text-white py-16">
@@ -441,5 +443,19 @@ export default function ContactUs() {
       <Footer />
       <Chatbot />
     </div>
+    </SWRConfig>
   );
+}
+
+export async function getServerSideProps() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+  try {
+    const res = await fetch(`${apiBase}/api/site-settings`);
+    const siteSettingsData = await (res.ok ? res.json() : null);
+    const fallback = {};
+    if (siteSettingsData) fallback[apiBase + "/api/site-settings"] = siteSettingsData;
+    return { props: { fallback } };
+  } catch (e) {
+    return { props: { fallback: {} } };
+  }
 }

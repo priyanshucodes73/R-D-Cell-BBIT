@@ -1,7 +1,7 @@
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 import {
   defaultPublicSettings,
   fetcher,
@@ -79,7 +79,7 @@ const defaultRequiredDocuments = [
   "Parent's income proof",
 ];
 
-export default function Scholarship() {
+export default function Scholarship({ fallback }) {
   const apiBase = getApiBase();
   const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
@@ -93,6 +93,7 @@ export default function Scholarship() {
   const requiredDocuments = pageSettings.requiredDocuments || defaultRequiredDocuments;
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white py-20">
@@ -307,5 +308,19 @@ export default function Scholarship() {
       <Footer />
       <Chatbot />
     </div>
+    </SWRConfig>
   );
+}
+
+export async function getServerSideProps() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+  try {
+    const res = await fetch(`${apiBase}/api/site-settings`);
+    const siteSettingsData = await (res.ok ? res.json() : null);
+    const fallback = {};
+    if (siteSettingsData) fallback[apiBase + "/api/site-settings"] = siteSettingsData;
+    return { props: { fallback } };
+  } catch (e) {
+    return { props: { fallback: {} } };
+  }
 }

@@ -1,21 +1,38 @@
 import { useState } from "react";
+import useSWR from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
+import {
+  defaultPublicSettings,
+  fetcher,
+  getApiBase,
+  normalizeSiteSettings,
+} from "../lib/siteSettings";
 
 export default function Clubs() {
+  const apiBase = getApiBase();
+  const { data: siteSettingsData } = useSWR(
+    apiBase ? `${apiBase}/api/site-settings` : null,
+    fetcher
+  );
+  const siteSettings = {
+    ...defaultPublicSettings,
+    ...normalizeSiteSettings(siteSettingsData),
+  };
+  const pageSettings = siteSettings.clubsPage || {};
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const clubStats = [
+  const clubStats = pageSettings.stats || [
     { label: "Active Clubs & Societies", value: "40+", icon: "🏛️", color: "orange" },
     { label: "Student Members", value: "5000+", icon: "👥", color: "blue" },
     { label: "Events Per Year", value: "200+", icon: "🎉", color: "purple" },
     { label: "National Championships", value: "25+", icon: "🏆", color: "yellow" },
   ];
 
-  const technicalClubs = [
+  const technicalClubs = pageSettings.technicalClubs || [
     {
       name: "Coding Club",
       icon: "💻",
@@ -96,7 +113,7 @@ export default function Clubs() {
     },
   ];
 
-  const culturalClubs = [
+  const culturalClubs = pageSettings.culturalClubs || [
     {
       name: "Drama & Theatre Society",
       icon: "🎭",
@@ -177,7 +194,7 @@ export default function Clubs() {
     },
   ];
 
-  const sportsClubs = [
+  const sportsClubs = pageSettings.sportsClubs || [
     {
       name: "Cricket Club",
       icon: "🏏",
@@ -273,7 +290,7 @@ export default function Clubs() {
     rose: { card: "border-rose-500", badge: "bg-rose-100 text-rose-800", icon: "bg-rose-600", stat: "text-rose-900" },
   };
 
-  const upcomingEvents = [
+  const upcomingEvents = pageSettings.upcomingEvents || [
     {
       title: "Annual Tech Fest - TechVision 2026",
       date: "March 20–22, 2026",
@@ -336,7 +353,7 @@ export default function Clubs() {
     },
   ];
 
-  const clubLeadership = [
+  const clubLeadership = pageSettings.clubLeadership || [
     {
       name: "Prof. Anand Sinha",
       role: "Dean of Student Affairs",
@@ -444,9 +461,9 @@ export default function Clubs() {
             <span className="mx-2">/</span>
             <span>Clubs &amp; Groups</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Clubs &amp; Student Groups</h1>
+          <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "Clubs &amp; Student Groups"}</h1>
           <p className="text-xl opacity-90">
-            Explore, connect and grow — where passion meets purpose at BBIT
+            {pageSettings.heroSubtitle || "Explore, connect and grow — where passion meets purpose at BBIT"}
           </p>
         </div>
       </section>
@@ -489,11 +506,11 @@ export default function Clubs() {
         {/* ── OVERVIEW TAB ── */}
         {activeTab === "overview" && (
           <div>
-            <h2 className="text-3xl font-bold text-orange-900 text-center mb-4">
-              Find Your Club
+              <h2 className="text-3xl font-bold text-orange-900 text-center mb-4">
+              {pageSettings.findClubTitle || "Find Your Club"}
             </h2>
             <p className="text-center text-gray-600 mb-8">
-              Search across all 40+ clubs and student groups at BBIT
+              {pageSettings.findClubSubtitle || "Search across all 40+ clubs and student groups at BBIT"}
             </p>
 
             {/* Search + Filter */}
@@ -542,8 +559,8 @@ export default function Clubs() {
 
             {/* Why Join Section */}
             <div className="mt-16 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-8">
-              <h3 className="text-2xl font-bold text-orange-900 text-center mb-8">
-                Why Join a Club?
+                <h3 className="text-2xl font-bold text-orange-900 text-center mb-8">
+                {pageSettings.whyJoinTitle || "Why Join a Club?"}
               </h3>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-xl p-6 shadow text-center">
@@ -576,7 +593,7 @@ export default function Clubs() {
         {activeTab === "technical" && (
           <div>
             <h2 className="text-3xl font-bold text-orange-900 text-center mb-2">
-              Technical Clubs
+              {pageSettings.technicalTitle || "Technical Clubs"}
             </h2>
             <p className="text-center text-gray-600 mb-8">
               Sharpen your skills with code, circuits, robots and data
@@ -589,8 +606,8 @@ export default function Clubs() {
 
             {/* Tech Highlights */}
             <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-orange-900 mb-6 text-center">
-                Technical Club Highlights
+                <h3 className="text-2xl font-bold text-orange-900 mb-6 text-center">
+                {pageSettings.technicalHighlightsTitle || "Technical Club Highlights"}
               </h3>
               <div className="grid md:grid-cols-4 gap-6 text-center">
                 <div className="bg-blue-50 p-6 rounded-lg">
@@ -617,8 +634,8 @@ export default function Clubs() {
         {/* ── CULTURAL TAB ── */}
         {activeTab === "cultural" && (
           <div>
-            <h2 className="text-3xl font-bold text-orange-900 text-center mb-2">
-              Cultural Clubs
+            <h2 className="text-3xl font-bold text-orange-900 text-center mb-2">          
+              {pageSettings.culturalTitle || "Cultural Clubs"}
             </h2>
             <p className="text-center text-gray-600 mb-8">
               Express yourself through art, music, drama and performance

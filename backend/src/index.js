@@ -1285,7 +1285,31 @@ async function init() {
       console.log(`No DATABASE_URL found — using SQLite fallback: ${defaultSQLiteStorage}`);
     }
 
-    await sequelize.sync({ alter: true }); // Add any new columns to existing tables
+    // Use Umzug with SequelizeStorage to run migrations in /migrations
+    try {
+      const { Umzug, SequelizeStorage } = require("umzug");
+
+      const umzug = new Umzug({
+        migrations: {
+          // migrations are CommonJS modules exporting `up` (and optional `down`)
+          glob: path.join(__dirname, "..", "migrations", "*.js"),
+        },
+        context: sequelize.getQueryInterface(),
+        storage: new SequelizeStorage({ sequelize }),
+        logger: console,
+      });
+
+      const pending = await umzug.pending();
+      if (pending && pending.length) {
+        console.log(`Running ${pending.length} pending migrations`);
+        await umzug.up();
+      } else {
+        console.log("No pending migrations");
+      }
+    } catch (e) {
+      console.error("Migration runner error", e && e.stack ? e.stack : e);
+      throw e;
+    }
 
     // Seed Publications
     const pubCount = await Publication.count();

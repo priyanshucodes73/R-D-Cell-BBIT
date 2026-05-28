@@ -1,15 +1,14 @@
-import useSWR from "swr";
 import { useState } from "react";
+import { SWRConfig } from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
-export default function ResearchInnovation() {
+export default function ResearchInnovation({ siteSettingsServer = null, fallback = {} }) {
   const [activeTab, setActiveTab] = useState("overview");
   const apiBase = getApiBase();
-  const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
-  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsServer) };
   const researchInnovationPage = siteSettings.researchInnovationPage || defaultPublicSettings.researchInnovationPage;
 
   const researchStats = researchInnovationPage.researchStats || [];
@@ -27,6 +26,7 @@ export default function ResearchInnovation() {
   const fundingSources = researchInnovationPage.fundingSources || [];
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 text-white py-20">
@@ -462,5 +462,23 @@ export default function ResearchInnovation() {
       <Footer />
       <Chatbot />
     </div>
+    </SWRConfig>
   );
+}
+
+export async function getServerSideProps(context) {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+  const fetchJson = async (url) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  };
+  const siteSettingsServer = await fetchJson(`${apiBase}/api/site-settings`);
+  const fallback = {};
+  if (siteSettingsServer) fallback[apiBase + "/api/site-settings"] = siteSettingsServer;
+  return { props: { siteSettingsServer, fallback } };
 }

@@ -1,31 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 
-export default function AllProjects() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function AllProjects({ initialProjects = [] }) {
+  const [projects, setProjects] = useState(Array.isArray(initialProjects) ? initialProjects : []);
+  const [loading, setLoading] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const response = await fetch(`${apiBase}/api/projects`);
-        const data = await response.json();
-        setProjects(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error loading projects:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProjects();
-  }, [apiBase]);
+  // initialProjects provided via getServerSideProps
 
   const normalizedProjects = useMemo(
     () =>
@@ -153,3 +139,14 @@ export default function AllProjects() {
     </div>
   );
 }
+
+    export async function getServerSideProps(ctx) {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+      try {
+        const res = await fetch(`${apiBase}/api/projects`);
+        const data = await res.ok ? await res.json() : [];
+        return { props: { initialProjects: Array.isArray(data) ? data : [] } };
+      } catch (e) {
+        return { props: { initialProjects: [] } };
+      }
+    }

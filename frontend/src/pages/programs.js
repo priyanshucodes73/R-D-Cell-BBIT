@@ -2,7 +2,7 @@ import { useState } from "react";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 import {
   defaultPublicSettings,
   fetcher,
@@ -10,7 +10,7 @@ import {
   normalizeSiteSettings,
 } from "../lib/siteSettings";
 
-export default function Programs() {
+export default function Programs({ fallback }) {
   const [selectedLevel, setSelectedLevel] = useState("undergraduate");
   const [selectedDomain, setSelectedDomain] = useState("engineering");
 
@@ -253,6 +253,7 @@ export default function Programs() {
   const currentPrograms = programs[selectedLevel]?.[selectedDomain] || [];
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 text-white py-20">
@@ -529,5 +530,19 @@ export default function Programs() {
       <Footer />
       <Chatbot />
     </div>
+    </SWRConfig>
   );
+}
+
+export async function getServerSideProps() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+  try {
+    const res = await fetch(`${apiBase}/api/site-settings`);
+    const siteSettingsData = await (res.ok ? res.json() : null);
+    const fallback = {};
+    if (siteSettingsData) fallback[apiBase + "/api/site-settings"] = siteSettingsData;
+    return { props: { fallback } };
+  } catch (e) {
+    return { props: { fallback: {} } };
+  }
 }

@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { SWRConfig } from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
 
-export default function ExploreResearch() {
+export default function ExploreResearch({ fallback }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const researchAreas = [
@@ -144,6 +145,7 @@ export default function ExploreResearch() {
   ];
 
   return (
+    <SWRConfig value={{ fallback }}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 text-white py-20">
@@ -339,5 +341,19 @@ export default function ExploreResearch() {
       <Footer />
       <Chatbot />
     </div>
+    </SWRConfig>
   );
+}
+
+export async function getServerSideProps() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+  try {
+    const res = await fetch(`${apiBase}/api/site-settings`);
+    const siteSettingsData = await (res.ok ? res.json() : null);
+    const fallback = {};
+    if (siteSettingsData) fallback[apiBase + "/api/site-settings"] = siteSettingsData;
+    return { props: { fallback } };
+  } catch (e) {
+    return { props: { fallback: {} } };
+  }
 }

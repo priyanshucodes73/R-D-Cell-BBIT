@@ -84,7 +84,7 @@ export default function Login() {
             {/* Email Field */}
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
-                Email Address
+                {pageSettings.emailLabel || "Email Address"}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -106,7 +106,7 @@ export default function Login() {
             {/* Password Field */}
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
-                Password
+                {pageSettings.passwordLabel || "Password"}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -142,7 +142,7 @@ export default function Login() {
               disabled={loading}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? pageSettings.loggingInLabel || "Logging in..." : pageSettings.loginButtonLabel || "Login"}
             </button>
           </form>
 
@@ -159,7 +159,7 @@ export default function Login() {
           {/* Admin Login Link */}
           <div className="mt-4 text-center">
             <Link href="/admin/login" className="text-sm text-gray-500 hover:text-gray-700">
-              Admin Login →
+              {pageSettings.adminLoginLabel || "Admin Login →"}
             </Link>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function Login() {
         {/* Back to Home */}
         <div className="text-center mt-6">
           <Link href="/" className="text-blue-200 hover:text-white">
-            ← Back to Home
+            {pageSettings.backToHomeLabel || "← Back to Home"}
           </Link>
         </div>
       </div>
