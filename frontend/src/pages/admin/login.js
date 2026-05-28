@@ -21,6 +21,7 @@ export default function AdminLogin() {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
       const res = await fetch(`${apiBase}/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, password: formData.password }),
       });

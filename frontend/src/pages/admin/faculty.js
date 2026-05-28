@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
+import { fetchWithAuth } from "../../lib/auth";
 
 export default function FacultyManager() {
   const router = useRouter();
@@ -57,11 +58,25 @@ export default function FacultyManager() {
         : `${apiBase}/api/faculty`;
       const method = editMode ? "PUT" : "POST";
 
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(url, {
+      // Map admin form fields to backend model fields
+      const payload = {
+        name: formData.name,
+        designation: formData.designation,
+        department: formData.department,
+        email: formData.email,
+        phone: formData.phone,
+        qualifications: formData.qualifications,
+        experience: parseInt(formData.experience_years) || 0,
+        publications: parseInt(formData.publications_count) || 0,
+        projects: parseInt(formData.projects_count) || 0,
+        researchInterests: formData.research_interests,
+        bio: formData.bio,
+      };
+
+      const response = await fetchWithAuth(url.replace(apiBase, ""), {
         method,
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -78,7 +93,21 @@ export default function FacultyManager() {
   };
 
   const handleEdit = (member) => {
-    setFormData(member);
+    // Map backend member fields into admin form shape
+    setFormData({
+      id: member.id,
+      name: member.name || "",
+      designation: member.designation || "",
+      department: member.department || "",
+      email: member.email || "",
+      phone: member.phone || "",
+      qualifications: member.qualifications || "",
+      experience_years: member.experience || 0,
+      publications_count: member.publications || 0,
+      projects_count: member.projects || 0,
+      research_interests: member.researchInterests || "",
+      bio: member.bio || "",
+    });
     setEditMode(true);
     setShowForm(true);
   };
@@ -87,11 +116,7 @@ export default function FacultyManager() {
     if (!confirm("Are you sure you want to delete this faculty member?")) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/faculty/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/faculty/${id}`, { method: "DELETE" });
       if (response.ok) {
         alert("Faculty member deleted successfully!");
         fetchFaculty();
@@ -336,9 +361,9 @@ export default function FacultyManager() {
                 <p className="text-sm text-gray-600 mb-2">{f.department}</p>
                 <p className="text-sm text-blue-600 mb-2">{f.email}</p>
                 <div className="flex gap-4 text-xs text-gray-500 mt-3">
-                  <span>📚 {f.publications_count} Pubs</span>
-                  <span>📊 {f.projects_count} Projects</span>
-                  <span>⏱️ {f.experience_years}y Exp</span>
+                  <span>📚 {f.publications || f.publications_count || 0} Pubs</span>
+                  <span>📊 {f.projects || f.projects_count || 0} Projects</span>
+                  <span>⏱️ {f.experience || f.experience_years || 0}y Exp</span>
                 </div>
               </div>
             ))}

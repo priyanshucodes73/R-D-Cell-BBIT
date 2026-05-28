@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaTrash, FaSearch, FaEnvelope, FaPhone, FaEye, FaGraduationCap } from "react-icons/fa";
+import { fetchWithAuth } from "../../lib/auth";
 
 export default function RegistrationsManager() {
   const router = useRouter();
@@ -25,10 +26,8 @@ export default function RegistrationsManager() {
 
   const fetchRegistrations = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/registrations`, {
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/registrations`);
+      if (!response.ok) throw new Error("Failed to fetch registrations");
       const data = await response.json();
       setRegistrations(data);
     } catch (error) {
@@ -42,11 +41,7 @@ export default function RegistrationsManager() {
     if (!confirm("Are you sure you want to delete this registration?")) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/registrations/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/registrations/${id}`, { method: "DELETE" });
       if (response.ok) {
         alert("Registration deleted successfully!");
         fetchRegistrations();

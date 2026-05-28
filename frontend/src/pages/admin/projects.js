@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
+import { fetchWithAuth } from "../../lib/auth";
 
 export default function ProjectsManager() {
   const router = useRouter();
@@ -58,11 +59,23 @@ export default function ProjectsManager() {
         : `${apiBase}/api/projects`;
       const method = editMode ? "PUT" : "POST";
 
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(url, {
+      const payload = {
+        title: formData.title,
+        principalInvestigator: formData.principal_investigator,
+        department: formData.department,
+        fundingAgency: formData.funding_agency,
+        fundingAmount: formData.amount,
+        startDate: formData.start_date || null,
+        endDate: formData.end_date || null,
+        status: formData.status,
+        description: formData.description,
+        progress: parseInt(formData.progress, 10) || 0,
+      };
+
+      const response = await fetchWithAuth(url.replace(apiBase, ""), {
         method,
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -79,7 +92,22 @@ export default function ProjectsManager() {
   };
 
   const handleEdit = (project) => {
-    setFormData(project);
+    setFormData({
+      id: project.id,
+      title: project.title || "",
+      principal_investigator: project.principalInvestigator || project.principal_investigator || "",
+      co_investigators: project.co_investigators || project.coInvestigators || "",
+      funding_agency: project.fundingAgency || project.funding_agency || "",
+      amount: project.fundingAmount || project.amount || "",
+      start_date: project.startDate || project.start_date || "",
+      end_date: project.endDate || project.end_date || "",
+      status: project.status || "Ongoing",
+      department: project.department || "",
+      description: project.description || "",
+      objectives: project.objectives || "",
+      outcomes: project.outcomes || "",
+      progress: project.progress || 0,
+    });
     setEditMode(true);
     setShowForm(true);
   };
@@ -88,11 +116,7 @@ export default function ProjectsManager() {
     if (!confirm("Are you sure you want to delete this project?")) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/projects/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/projects/${id}`, { method: "DELETE" });
       if (response.ok) {
         alert("Project deleted successfully!");
         fetchProjects();

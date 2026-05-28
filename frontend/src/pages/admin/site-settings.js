@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaPlus, FaSave, FaRedoAlt, FaSearch } from "react-icons/fa";
 import { defaultPublicSettings, getApiBase } from "../../lib/siteSettings";
+import auth, { fetchWithAuth } from "../../lib/auth";
 
 const emptyNewSetting = {
   key: "",
@@ -21,6 +22,26 @@ export default function SiteSettingsPage() {
   const [settings, setSettings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [newSetting, setNewSetting] = useState(emptyNewSetting);
+  const [quickEditKey, setQuickEditKey] = useState("");
+  const [quickEditDraft, setQuickEditDraft] = useState("");
+  const [quickEditType, setQuickEditType] = useState("text");
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState("");
+
+  const homepagePresets = [
+    { key: "heroTitle", label: "Homepage Hero Title", section: "home", type: "text" },
+    { key: "heroSubtitle", label: "Homepage Hero Subtitle", section: "home", type: "text" },
+    { key: "aboutTitle", label: "Homepage About Title", section: "home", type: "text" },
+    { key: "aboutBody", label: "Homepage About Body", section: "home", type: "text" },
+    { key: "heroSlides", label: "Homepage Hero Slides", section: "homepage", type: "json" },
+    { key: "researchInnovationPage", label: "Research & Innovation Page", section: "pages", type: "json" },
+    { key: "placementsPage", label: "Placements Page", section: "pages", type: "json" },
+    { key: "campusLifePage", label: "Campus Life Page", section: "pages", type: "json" },
+    { key: "aboutPage", label: "About Page", section: "pages", type: "json" },
+    { key: "contactPage", label: "Contact Page", section: "pages", type: "json" },
+    { key: "programsPage", label: "Programs Page", section: "pages", type: "json" },
+  ];
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -36,11 +57,9 @@ export default function SiteSettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/site-settings/admin`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
+      const res = await fetchWithAuth("/api/site-settings/admin");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      const data = await res.json();
       setSettings(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching site settings:", error);
@@ -53,14 +72,19 @@ export default function SiteSettingsPage() {
   const saveSetting = async (setting) => {
     setSavingKey(setting.key);
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/site-settings/${encodeURIComponent(setting.key)}`, {
+      // send as draft by default
+      const payload = {
+        draftValue: setting.draftValue ?? setting.value ?? setting.publishedValue ?? "",
+        section: setting.section,
+        description: setting.description,
+        type: setting.type,
+        isPublic: setting.isPublic,
+      };
+
+      const response = await fetchWithAuth(`/api/site-settings/${encodeURIComponent(setting.key)}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(setting),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -88,14 +112,87 @@ export default function SiteSettingsPage() {
     setNewSetting(emptyNewSetting);
   };
 
+  const findSettingByKey = (key) => settings.find((setting) => setting.key === key) || null;
+
+  const openQuickEdit = (key) => {
+    const setting = findSettingByKey(key) || defaultPublicSettings[key] || null;
+    const preset = homepagePresets.find((item) => item.key === key);
+    const type = preset?.type || setting?.type || (typeof setting?.value === "object" ? "json" : "text");
+    const rawValue = setting ? (setting.draftValue ?? setting.publishedValue ?? setting.value) : defaultPublicSettings[key];
+
+    setQuickEditKey(key);
+    setQuickEditType(type);
+    if (type === "json") {
+      try {
+        const parsed = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+        setQuickEditDraft(JSON.stringify(parsed ?? {}, null, 2));
+      } catch {
+        setQuickEditDraft(typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue ?? {}, null, 2));
+      }
+    } else {
+      setQuickEditDraft(typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue ?? "", null, 2));
+    }
+  };
+
+  const saveQuickEdit = async () => {
+    if (!quickEditKey) return;
+    let valueToSave = quickEditDraft;
+    if (quickEditType === "json") {
+      try {
+        valueToSave = JSON.stringify(JSON.parse(quickEditDraft));
+      } catch (error) {
+        alert("Invalid JSON. Please fix the content before saving.");
+        return;
+      }
+    }
+    const existing = findSettingByKey(quickEditKey);
+    await saveSetting({
+      key: quickEditKey,
+      draftValue: valueToSave,
+      section: existing?.section || homepagePresets.find((item) => item.key === quickEditKey)?.section || "pages",
+      description: existing?.description || homepagePresets.find((item) => item.key === quickEditKey)?.label || "Homepage content block",
+      type: quickEditType,
+      isPublic: existing?.isPublic ?? true,
+    });
+  };
+
+  const uploadMedia = async () => {
+    if (!uploadFile) {
+      alert("Please choose a file first");
+      return;
+    }
+
+    try {
+      setUploadingMedia(true);
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const response = await fetchWithAuth(`/api/uploads`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const data = await response.json();
+      setUploadedUrl(data.url);
+      setUploadFile(null);
+      alert("File uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading media:", error);
+      alert(error.message || "Failed to upload file");
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
   const resetDefaults = async () => {
     if (!confirm("Reset all site settings to the default values?")) return;
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/site-settings/reset`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/site-settings/reset`, { method: "POST" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error || "Failed to reset settings");
@@ -279,6 +376,137 @@ export default function SiteSettingsPage() {
           </div>
         </div>
 
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Homepage Content Controls</h2>
+              <p className="text-sm text-gray-600">
+
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Media Upload</h2>
+              <p className="text-sm text-gray-600">
+                Upload an image/file and use the returned URL inside homepage JSON blocks or text settings.
+              </p>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-[1fr_auto] gap-4 items-end">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">File</label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2 border rounded-lg bg-white"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={uploadMedia}
+              disabled={uploadingMedia}
+              className="px-5 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {uploadingMedia ? "Uploading..." : "Upload File"}
+            </button>
+          </div>
+          {uploadedUrl ? (
+            <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="text-sm font-semibold text-blue-800 mb-2">Uploaded URL</div>
+              <div className="break-all text-sm text-gray-700">{uploadedUrl}</div>
+              <div className="flex flex-wrap gap-3 mt-3">
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard?.writeText(uploadedUrl)}
+                  className="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50"
+                >
+                  Copy URL
+                </button>
+                {quickEditKey ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (quickEditType === "json") {
+                        setQuickEditDraft((current) => `${current}\n${uploadedUrl}`);
+                      } else {
+                        setQuickEditDraft(uploadedUrl);
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50"
+                  >
+                    Insert into current block
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+                Edit the main page and page-level JSON blocks from a single place.
+              </p>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+            {homepagePresets.map((preset) => {
+              const existing = findSettingByKey(preset.key);
+              return (
+                <button
+                  key={preset.key}
+                  onClick={() => openQuickEdit(preset.key)}
+                  className="text-left p-4 rounded-xl border bg-gray-50 hover:bg-blue-50 hover:border-blue-300 transition"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-gray-800">{preset.label}</div>
+                      <div className="text-xs text-gray-500">{preset.section} • {preset.type.toUpperCase()}</div>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full ${existing ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+                      {existing ? "Saved" : "Default"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {quickEditKey ? (
+            <div className="border rounded-xl p-4 bg-blue-50">
+              <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+                <div>
+                  <div className="text-sm text-blue-700 font-semibold uppercase">Editing</div>
+                  <h3 className="text-lg font-bold text-gray-800">{quickEditKey}</h3>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuickEditKey("")}
+                    className="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveQuickEdit}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    Save Block
+                  </button>
+                </div>
+              </div>
+              <textarea
+                rows="16"
+                value={quickEditDraft}
+                onChange={(e) => setQuickEditDraft(e.target.value)}
+                className="w-full px-4 py-3 border rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500"
+              />
+              <p className="text-xs text-gray-600 mt-2">
+                {quickEditType === "json"
+                  ? "This block is saved as JSON. Keep it valid or the save will be rejected."
+                  : "This block is saved as plain text."}
+              </p>
+            </div>
+          ) : null}
+        </div>
+
         <div className="space-y-6">
           {Object.keys(groupedSettings).length === 0 ? (
             <div className="bg-white rounded-xl shadow p-6 text-gray-600">No settings found.</div>
@@ -342,7 +570,7 @@ function SettingRow({ setting, onSave, saving, onChange }) {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div className="grid md:grid-cols-2 gap-4 mt-4">
         <div>
           <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Description</label>
           <textarea
@@ -354,16 +582,24 @@ function SettingRow({ setting, onSave, saving, onChange }) {
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Value</label>
-          <textarea
-            rows="2"
-            value={local.value || ""}
-            onChange={(e) => handleChange("value", e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-          />
+                  <div className="text-xs text-gray-500 mb-1">Published</div>
+                  <textarea
+                    rows="2"
+                    value={local.publishedValue ?? local.value ?? ""}
+                    disabled
+                    className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-600"
+                  />
+                  <div className="text-xs text-gray-500 my-2">Draft (editable)</div>
+                  <textarea
+                    rows="4"
+                    value={local.draftValue ?? local.value ?? ""}
+                    onChange={(e) => handleChange("draftValue", e.target.value)}
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm"
+                  />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
         <div className="flex items-center gap-4 text-sm">
           <label className="flex items-center gap-2">
             <input
@@ -386,13 +622,51 @@ function SettingRow({ setting, onSave, saving, onChange }) {
             </select>
           </label>
         </div>
-        <button
-          onClick={() => onSave(local)}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow disabled:opacity-60"
-        >
-          <FaSave /> {saving ? "Saving..." : "Save"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onSave(local)}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow disabled:opacity-60"
+          >
+            <FaSave /> {saving ? "Saving..." : "Save Draft"}
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm("Publish this draft to the live site?")) return;
+              try {
+                const res = await fetchWithAuth(`/api/site-settings/${encodeURIComponent(local.key)}/publish`, {
+                  method: "POST",
+                });
+                if (!res.ok) throw new Error("Publish failed");
+                alert("Published");
+                // refresh
+                const refreshed = await fetchWithAuth("/api/site-settings/admin");
+                const data = await refreshed.json();
+                // eslint-disable-next-line no-use-before-define
+                window.location.reload();
+              } catch (err) {
+                alert(err.message || "Publish failed");
+              }
+            }}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Publish
+          </button>
+          <button
+            onClick={() => {
+              // Preview: show draftValue in a new window/tab as simple HTML or JSON
+              const preview = local.draftValue ?? local.value ?? local.publishedValue ?? "";
+              const w = window.open("about:blank", "preview");
+              if (w) {
+                w.document.write(preview);
+                w.document.close();
+              }
+            }}
+            className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50"
+          >
+            Preview
+          </button>
+        </div>
       </div>
     </div>
   );

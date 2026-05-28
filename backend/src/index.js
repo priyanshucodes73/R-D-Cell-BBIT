@@ -6,11 +6,49 @@ const { Sequelize, DataTypes } = require("sequelize");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const multer = require("multer");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const cookieParser = require("cookie-parser");
+const fs = require("fs");
+const path = require("path");
 
 require("dotenv").config();
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cookieParser());
+
+const uploadsDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsDir));
+
+// Configure multer storage based on UPLOAD_DRIVER
+const useS3 = (process.env.UPLOAD_DRIVER || "local").toLowerCase() === "s3";
+let upload;
+if (useS3) {
+  // In-memory storage; we'll stream to S3 from req.file.buffer
+  const storageMemory = multer.memoryStorage();
+  upload = multer({ storage: storageMemory, limits: { fileSize: 50 * 1024 * 1024 } });
+} else {
+  const storage = multer.diskStorage({
+    destination: (_, __, cb) => cb(null, uploadsDir),
+    filename: (_, file, cb) => {
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+      cb(null, `${uniqueSuffix}-${safeName}`);
+    },
+  });
+  upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
+}
+
+// Setup S3 client if needed
+let s3Client = null;
+if (useS3) {
+  const s3Region = process.env.AWS_REGION || process.env.S3_REGION || "us-east-1";
+  s3Client = new S3Client({ region: s3Region });
+}
 
 // ── CORS ──
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -68,6 +106,25 @@ app.use(
 );
 
 const JWT_SECRET = process.env.JWT_SECRET || "bbit-secret-key-2025";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET || "bbit-refresh-secret-2025";
+
+function generateAccessToken(user) {
+  return jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES || "15m" });
+}
+
+function generateRefreshToken(user) {
+  return jwt.sign({ id: user.id, email: user.email, role: user.role }, REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES || "30d" });
+}
+
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/auth",
+    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+  };
+}
 
 // Email Configuration
 const emailTransporter = nodemailer.createTransport({
@@ -494,6 +551,7 @@ function defineModels(sq) {
       qualifications: { type: DataTypes.TEXT },
       experience: { type: DataTypes.INTEGER },
       publications: { type: DataTypes.INTEGER, defaultValue: 0 },
+      projects: { type: DataTypes.INTEGER, defaultValue: 0 },
       researchInterests: { type: DataTypes.TEXT },
       phone: { type: DataTypes.STRING },
     },
@@ -558,7 +616,10 @@ function defineModels(sq) {
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       key: { type: DataTypes.STRING, allowNull: false, unique: true },
-      value: { type: DataTypes.TEXT, allowNull: false },
+      // `value` kept for backward compatibility; prefer `publishedValue`/`draftValue`
+      value: { type: DataTypes.TEXT },
+      draftValue: { type: DataTypes.TEXT },
+      publishedValue: { type: DataTypes.TEXT },
       section: { type: DataTypes.STRING, defaultValue: "general" },
       description: { type: DataTypes.TEXT },
       type: { type: DataTypes.STRING, defaultValue: "text" },
@@ -600,6 +661,7 @@ function defineModels(sq) {
       lastLogin: { type: DataTypes.DATE },
       resetPasswordToken: { type: DataTypes.STRING },
       resetPasswordExpiry: { type: DataTypes.DATE },
+      refreshToken: { type: DataTypes.TEXT },
     },
     {
       timestamps: true,
@@ -626,7 +688,7 @@ function defineModels(sq) {
   };
 
   User.prototype.generateAuthToken = function () {
-    return jwt.sign({ id: this.id, email: this.email, role: this.role }, JWT_SECRET, { expiresIn: "7d" });
+    return jwt.sign({ id: this.id, email: this.email, role: this.role }, JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES || "15m" });
   };
 }
 
@@ -1186,6 +1248,9 @@ const defaultSiteSettings = [
 function normalizeDefaultSetting(setting) {
   return {
     ...setting,
+    // set both publishedValue and draftValue to the default value
+    publishedValue: typeof setting.value === "string" ? setting.value : JSON.stringify(setting.value),
+    draftValue: typeof setting.value === "string" ? setting.value : JSON.stringify(setting.value),
     value: typeof setting.value === "string" ? setting.value : JSON.stringify(setting.value),
   };
 }
@@ -1438,19 +1503,83 @@ const heavyLimiter = rateLimit({
 
 // ==================== API ROUTES ====================
 
+app.post("/api/uploads", authenticateToken, requireAdmin, upload.single("file"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    // If S3 driver is enabled, upload to S3 and return the S3 URL.
+    if (useS3 && s3Client) {
+      const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET;
+      if (!bucket) return res.status(500).json({ error: "S3 bucket not configured (S3_BUCKET)" });
+
+      // Generate key
+      const safeName = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const key = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${safeName}`;
+
+      const params = {
+        Bucket: bucket,
+        Key: key,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype || "application/octet-stream",
+        ACL: process.env.S3_ACL || "public-read",
+      };
+
+      const cmd = new PutObjectCommand(params);
+      s3Client.send(cmd)
+        .then(() => {
+          // Build public URL. Prefer explicit S3_PUBLIC_URL if set.
+          let url;
+          if (process.env.S3_PUBLIC_URL) {
+            url = `${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/${encodeURIComponent(key)}`;
+          } else {
+            const region = process.env.AWS_REGION || process.env.S3_REGION || "us-east-1";
+            // Note: virtual-hosted style
+            if (region === "us-east-1") {
+              url = `https://${bucket}.s3.amazonaws.com/${encodeURIComponent(key)}`;
+            } else {
+              url = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(key)}`;
+            }
+          }
+          res.status(201).json({ url, key, filename: req.file.originalname, mimeType: req.file.mimetype, size: req.file.size });
+        })
+        .catch((err) => {
+          console.error("S3 upload error", err && err.message ? err.message : err);
+          res.status(500).json({ error: "S3 upload failed" });
+        });
+      return;
+    }
+
+    // Local disk fallback
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.status(201).json({
+      url: `${process.env.FRONTEND_URL || "http://localhost:3005"}${fileUrl}`,
+      path: fileUrl,
+      filename: req.file.filename,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Health Check
 app.get("/api/health", (req, res) => res.json({ ok: true, timestamp: new Date() }));
 
 function parseSiteSettingValue(setting) {
   if (!setting) return null;
+  // Prefer the publishedValue if present, fall back to legacy `value`.
+  const raw = setting.publishedValue ?? setting.value ?? null;
+  if (raw == null) return null;
   if (setting.type === "json") {
     try {
-      return JSON.parse(setting.value);
+      return JSON.parse(raw);
     } catch {
-      return setting.value;
+      return raw;
     }
   }
-  return setting.value;
+  return raw;
 }
 
 function toSiteSettingsObject(settings) {
@@ -1481,20 +1610,74 @@ app.get("/api/site-settings/admin", authenticateToken, requireAdmin, async (req,
 app.put("/api/site-settings/:key", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { key } = req.params;
-    const { value, section, description, type, isPublic } = req.body;
+    console.log('PUT /api/site-settings body:', req.body);
+    // Accepts a draft save by default. To publish immediately, set `publish: true`.
+    const { value, draftValue, publish, section, description, type, isPublic } = req.body;
 
-    const payload = {
-      value: typeof value === "string" ? value : JSON.stringify(value ?? ""),
+    const payload = {};
+
+    // helper: if incoming string looks double-encoded (e.g. '""'), unwrap once
+    const normalizeIncoming = (v) => {
+      if (v === null || v === undefined) return v;
+      if (typeof v !== "string") return JSON.stringify(v ?? "");
+      // unwrap a JSON-encoded string like "..."
+      if (v.length >= 2 && v[0] === '"' && v[v.length - 1] === '"') {
+        try {
+          const parsed = JSON.parse(v);
+          if (typeof parsed === 'string') return parsed;
+        } catch (err) {
+          // not JSON parsable, keep original
+        }
+      }
+      return v;
     };
+
+    if (draftValue !== undefined) {
+      payload.draftValue = normalizeIncoming(draftValue);
+    } else if (value !== undefined) {
+      // legacy clients may send `value` — treat as draft
+      payload.draftValue = normalizeIncoming(value);
+    }
+
+    if (publish) {
+      // publish the draft (or provided value) to publishedValue
+      const publishSource = payload.draftValue ?? (value !== undefined ? normalizeIncoming(value) : undefined);
+      if (publishSource !== undefined) payload.publishedValue = publishSource;
+    }
 
     if (section !== undefined) payload.section = section;
     if (description !== undefined) payload.description = description;
     if (type !== undefined) payload.type = type;
     if (isPublic !== undefined) payload.isPublic = Boolean(isPublic);
 
-    await SiteSetting.upsert({ key, ...payload });
-    const setting = await SiteSetting.findOne({ where: { key } });
+    // Use find/update or create to avoid unexpected upsert behavior
+    let setting = await SiteSetting.findOne({ where: { key } });
+    if (!setting) {
+      const created = await SiteSetting.create({ key, ...payload });
+      setting = created;
+    } else {
+      await setting.update(payload);
+    }
+
     res.json({ message: "Site setting saved", setting });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/site-settings/:key/publish", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+
+    const setting = await SiteSetting.findOne({ where: { key } });
+    if (!setting) return res.status(404).json({ error: "Setting not found" });
+
+    const publishValue = value !== undefined ? (typeof value === "string" ? value : JSON.stringify(value)) : setting.draftValue ?? setting.value;
+
+    await SiteSetting.update({ publishedValue: publishValue }, { where: { key } });
+    const updated = await SiteSetting.findOne({ where: { key } });
+    res.json({ message: "Published", setting: updated });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -2008,8 +2191,15 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
     // Update last login
     await user.update({ lastLogin: new Date() });
 
-    // Generate token
-    const token = user.generateAuthToken();
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Persist refresh token (rotate)
+    await user.update({ refreshToken });
+
+    // Set refresh token as secure httpOnly cookie for auth endpoints
+    res.cookie("refreshToken", refreshToken, cookieOptions());
 
     res.json({
       message: "Login successful",
@@ -2021,7 +2211,7 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
         phone: user.phone,
         role: user.role
       },
-      token
+      token: accessToken
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2067,6 +2257,47 @@ app.put("/api/auth/profile", authenticateToken, async (req, res) => {
         phone: user.phone
       }
     });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Refresh access token using refresh token in httpOnly cookie
+app.post("/api/auth/refresh", async (req, res) => {
+  try {
+    const token = req.cookies && req.cookies.refreshToken;
+    if (!token) return res.status(401).json({ error: "No refresh token" });
+
+    let payload;
+    try {
+      payload = jwt.verify(token, REFRESH_TOKEN_SECRET);
+    } catch (e) {
+      return res.status(403).json({ error: "Invalid refresh token" });
+    }
+
+    const user = await User.findByPk(payload.id);
+    if (!user || !user.refreshToken) return res.status(403).json({ error: "Invalid refresh token" });
+    if (user.refreshToken !== token) return res.status(403).json({ error: "Refresh token mismatch" });
+
+    // rotate tokens
+    const accessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+    await user.update({ refreshToken: newRefreshToken });
+    res.cookie("refreshToken", newRefreshToken, cookieOptions());
+
+    res.json({ token: accessToken, user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role } });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Logout - revoke refresh token and clear cookie
+app.post("/api/auth/logout", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (user) await user.update({ refreshToken: null });
+    res.clearCookie("refreshToken", cookieOptions());
+    res.json({ message: "Logged out" });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

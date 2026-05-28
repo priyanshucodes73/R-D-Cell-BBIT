@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaTrash, FaSearch, FaEnvelope, FaPhone, FaEye } from "react-icons/fa";
+import { fetchWithAuth } from "../../lib/auth";
 
 export default function ContactsManager() {
   const router = useRouter();
@@ -25,10 +26,8 @@ export default function ContactsManager() {
 
   const fetchContacts = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/contacts`, {
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/contacts`);
+      if (!response.ok) throw new Error("Failed to fetch contacts");
       const data = await response.json();
       setContacts(data);
     } catch (error) {
@@ -42,11 +41,7 @@ export default function ContactsManager() {
     if (!confirm("Are you sure you want to delete this inquiry?")) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/contacts/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/contacts/${id}`, { method: "DELETE" });
       if (response.ok) {
         alert("Contact inquiry deleted successfully!");
         fetchContacts();

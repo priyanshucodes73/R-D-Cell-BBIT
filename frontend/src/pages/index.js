@@ -12,37 +12,50 @@ import {
   FaLinkedinIn,
   FaInstagram,
   FaYoutube,
-  FaPython,
-  FaCompass,
-  FaTelegramPlane,
-  FaPinterestP,
-  FaRedditAlien,
-  FaSnapchatGhost,
-  FaTiktok,
-  FaGithub,
-  FaDiscord,
+  FaMapMarkerAlt,
+  FaEnvelope,
+  FaRegBuilding,
+  FaCalendarAlt,
+  FaSearch,
+  FaBars,
+  FaTimes,
+  FaFlask,
+  FaLaptopCode,
+  FaProjectDiagram,
+  FaBook,
+  FaUsers,
+  FaArrowRight,
+  FaChevronDown,
+  FaChevronUp,
+  FaGraduationCap,
+  FaChartLine,
+  FaAward,
+  FaGlobe,
+  FaLightbulb,
+  FaRocket,
+  FaMicroscope,
+  FaUniversity,
+  FaFileAlt,
+  FaNewspaper,
+  FaBuilding,
+  FaCog,
+  FaCircle,
+  FaPlay,
+  FaExternalLinkAlt,
+  FaStar,
+  FaSeedling,
+  FaPhoneSquareAlt,
+  FaSchool,
+  FaHome,
+  FaUserTie,
+  FaClipboardList,
+  FaHandshake,
+  FaChevronLeft,
+  FaChevronRight,
+  FaCaretDown,
+  FaCaretUp,
+  FaInfoCircle,
 } from "react-icons/fa";
-
-function SocialIcon({ name }) {
-  if (name === "Whatsapp") return <FaWhatsapp className="w-4 h-4" />;
-  if (name === "Call") return <FaPhoneAlt className="w-4 h-4" />;
-  if (name === "360") return <FaCompass className="w-4 h-4 ml-1" />;
-  if (name === "Facebook") return <FaFacebookF className="w-4 h-4" />;
-  if (name === "Twitter") return <FaTwitter className="w-4 h-4" />;
-  if (name === "LinkedIn") return <FaLinkedinIn className="w-4 h-4" />;
-  if (name === "Instagram") return <FaInstagram className="w-4 h-4" />;
-  if (name === "YouTube") return <FaYoutube className="w-4 h-4" />;
-  return <span className="w-4 h-4 inline-block" />;
-}
-
-const upperNavLinks = [
-  { name: "CAMPUSES", href: "/campuses" },
-  { name: "INTERNATIONAL", href: "/international" },
-  { name: "LIBRARY", href: "/library" },
-  { name: "STUDENT SERVICES", href: "/student-services" },
-  { name: "CAREER", href: "/career" },
-  { name: "CONTACT US", href: "/contact-us" },
-];
 
 const navLinks = [
   { name: "ABOUT", href: "/about", menu: [] },
@@ -54,6 +67,29 @@ const navLinks = [
   { name: "PLACEMENTS", href: "/placements", menu: [] },
   { name: "RESEARCH & DEVELOPMENT", href: "/research-innovation", menu: [] },
 ];
+
+function SocialIcon({ name }) {
+  switch (name) {
+    case "Whatsapp":
+      return <FaWhatsapp />;
+    case "Call":
+      return <FaPhoneAlt />;
+    case "Facebook":
+      return <FaFacebookF />;
+    case "Twitter":
+      return <FaTwitter />;
+    case "LinkedIn":
+      return <FaLinkedinIn />;
+    case "Instagram":
+      return <FaInstagram />;
+    case "YouTube":
+      return <FaYoutube />;
+    case "360":
+      return <FaGlobe />;
+    default:
+      return <FaCircle />;
+  }
+}
 
 function DropdownMenu({ link }) {
   const [open, setOpen] = useState(false);
@@ -152,6 +188,7 @@ export default function Home() {
   const apiBase = getApiBase();
   const { data, error } = useSWR(apiBase + "/api/publications", fetcher);
   const { data: facultyData } = useSWR(apiBase + "/api/faculty", fetcher);
+  const { data: projectsData } = useSWR(apiBase + "/api/projects", fetcher);
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
   const editableUpperNavLinks = Array.isArray(siteSettings.upperNavLinks) && siteSettings.upperNavLinks.length
@@ -166,6 +203,7 @@ export default function Home() {
   const editableHeroSlides = Array.isArray(siteSettings.heroSlides) && siteSettings.heroSlides.length
     ? siteSettings.heroSlides
     : defaultPublicSettings.heroSlides;
+  const researchInnovationPage = siteSettings.researchInnovationPage || defaultPublicSettings.researchInnovationPage;
   const displayedFaculty = Array.isArray(facultyData) ? facultyData.slice(0, 8) : [];
 
   const getFacultyInitials = (name = "") => {
@@ -628,61 +666,17 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              {
-                icon: "🧠",
-                title: "Artificial Intelligence & Machine Learning",
-                desc: "Deep Learning, Natural Language Processing, Computer Vision, and AI Ethics",
-              },
-              {
-                icon: "📡",
-                title: "Internet of Things & Smart Systems",
-                desc: "Smart Cities, Industrial IoT, Wearable Technology, and Edge Computing",
-              },
-              {
-                icon: "🔐",
-                title: "Cybersecurity & Blockchain",
-                desc: "Network Security, Cryptography, Blockchain Applications, and Data Privacy",
-              },
-              {
-                icon: "☁️",
-                title: "Cloud Computing & Big Data",
-                desc: "Distributed Systems, Data Analytics, Cloud Architecture, and Scalability",
-              },
-              {
-                icon: "⚕️",
-                title: "Healthcare Technology",
-                desc: "Medical Imaging, Telemedicine, Health Informatics, and Biomedical Devices",
-              },
-              {
-                icon: "🌿",
-                title: "Sustainable Technology",
-                desc: "Renewable Energy, Environmental Monitoring, Green Computing, and Climate Tech",
-              },
-              {
-                icon: "🤖",
-                title: "Robotics & Automation",
-                desc: "Autonomous Systems, Industrial Automation, Drone Technology, and Human-Robot Interaction",
-              },
-              {
-                icon: "📈",
-                title: "Data Science & Analytics",
-                desc: "Predictive Modeling, Statistical Analysis, Business Intelligence, and Data Visualization",
-              },
-              {
-                icon: "💼",
-                title: "Innovation & Entrepreneurship",
-                desc: "Startup Incubation, Product Development, Business Models, and Market Research",
-              },
+              { icon: "🧠", title: "Artificial Intelligence", desc: "Machine learning, deep learning, and intelligent systems for real-world problems." },
+              { icon: "📡", title: "IoT & Smart Systems", desc: "Connected devices, smart campus infrastructure, and sensor-driven platforms." },
+              { icon: "🔒", title: "Cybersecurity", desc: "Secure systems, privacy-preserving architectures, and resilient digital services." },
+              { icon: "🤖", title: "Robotics & Automation", desc: "Autonomous systems, industrial automation, and next-generation robotics." },
+              { icon: "📊", title: "Data Science", desc: "Analytics, big data engineering, and predictive decision-making tools." },
+              { icon: "⚡", title: "Renewable Energy", desc: "Sustainable energy solutions, storage, and campus-scale efficiency research." },
             ].map((area, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
-              >
-                <div className="text-5xl mb-4">{area.icon}</div>
-                <h3 className="text-xl font-bold text-blue-900 mb-3">
-                  {area.title}
-                </h3>
-                <p className="text-gray-600">{area.desc}</p>
+              <div key={idx} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition">
+                <div className="text-5xl mb-4 text-center">{area.icon}</div>
+                <h3 className="text-xl font-bold text-blue-900 mb-3 text-center">{area.title}</h3>
+                <p className="text-gray-600 text-center">{area.desc}</p>
               </div>
             ))}
           </div>
@@ -779,73 +773,75 @@ export default function Home() {
             <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
           </div>
           <div className="grid md:grid-cols-4 gap-6">
-            {[
-              {
-                name: "Dr. Jayanta Basak",
-                dept: "Computer Science",
-                field: "AI & Machine Learning",
-                pubs: 45,
-              },
-              {
-                name: "Dr. Sandeep Malik",
-                dept: "Electronics",
-                field: "IoT Systems",
-                pubs: 38,
-              },
-              {
-                name: "Dr. Munsi Yusuf Alam",
-                dept: "IT",
-                field: "Blockchain Tech",
-                pubs: 32,
-              },
-              {
-                name: "Dr. Uddyalok Chakraborty",
-                dept: "CSE",
-                field: "NLP & Deep Learning",
-                pubs: 41,
-              },
-              {
-                name: "Dr. Moumita Paul",
-                dept: "Mechanical",
-                field: "Robotics",
-                pubs: 29,
-              },
-              {
-                name: "Dr. Arindom Mitra",
-                dept: "Civil",
-                field: "Smart Infrastructure",
-                pubs: 25,
-              },
-              {
-                name: "Dr. Ashok Shaw",
-                dept: "MBA",
-                field: "Innovation Management",
-                pubs: 22,
-              },
-              {
-                name: "Dr. Sagar Chakraborty",
-                dept: "Biotechnology",
-                field: "Healthcare Tech",
-                pubs: 36,
-              },
-            ].map((faculty, idx) => (
+            {(Array.isArray(displayedFaculty) && displayedFaculty.length
+              ? displayedFaculty
+              : [
+                  {
+                    name: "Dr. Jayanta Basak",
+                    dept: "Computer Science",
+                    field: "AI & Machine Learning",
+                    pubs: 45,
+                  },
+                  {
+                    name: "Dr. Sandeep Malik",
+                    dept: "Electronics",
+                    field: "IoT Systems",
+                    pubs: 38,
+                  },
+                  {
+                    name: "Dr. Munsi Yusuf Alam",
+                    dept: "IT",
+                    field: "Blockchain Tech",
+                    pubs: 32,
+                  },
+                  {
+                    name: "Dr. Uddyalok Chakraborty",
+                    dept: "CSE",
+                    field: "NLP & Deep Learning",
+                    pubs: 41,
+                  },
+                  {
+                    name: "Dr. Moumita Paul",
+                    dept: "Mechanical",
+                    field: "Robotics",
+                    pubs: 29,
+                  },
+                  {
+                    name: "Dr. Arindom Mitra",
+                    dept: "Civil",
+                    field: "Smart Infrastructure",
+                    pubs: 25,
+                  },
+                  {
+                    name: "Dr. Ashok Shaw",
+                    dept: "MBA",
+                    field: "Innovation Management",
+                    pubs: 22,
+                  },
+                  {
+                    name: "Dr. Sagar Chakraborty",
+                    dept: "Biotechnology",
+                    field: "Healthcare Tech",
+                    pubs: 36,
+                  },
+                ]
+            ).map((faculty, idx) => (
               <div
-                key={idx}
+                key={faculty.id || idx}
                 className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-2xl transition transform hover:-translate-y-2"
               >
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
-                  {faculty.name.split(" ")[1][0]}
-                  {faculty.name.split(" ")[2][0]}
+                  {getFacultyInitials(faculty.name)}
                 </div>
                 <h3 className="text-lg font-bold text-blue-900 mb-1">
                   {faculty.name}
                 </h3>
-                <div className="text-sm text-gray-600 mb-2">{faculty.dept}</div>
+                <div className="text-sm text-gray-600 mb-2">{faculty.department || faculty.dept}</div>
                 <div className="text-sm text-blue-700 font-semibold mb-2">
-                  {faculty.field}
+                  {faculty.researchInterests || faculty.field}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {faculty.pubs} Publications
+                  {faculty.publications || faculty.pubs || faculty.publications_count || 0} Publications
                 </div>
               </div>
             ))}
@@ -921,43 +917,17 @@ export default function Home() {
             Recent Student Startups
           </h3>
           <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                name: "EduTech Solutions",
-                founders: "Rahul Verma, Priya Singh",
-                desc: "AI-powered personalized learning platform for K-12 students",
-                funding: "Seed Funded",
-              },
-              {
-                name: "AgriSense",
-                founders: "Amit Kumar, Sneha Patel",
-                desc: "IoT-based crop monitoring and precision agriculture system",
-                funding: "Pre-Incubation",
-              },
-              {
-                name: "HealthConnect",
-                founders: "Neha Sharma, Vikram Reddy",
-                desc: "Telemedicine platform connecting rural patients with doctors",
-                funding: "Angel Investment",
-              },
-              {
-                name: "GreenEnergy Tech",
-                founders: "Karan Mehta, Anjali Gupta",
-                desc: "Smart energy management system for residential buildings",
-                funding: "Seed Funded",
-              },
-            ].map((startup, idx) => (
-              <div key={idx} className="border-l-4 border-yellow-400 pl-4">
-                <h4 className="text-lg font-bold text-blue-900">
-                  {startup.name}
-                </h4>
-                <div className="text-sm text-gray-600 mb-2">
-                  Founded by: {startup.founders}
-                </div>
-                <p className="text-gray-700 text-sm mb-2">{startup.desc}</p>
-                <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
-                  {startup.funding}
-                </span>
+            {(Array.isArray(projectsData) && projectsData.length ? projectsData : [
+              { title: "EduTech Solutions", pi: "Rahul Verma, Priya Singh", description: "AI-powered personalized learning platform for K-12 students", fundingAgency: "Seed Funded", id: "fb1" },
+              { title: "AgriSense", pi: "Amit Kumar, Sneha Patel", description: "IoT-based crop monitoring and precision agriculture system", fundingAgency: "Pre-Incubation", id: "fb2" },
+              { title: "HealthConnect", pi: "Neha Sharma, Vikram Reddy", description: "Telemedicine platform connecting rural patients with doctors", fundingAgency: "Angel Investment", id: "fb3" },
+              { title: "GreenEnergy Tech", pi: "Karan Mehta, Anjali Gupta", description: "Smart energy management system for residential buildings", fundingAgency: "Seed Funded", id: "fb4" },
+            ]).map((startup, idx) => (
+              <div key={startup.id || idx} className="border-l-4 border-yellow-400 pl-4">
+                <h4 className="text-lg font-bold text-blue-900">{startup.title || startup.name}</h4>
+                <div className="text-sm text-gray-600 mb-2">Founded by: {startup.principalInvestigator || startup.pi || startup.founders}</div>
+                <p className="text-gray-700 text-sm mb-2">{startup.description || startup.desc}</p>
+                <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">{startup.fundingAgency || startup.funding}</span>
               </div>
             ))}
           </div>
@@ -969,60 +939,42 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">
-              World-Class Research Facilities
+              {researchInnovationPage.heroTitle || "World-Class Research Facilities"}
             </h2>
             <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: "💻",
-                name: "AI & ML Lab",
-                desc: "High-performance computing cluster with GPU servers",
-              },
-              {
-                icon: "📡",
-                name: "IoT Center",
-                desc: "Sensors, microcontrollers, and networking equipment",
-              },
-              {
-                icon: "🧪",
-                name: "Research Labs",
-                desc: "Specialized labs for each engineering domain",
-              },
-              {
-                icon: "📖",
-                name: "Digital Library",
-                desc: "Access to 10,000+ journals and research databases",
-              },
-              {
-                icon: "🏢",
-                name: "Incubation Center",
-                desc: "Office spaces and meeting rooms for startups",
-              },
-              {
-                icon: "🛠️",
-                name: "Fabrication Lab",
-                desc: "PCB design, 3D printing, and prototyping tools",
-              },
-              {
-                icon: "👥",
-                name: "Collaboration Spaces",
-                desc: "Modern meeting rooms with video conferencing",
-              },
-              {
-                icon: "☁️",
-                name: "Cloud Infrastructure",
-                desc: "AWS, Azure, and GCP credits for research projects",
-              },
-            ].map((facility, idx) => (
+            {(Array.isArray(researchInnovationPage.researchCenters) && researchInnovationPage.researchCenters.length
+              ? researchInnovationPage.researchCenters
+              : [
+                  {
+                    icon: "💻",
+                    name: "AI & ML Lab",
+                    focus: "High-performance computing cluster with GPU servers",
+                  },
+                  {
+                    icon: "📡",
+                    name: "IoT Center",
+                    focus: "Sensors, microcontrollers, and networking equipment",
+                  },
+                  {
+                    icon: "🧪",
+                    name: "Research Labs",
+                    focus: "Specialized labs for each engineering domain",
+                  },
+                  {
+                    icon: "📖",
+                    name: "Digital Library",
+                    focus: "Access to 10,000+ journals and research databases",
+                  },
+                ]).map((facility, idx) => (
               <div
-                key={idx}
+                key={facility.name || idx}
                 className="bg-gray-800 p-6 rounded-xl text-center hover:bg-gray-700 transition"
               >
-                <div className="text-5xl mb-3">{facility.icon}</div>
+                <div className="text-5xl mb-3">{facility.icon || "🔬"}</div>
                 <h3 className="text-lg font-bold mb-2">{facility.name}</h3>
-                <p className="text-sm text-gray-400">{facility.desc}</p>
+                <p className="text-sm text-gray-400">{facility.focus || facility.desc}</p>
               </div>
             ))}
           </div>
@@ -1033,41 +985,45 @@ export default function Home() {
       <section className="max-w-6xl mx-auto mt-20 px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4 text-blue-900">
-            Patents & Intellectual Property
+            {researchInnovationPage.patentsTitle || "Patents & Intellectual Property"}
           </h2>
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center">
-            <div className="text-6xl font-bold text-blue-900 mb-2">25+</div>
+            <div className="text-6xl font-bold text-blue-900 mb-2">{researchInnovationPage.patentsFiled || "25+"}</div>
             <div className="text-xl text-gray-700">Patents Filed</div>
           </div>
           <div className="text-center">
-            <div className="text-6xl font-bold text-blue-900 mb-2">12</div>
+            <div className="text-6xl font-bold text-blue-900 mb-2">{researchInnovationPage.patentsGranted || "12"}</div>
             <div className="text-xl text-gray-700">Patents Granted</div>
           </div>
           <div className="text-center">
-            <div className="text-6xl font-bold text-blue-900 mb-2">8</div>
+            <div className="text-6xl font-bold text-blue-900 mb-2">{researchInnovationPage.copyrightsRegistered || "8"}</div>
             <div className="text-xl text-gray-700">Copyrights Registered</div>
           </div>
         </div>
         <div className="mt-12 bg-blue-50 p-8 rounded-xl">
           <h3 className="text-2xl font-bold text-blue-900 mb-6">
-            Recent Patents
+            {researchInnovationPage.recentPatentsTitle || "Recent Patents"}
           </h3>
           <div className="space-y-4">
-            {[
-              "Smart IoT-based Water Quality Monitoring System - Patent No. 202401234",
-              "AI-Powered Crop Disease Detection using Computer Vision - Patent No. 202401156",
-              "Blockchain-based Secure Voting System - Patent No. 202301987",
-              "Energy-Efficient Routing Protocol for Wireless Sensor Networks - Patent No. 202301845",
-            ].map((patent, idx) => (
+            {(Array.isArray(researchInnovationPage.patents) && researchInnovationPage.patents.length
+              ? researchInnovationPage.patents
+              : [
+                  "Smart IoT-based Water Quality Monitoring System - Patent No. 202401234",
+                  "AI-Powered Crop Disease Detection using Computer Vision - Patent No. 202401156",
+                  "Blockchain-based Secure Voting System - Patent No. 202301987",
+                  "Energy-Efficient Routing Protocol for Wireless Sensor Networks - Patent No. 202301845",
+                ]).map((patent, idx) => (
               <div
                 key={idx}
                 className="flex items-start gap-3 bg-white p-4 rounded-lg"
               >
                 <div className="text-yellow-500 text-xl">📜</div>
-                <div className="text-gray-700">{patent}</div>
+                <div className="text-gray-700">
+                  {typeof patent === "string" ? patent : `${patent.title || patent.name} - ${patent.number || patent.patentNumber || ""}`}
+                </div>
               </div>
             ))}
           </div>
@@ -1109,27 +1065,18 @@ export default function Home() {
             ))}
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-3">
-                Joint Research Projects
-              </h3>
-              <p className="text-sm opacity-90">
-                Collaborative research with industry partners on cutting-edge
-                technologies
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-3">Internship Programs</h3>
-              <p className="text-sm opacity-90">
-                Industry internships and project opportunities for students
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-3">Knowledge Transfer</h3>
-              <p className="text-sm opacity-90">
-                Workshops, seminars, and training programs by industry experts
-              </p>
-            </div>
+            {(Array.isArray(researchInnovationPage.innovationPrograms) && researchInnovationPage.innovationPrograms.length
+              ? researchInnovationPage.innovationPrograms.slice(0, 3)
+              : [
+                  { name: "Joint Research Projects", description: "Collaborative research with industry partners on cutting-edge technologies" },
+                  { name: "Internship Programs", description: "Industry internships and project opportunities for students" },
+                  { name: "Knowledge Transfer", description: "Workshops, seminars, and training programs by industry experts" },
+                ]).map((program, idx) => (
+              <div key={program.name || idx} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                <h3 className="text-xl font-bold mb-3">{program.name}</h3>
+                <p className="text-sm opacity-90">{program.description || program.focus}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -1148,21 +1095,14 @@ export default function Home() {
               Internal Grants
             </h3>
             <ul className="space-y-3">
-              {[
-                {
-                  title: "Seed Grant for Young Researchers",
-                  amount: "₹50,000 - ₹2 Lakhs",
-                },
-                {
-                  title: "Faculty Research Development Grant",
-                  amount: "₹1 - ₹5 Lakhs",
-                },
-                {
-                  title: "Student Innovation Project Grant",
-                  amount: "₹25,000 - ₹1 Lakh",
-                },
-                { title: "Conference Travel Support", amount: "Up to ₹1 Lakh" },
-              ].map((grant, idx) => (
+              {(researchInnovationPage.internalGrants && Array.isArray(researchInnovationPage.internalGrants) && researchInnovationPage.internalGrants.length
+                ? researchInnovationPage.internalGrants
+                : [
+                    { title: "Seed Grant for Young Researchers", amount: "₹50,000 - ₹2 Lakhs" },
+                    { title: "Faculty Research Development Grant", amount: "₹1 - ₹5 Lakhs" },
+                    { title: "Student Innovation Project Grant", amount: "₹25,000 - ₹1 Lakh" },
+                    { title: "Conference Travel Support", amount: "Up to ₹1 Lakh" },
+                  ]).map((grant, idx) => (
                 <li
                   key={idx}
                   className="flex justify-between items-center bg-white p-4 rounded-lg"
@@ -1182,41 +1122,20 @@ export default function Home() {
               External Funding Sources
             </h3>
             <ul className="space-y-3 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-green-600">✓</span>
-                <div>
-                  <strong>DST-SERB:</strong> Department of Science & Technology
-                  grants for basic research
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600">✓</span>
-                <div>
-                  <strong>AICTE:</strong> Research Promotion Scheme and
-                  Collaborative Research
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600">✓</span>
-                <div>
-                  <strong>ICSSR:</strong> Social science research grants and
-                  fellowships
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600">✓</span>
-                <div>
-                  <strong>Industry Sponsored:</strong> Research contracts from
-                  corporate partners
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600">✓</span>
-                <div>
-                  <strong>Startup India:</strong> Seed funding for technology
-                  startups
-                </div>
-              </li>
+              {(Array.isArray(researchInnovationPage.fundingSources) && researchInnovationPage.fundingSources.length
+                ? researchInnovationPage.fundingSources
+                : [
+                    { name: "DST-SERB", amount: "₹15 Cr" },
+                    { name: "AICTE", amount: "₹5 Cr" },
+                    { name: "ICSSR", amount: "₹3 Cr" },
+                  ]).map((source, idx) => (
+                <li key={source.name || idx} className="flex items-start gap-2">
+                  <span className="text-green-600">✓</span>
+                  <div>
+                    <strong>{source.name}:</strong> {source.amount || `${source.projects || 0} projects`}
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -1378,7 +1297,7 @@ export default function Home() {
                   <h3 className="text-lg font-bold text-blue-900 mb-3">
                     {news.title}
                   </h3>
-                  <p className="text-gray-700 text-sm mb-4">{news.desc}</p>
+                  <p className="text-gray-700 text-sm mb-4">{news.description || news.desc}</p>
                   <a
                     href="#"
                     className="text-blue-700 font-semibold hover:underline text-sm"

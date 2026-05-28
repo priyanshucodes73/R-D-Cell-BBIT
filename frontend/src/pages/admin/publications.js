@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaEdit, FaTrash, FaPlus, FaEye, FaSearch } from "react-icons/fa";
+import { fetchWithAuth } from "../../lib/auth";
 
 export default function PublicationsManager() {
   const router = useRouter();
@@ -58,11 +59,22 @@ export default function PublicationsManager() {
         : `${apiBase}/api/publications`;
       const method = editMode ? "PUT" : "POST";
 
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(url, {
+      const payload = {
+        title: formData.title,
+        authors: formData.authors,
+        journal: formData.journal,
+        year: parseInt(formData.year, 10) || new Date().getFullYear(),
+        doi: formData.doi,
+        citation_count: parseInt(formData.citation_count, 10) || 0,
+        type: formData.type,
+        abstract: formData.abstract,
+        keywords: formData.keywords,
+      };
+
+      const response = await fetchWithAuth(url.replace(apiBase, ""), {
         method,
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -79,7 +91,18 @@ export default function PublicationsManager() {
   };
 
   const handleEdit = (publication) => {
-    setFormData(publication);
+    setFormData({
+      id: publication.id,
+      title: publication.title || "",
+      authors: publication.authors || "",
+      journal: publication.journal || "",
+      year: publication.year || new Date().getFullYear(),
+      doi: publication.doi || "",
+      citation_count: publication.citation_count ?? publication.citations ?? 0,
+      type: publication.type || "Journal",
+      abstract: publication.abstract || "",
+      keywords: publication.keywords || "",
+    });
     setEditMode(true);
     setShowForm(true);
   };
@@ -88,11 +111,7 @@ export default function PublicationsManager() {
     if (!confirm("Are you sure you want to delete this publication?")) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/publications/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/publications/${id}`, { method: "DELETE" });
       if (response.ok) {
         alert("Publication deleted successfully!");
         fetchPublications();

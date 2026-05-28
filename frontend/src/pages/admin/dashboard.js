@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import auth from "../../lib/auth";
 import {
   FaHome,
   FaBook,
@@ -56,9 +57,7 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminEmail");
-    localStorage.removeItem("adminLoginTime");
+    auth.logout();
     router.push("/admin/login");
   };
 

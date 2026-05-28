@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
+import { fetchWithAuth } from "../../lib/auth";
 
 export default function PatentsManager() {
   const router = useRouter();
@@ -55,10 +56,9 @@ export default function PatentsManager() {
         : `${apiBase}/api/patents`;
       const method = editMode ? "PUT" : "POST";
 
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(url, {
+      const response = await fetchWithAuth(url.replace(apiBase, ""), {
         method,
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -85,11 +85,7 @@ export default function PatentsManager() {
     if (!confirm("Are you sure you want to delete this patent?")) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(`${apiBase}/api/patents/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth(`/api/patents/${id}`, { method: "DELETE" });
       if (response.ok) {
         alert("Patent deleted successfully!");
         fetchPatents();
