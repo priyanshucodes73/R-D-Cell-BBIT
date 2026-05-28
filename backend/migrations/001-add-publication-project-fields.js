@@ -1,4 +1,6 @@
-module.exports.up = async ({ queryInterface, Sequelize }) => {
+const { DataTypes } = require("sequelize");
+
+module.exports.up = async ({ queryInterface }) => {
   // Publications table
   const tablePub = 'Publications';
   const tableProj = 'ResearchProjects';
@@ -17,10 +19,28 @@ module.exports.up = async ({ queryInterface, Sequelize }) => {
     }
   };
 
-  await ensureColumn(tablePub, 'impactFactor', { type: Sequelize.STRING, allowNull: true });
-  await ensureColumn(tablePub, 'imageUrl', { type: Sequelize.STRING, allowNull: true });
-  await ensureColumn(tablePub, 'featured', { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false });
+  await ensureColumn(tablePub, 'impactFactor', { type: DataTypes.STRING, allowNull: true });
+  await ensureColumn(tablePub, 'imageUrl', { type: DataTypes.STRING, allowNull: true });
+  await ensureColumn(tablePub, 'featured', { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false });
 
-  await ensureColumn(tableProj, 'imageUrl', { type: Sequelize.STRING, allowNull: true });
-  await ensureColumn(tableProj, 'featured', { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false });
+  await ensureColumn(tableProj, 'imageUrl', { type: DataTypes.STRING, allowNull: true });
+  await ensureColumn(tableProj, 'featured', { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false });
+};
+
+module.exports.down = async ({ queryInterface }) => {
+  const tablePub = 'Publications';
+  const tableProj = 'ResearchProjects';
+
+  const removeColumn = async (tableName, columnName) => {
+    const tableDesc = await queryInterface.describeTable(tableName).catch(() => null);
+    if (tableDesc && tableDesc[columnName]) {
+      await queryInterface.removeColumn(tableName, columnName);
+    }
+  };
+
+  await removeColumn(tablePub, 'impactFactor');
+  await removeColumn(tablePub, 'imageUrl');
+  await removeColumn(tablePub, 'featured');
+  await removeColumn(tableProj, 'imageUrl');
+  await removeColumn(tableProj, 'featured');
 };

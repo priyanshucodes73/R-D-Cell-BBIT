@@ -248,6 +248,17 @@ const jsonBlocks = [
   },
 ];
 
+const sectionLabels = {
+  all: "All Sections",
+  branding: "Branding",
+  header: "Header",
+  navigation: "Navigation",
+  homepage: "Homepage",
+  pages: "Page Content",
+  authentication: "Authentication",
+  advanced: "Advanced",
+};
+
 const heroSlidesKey = "heroSlides";
 
 const blankSlide = {
@@ -294,6 +305,7 @@ export default function SiteSettingsPage() {
   const [settings, setSettings] = useState([]);
   const [heroSlidesDraft, setHeroSlidesDraft] = useState(defaultPublicSettings.heroSlides);
   const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [activeSection, setActiveSection] = useState("all");
 
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("adminToken")) {
@@ -424,6 +436,16 @@ export default function SiteSettingsPage() {
     heroSlides: heroSlidesDraft,
   };
 
+  const filteredHomepageTextBlocks = homepageTextBlocks.filter((block) => activeSection === "all" || block.section === activeSection);
+  const filteredListBlocks = listBlocks.filter((block) => activeSection === "all" || block.section === activeSection);
+  const filteredJsonBlocks = jsonBlocks.filter((block) => activeSection === "all" || block.section === activeSection);
+
+  const sectionCounts = ["all", "branding", "header", "navigation", "homepage", "pages", "authentication", "advanced"].reduce((acc, key) => {
+    const total = [...homepageTextBlocks, ...listBlocks, ...jsonBlocks].filter((block) => key === "all" || block.section === key).length;
+    acc[key] = total;
+    return acc;
+  }, {});
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -452,6 +474,56 @@ export default function SiteSettingsPage() {
           </div>
         </div>
 
+        <section className="rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-2xl overflow-hidden border border-white/10">
+          <div className="grid lg:grid-cols-[1.3fr_.9fr]">
+            <div className="p-8 lg:p-10 space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white/90">
+                <FaBars className="text-blue-300" /> Content control center
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-bold leading-tight">Control the whole public website from one place</h2>
+              <p className="text-white/75 max-w-2xl">
+                Edit headers, page sections, authentication copy, and structured content blocks with draft and publish controls. Use the section filters to move faster.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {Object.entries(sectionLabels).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActiveSection(key)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeSection === key ? "bg-white text-slate-900 shadow" : "bg-white/10 text-white hover:bg-white/20"}`}
+                  >
+                    {label}
+                    <span className="ml-2 rounded-full bg-black/20 px-2 py-0.5 text-xs">{sectionCounts[key]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white/5 border-t lg:border-t-0 lg:border-l border-white/10 p-8 space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <div className="text-white/60 mb-1">Homepage blocks</div>
+                  <div className="text-2xl font-bold">{homepageTextBlocks.length + listBlocks.length + jsonBlocks.filter((block) => block.section === "homepage").length}</div>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <div className="text-white/60 mb-1">Page groups</div>
+                  <div className="text-2xl font-bold">{jsonBlocks.filter((block) => block.section === "pages").length}</div>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <div className="text-white/60 mb-1">Auth screens</div>
+                  <div className="text-2xl font-bold">{jsonBlocks.filter((block) => block.section === "authentication").length}</div>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <div className="text-white/60 mb-1">Advanced</div>
+                  <div className="text-2xl font-bold">{jsonBlocks.filter((block) => block.section === "advanced").length}</div>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-black/20 p-4 text-sm text-white/75">
+                Publish flow: save draft first, then publish the change. Public pages update automatically after publish.
+              </div>
+            </div>
+          </div>
+        </section>
+
         <div className="grid xl:grid-cols-[1.4fr_.9fr] gap-6 items-start">
           <div className="space-y-6">
             <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
@@ -464,7 +536,7 @@ export default function SiteSettingsPage() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                {homepageTextBlocks.map((block) => (
+                {filteredHomepageTextBlocks.map((block) => (
                   <TextSettingCard
                     key={block.key}
                     block={block}
@@ -478,7 +550,7 @@ export default function SiteSettingsPage() {
               </div>
 
               <div className="grid lg:grid-cols-3 gap-4 mt-6">
-                {listBlocks.map((block) => (
+                {filteredListBlocks.map((block) => (
                   <LinkSettingCard
                     key={block.key}
                     block={block}
@@ -495,14 +567,14 @@ export default function SiteSettingsPage() {
             <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center justify-between gap-4 mb-5">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Homepage Section Content</h2>
-                  <p className="text-gray-600">These blocks render directly on the homepage and can be published independently.</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{sectionLabels[activeSection] || "Section Content"}</h2>
+                  <p className="text-gray-600">These blocks render directly on the public site and can be published independently.</p>
                 </div>
                 <FaBars className="text-3xl text-violet-600" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                {jsonBlocks.map((block) => (
+                {filteredJsonBlocks.map((block) => (
                   block.key === "researchInnovationPage" ? (
                     <ResearchPageEditor
                       key={block.key}
@@ -706,7 +778,7 @@ export default function SiteSettingsPage() {
                 <li>• Main homepage hero text and carousel images</li>
                 <li>• Top announcement and admission helpline</li>
                 <li>• Top bar buttons, social links, and main navigation</li>
-                <li>• About section copy and research block content</li>
+                <li>• Sectioned page content, auth screen copy, and slug fallbacks</li>
               </ul>
               <p className="text-xs text-gray-500 mt-3">Published changes appear on the public homepage automatically within a few seconds.</p>
             </section>
