@@ -480,7 +480,19 @@ const sendContactAutoReply = async (contactData) => {
 
 // Database Configuration
 let sequelize; // will be set when models are defined
-const defaultSQLiteStorage = process.env.SQLITE_STORAGE || "dev.sqlite";
+// Use persistent storage path if available (Railway, etc), otherwise fallback to local
+const defaultSQLiteStorage = process.env.SQLITE_STORAGE || (process.env.NODE_ENV === 'production' ? '/app/data/dev.sqlite' : 'dev.sqlite');
+
+// Ensure data directory exists for persistent storage
+const ensureDataDirectory = () => {
+  if (process.env.NODE_ENV === 'production') {
+    const dataDir = path.dirname(defaultSQLiteStorage);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  }
+};
+ensureDataDirectory();
 
 const createPostgresSequelize = (databaseUrl) =>
   new Sequelize(databaseUrl, { dialect: "postgres", logging: false });
