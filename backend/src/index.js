@@ -1266,6 +1266,7 @@ function normalizeDefaultSetting(setting) {
 async function init() {
   try {
     // Try Postgres if env is present, otherwise use SQLite
+    let dbSequelize;
     if (process.env.DATABASE_URL || (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME)) {
       const pgUrl = process.env.DATABASE_URL
         ? process.env.DATABASE_URL
@@ -1275,14 +1276,28 @@ async function init() {
       try {
         await pg.authenticate();
         console.log("DB connected (Postgres)");
+        dbSequelize = pg;
         defineModels(pg);
       } catch (err) {
         console.error("Postgres connection failed, falling back to SQLite:", err && err.message ? err.message : err);
-        defineModels(createSqliteSequelize());
+        const sqlite = createSqliteSequelize();
+        dbSequelize = sqlite;
+        defineModels(sqlite);
       }
     } else {
-      defineModels(createSqliteSequelize());
+      const sqlite = createSqliteSequelize();
+      dbSequelize = sqlite;
+      defineModels(sqlite);
       console.log(`No DATABASE_URL found — using SQLite fallback: ${defaultSQLiteStorage}`);
+    }
+
+    // Sync models to database to create base schema (if not already created)
+    try {
+      await dbSequelize.sync({ alter: false }); // false = don't modify existing tables
+      console.log("Database schema synced");
+    } catch (e) {
+      console.error("Database sync error", e && e.message ? e.message : e);
+      throw e;
     }
 
     // Use Umzug with SequelizeStorage to run migrations in /migrations
@@ -1294,8 +1309,8 @@ async function init() {
           // migrations are CommonJS modules exporting `up` (and optional `down`)
           glob: path.join(__dirname, "..", "migrations", "*.js"),
         },
-        context: sequelize.getQueryInterface(),
-        storage: new SequelizeStorage({ sequelize }),
+        context: dbSequelize.getQueryInterface(),
+        storage: new SequelizeStorage({ sequelize: dbSequelize }),
         logger: console,
       });
 
