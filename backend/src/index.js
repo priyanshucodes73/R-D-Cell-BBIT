@@ -2756,6 +2756,58 @@ app.get("/", (req, res) => {
   });
 });
 
+// ===== AI Proxy Endpoint =====
+// POST /api/ai/chat { message: string }
+app.post("/api/ai/chat", async (req, res) => {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const message = (req.body && req.body.message) ? String(req.body.message) : null;
+  if (!message) return res.status(400).json({ error: "Missing 'message' in request body" });
+  if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY not configured on server" });
+
+  try {
+    const payload = {
+      model: process.env.OPENROUTER_MODEL || "gpt-4o-mini",
+      messages: [
+        { role: "user", content: message }
+      ],
+      max_tokens: 600
+    };
+
+    const r = await fetch("https://api.openrouter.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      timeout: 60000,
+    });
+
+    if (!r.ok) {
+      const text = await r.text();
+      return res.status(r.status).json({ error: "AI provider error", detail: text });
+    }
+
+    const data = await r.json();
+    // Try multiple possible response shapes
+    let reply = null;
+    if (data.choices && Array.isArray(data.choices) && data.choices[0]) {
+      if (data.choices[0].message && data.choices[0].message.content) reply = data.choices[0].message.content;
+      else if (typeof data.choices[0].text === 'string') reply = data.choices[0].text;
+    }
+    if (!reply && data.output && Array.isArray(data.output) && data.output[0] && data.output[0].content) {
+      // some providers use output[0].content
+      reply = data.output[0].content[0]?.text || data.output[0].content[0]?.data?.text;
+    }
+    if (!reply && typeof data === 'string') reply = data;
+
+    return res.json({ reply: reply || "(no reply)" , raw: data});
+  } catch (err) {
+    console.error('AI proxy error', err);
+    return res.status(500).json({ error: 'AI proxy failed', detail: String(err) });
+  }
+});
+
 const port = process.env.PORT || 4000;
 init().then(() => {
   app.listen(port, () => console.log(`API listening on ${port}`));

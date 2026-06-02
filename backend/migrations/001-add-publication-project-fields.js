@@ -17,7 +17,17 @@ module.exports.up = async (queryInterface, Sequelize) => {
     }
   };
 
-  const DT = Sequelize.DataTypes || Sequelize;
+  // Umzug may call migrations with different signatures. Prefer the passed-in
+  // Sequelize, but fall back to the queryInterface sequelize constructor or
+  // require('sequelize') so this migration works in different environments.
+  let DT;
+  try {
+    const SeqLib = Sequelize || (queryInterface && queryInterface.sequelize && queryInterface.sequelize.constructor) || require('sequelize');
+    DT = SeqLib.DataTypes || SeqLib;
+  } catch (e) {
+    // As a last resort, assume standard names
+    DT = (Sequelize && Sequelize.DataTypes) || (queryInterface && queryInterface.sequelize && queryInterface.sequelize.constructor && queryInterface.sequelize.constructor.DataTypes) || require('sequelize');
+  }
 
   await ensureColumn(tablePub, 'impactFactor', { type: DT.STRING, allowNull: true });
   await ensureColumn(tablePub, 'imageUrl', { type: DT.STRING, allowNull: true });
