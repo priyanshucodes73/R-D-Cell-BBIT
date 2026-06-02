@@ -1,6 +1,4 @@
-const { DataTypes } = require("sequelize");
-
-module.exports.up = async ({ queryInterface }) => {
+module.exports.up = async (queryInterface, Sequelize) => {
   // Publications table
   const tablePub = 'Publications';
   const tableProj = 'ResearchProjects';
@@ -19,15 +17,17 @@ module.exports.up = async ({ queryInterface }) => {
     }
   };
 
-  await ensureColumn(tablePub, 'impactFactor', { type: DataTypes.STRING, allowNull: true });
-  await ensureColumn(tablePub, 'imageUrl', { type: DataTypes.STRING, allowNull: true });
-  await ensureColumn(tablePub, 'featured', { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false });
+  const DT = Sequelize.DataTypes || Sequelize;
 
-  await ensureColumn(tableProj, 'imageUrl', { type: DataTypes.STRING, allowNull: true });
-  await ensureColumn(tableProj, 'featured', { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false });
+  await ensureColumn(tablePub, 'impactFactor', { type: DT.STRING, allowNull: true });
+  await ensureColumn(tablePub, 'imageUrl', { type: DT.STRING, allowNull: true });
+  await ensureColumn(tablePub, 'featured', { type: DT.BOOLEAN, allowNull: false, defaultValue: false });
+
+  await ensureColumn(tableProj, 'imageUrl', { type: DT.STRING, allowNull: true });
+  await ensureColumn(tableProj, 'featured', { type: DT.BOOLEAN, allowNull: false, defaultValue: false });
 };
 
-module.exports.down = async ({ queryInterface }) => {
+module.exports.down = async (queryInterface /*, Sequelize */) => {
   const tablePub = 'Publications';
   const tableProj = 'ResearchProjects';
 

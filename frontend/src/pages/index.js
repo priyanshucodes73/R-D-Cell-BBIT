@@ -252,6 +252,14 @@ export default function Home({ fallback }) {
     return () => clearInterval(interval);
   }, [editableHeroSlides.length]);
 
+  const focusAreas = researchInnovationPage.focusAreas || researchInnovationPage.researchAreas || [];
+  const partners = researchInnovationPage.partners || researchInnovationPage.industryPartners || [];
+  const innovationPrograms = Array.isArray(researchInnovationPage.innovationPrograms) ? researchInnovationPage.innovationPrograms : [];
+  const internalGrants = Array.isArray(researchInnovationPage.internalGrants) ? researchInnovationPage.internalGrants : [];
+  const fundingSources = Array.isArray(researchInnovationPage.fundingSources) ? researchInnovationPage.fundingSources : [];
+  const researchCenters = Array.isArray(researchInnovationPage.researchCenters) ? researchInnovationPage.researchCenters : [];
+  const patents = Array.isArray(researchInnovationPage.patents) ? researchInnovationPage.patents : [];
+
   return (
     <SWRConfig value={{ fallback }}>
     <div className="bg-gray-50 min-h-screen">
@@ -657,36 +665,31 @@ export default function Home({ fallback }) {
 
       {/* Research Focus Areas */}
       <section className="bg-gray-50 py-20 mt-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 text-blue-900">
-              Research Focus Areas
-            </h2>
-            <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
-            <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-              Our research spans multiple cutting-edge domains, addressing
-              critical challenges in technology, healthcare, sustainability, and
-              social innovation.
-            </p>
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold mb-4 text-blue-900">
+                Research Focus Areas
+              </h2>
+              <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
+              <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+                {researchInnovationPage.focusSubtitle || "Our research spans multiple domains addressing real problems."}
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {focusAreas.length > 0 ? (
+                focusAreas.map((area, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition">
+                    <div className="text-5xl mb-4 text-center">{area.icon || "🔬"}</div>
+                    <h3 className="text-xl font-bold text-blue-900 mb-3 text-center">{area.title}</h3>
+                    <p className="text-gray-600 text-center">{area.description || area.desc}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center text-gray-600 italic">No research focus areas published yet. Please add them from the admin panel.</div>
+              )}
+            </div>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { icon: "🧠", title: "Artificial Intelligence", desc: "Machine learning, deep learning, and intelligent systems for real-world problems." },
-              { icon: "📡", title: "IoT & Smart Systems", desc: "Connected devices, smart campus infrastructure, and sensor-driven platforms." },
-              { icon: "🔒", title: "Cybersecurity", desc: "Secure systems, privacy-preserving architectures, and resilient digital services." },
-              { icon: "🤖", title: "Robotics & Automation", desc: "Autonomous systems, industrial automation, and next-generation robotics." },
-              { icon: "📊", title: "Data Science", desc: "Analytics, big data engineering, and predictive decision-making tools." },
-              { icon: "⚡", title: "Renewable Energy", desc: "Sustainable energy solutions, storage, and campus-scale efficiency research." },
-            ].map((area, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition">
-                <div className="text-5xl mb-4 text-center">{area.icon}</div>
-                <h3 className="text-xl font-bold text-blue-900 mb-3 text-center">{area.title}</h3>
-                <p className="text-gray-600 text-center">{area.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
       {/* Ongoing Projects */}
       <section className="max-w-6xl mx-auto mt-20 px-4">
@@ -697,68 +700,36 @@ export default function Home({ fallback }) {
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
         </div>
         <div className="grid md:grid-cols-2 gap-8">
-          {[
-            {
-              title: "AI-Powered Healthcare Diagnosis System",
-              pi: "Dr. Jayanta Basak",
-              funding: "DST-SERB Grant",
-              duration: "2024-2026",
-              desc: "Developing an AI-based diagnostic tool for early detection of cardiovascular diseases using deep learning and medical imaging.",
-              status: "Active",
-            },
-            {
-              title: "Smart Campus IoT Infrastructure",
-              pi: "Dr. Sandeep Malik",
-              funding: "Industry Collaboration",
-              duration: "2023-2025",
-              desc: "Implementing IoT sensors and analytics for energy optimization, security monitoring, and resource management across campus.",
-              status: "Active",
-            },
-            {
-              title: "Blockchain for Supply Chain Transparency",
-              pi: "Dr. Munsi Yusuf Alam",
-              funding: "AICTE Research Grant",
-              duration: "2024-2025",
-              desc: "Creating a blockchain-based platform for tracking and verifying product authenticity in pharmaceutical supply chains.",
-              status: "Active",
-            },
-            {
-              title: "Natural Language Processing for Regional Languages",
-              pi: "Dr. Uddyalok Chakraborty",
-              funding: "ICSSR Funding",
-              duration: "2023-2026",
-              desc: "Building NLP models and datasets for low-resource Indian languages to enable better digital accessibility.",
-              status: "Active",
-            },
-          ].map((project, idx) => (
-            <div
-              key={idx}
-              className="bg-white border-l-4 border-blue-700 p-6 rounded-lg shadow-lg hover:shadow-xl transition"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="text-xl font-bold text-blue-900 flex-1">
-                  {project.title}
-                </h3>
-                <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
-                  {project.status}
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 mb-2">
-                <strong>Principal Investigator:</strong> {project.pi}
-              </div>
-              <div className="text-sm text-gray-600 mb-2">
-                <strong>Funding:</strong> {project.funding} |{" "}
-                <strong>Duration:</strong> {project.duration}
-              </div>
-              <p className="text-gray-700 mt-3">{project.desc}</p>
-              <a
-                href="#"
-                className="text-blue-700 font-semibold hover:underline mt-4 inline-block"
+          {Array.isArray(displayedProjects) && displayedProjects.length > 0 ? (
+            displayedProjects.map((project, idx) => (
+              <div
+                key={project.id || idx}
+                className="bg-white border-l-4 border-blue-700 p-6 rounded-lg shadow-lg hover:shadow-xl transition"
               >
-                View Details →
-              </a>
-            </div>
-          ))}
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-xl font-bold text-blue-900 flex-1">
+                    {project.title || project.name}
+                  </h3>
+                  <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {project.status || (project.featured ? 'Active' : '')}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  <strong>Principal Investigator:</strong> {project.principalInvestigator || project.pi || project.lead}
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  <strong>Funding:</strong> {project.funding || project.fundingAgency || ''} |{" "}
+                  <strong>Duration:</strong> {project.duration || ''}
+                </div>
+                <p className="text-gray-700 mt-3">{project.description || project.desc || project.summary}</p>
+                <Link href={`/projects/${project.id || project.slug || ''}`}>
+                  <span className="text-blue-700 font-semibold hover:underline mt-4 inline-block">View Details →</span>
+                </Link>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-2 text-center text-gray-600 italic">No projects published yet. Please add them via the admin panel.</div>
+          )}
         </div>
         <div className="text-center mt-8">
           <Link href="/all-projects">
@@ -772,84 +743,25 @@ export default function Home({ fallback }) {
       <section className="bg-gradient-to-br from-blue-50 to-indigo-50 py-20 mt-20">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 text-blue-900">
-              Leading Faculty Researchers
-            </h2>
+            <h2 className="text-4xl font-bold mb-4 text-blue-900">Leading Faculty Researchers</h2>
             <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
           </div>
           <div className="grid md:grid-cols-4 gap-6">
-            {(Array.isArray(displayedFaculty) && displayedFaculty.length
-              ? displayedFaculty
-              : [
-                  {
-                    name: "Dr. Jayanta Basak",
-                    dept: "Computer Science",
-                    field: "AI & Machine Learning",
-                    pubs: 45,
-                  },
-                  {
-                    name: "Dr. Sandeep Malik",
-                    dept: "Electronics",
-                    field: "IoT Systems",
-                    pubs: 38,
-                  },
-                  {
-                    name: "Dr. Munsi Yusuf Alam",
-                    dept: "IT",
-                    field: "Blockchain Tech",
-                    pubs: 32,
-                  },
-                  {
-                    name: "Dr. Uddyalok Chakraborty",
-                    dept: "CSE",
-                    field: "NLP & Deep Learning",
-                    pubs: 41,
-                  },
-                  {
-                    name: "Dr. Moumita Paul",
-                    dept: "Mechanical",
-                    field: "Robotics",
-                    pubs: 29,
-                  },
-                  {
-                    name: "Dr. Arindom Mitra",
-                    dept: "Civil",
-                    field: "Smart Infrastructure",
-                    pubs: 25,
-                  },
-                  {
-                    name: "Dr. Ashok Shaw",
-                    dept: "MBA",
-                    field: "Innovation Management",
-                    pubs: 22,
-                  },
-                  {
-                    name: "Dr. Sagar Chakraborty",
-                    dept: "Biotechnology",
-                    field: "Healthcare Tech",
-                    pubs: 36,
-                  },
-                ]
-            ).map((faculty, idx) => (
-              <div
-                key={faculty.id || idx}
-                className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-2xl transition transform hover:-translate-y-2"
-              >
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
-                  {getFacultyInitials(faculty.name)}
+            {Array.isArray(displayedFaculty) && displayedFaculty.length > 0 ? (
+              displayedFaculty.map((faculty, idx) => (
+                <div key={faculty.id || idx} className="bg-white p-6 rounded-xl shadow-lg text-center hover:shadow-2xl transition transform hover:-translate-y-2">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                    {getFacultyInitials(faculty.name || faculty.fullName || '')}
+                  </div>
+                  <h3 className="text-lg font-bold text-blue-900 mb-1">{faculty.name || faculty.fullName}</h3>
+                  <div className="text-sm text-gray-600 mb-2">{faculty.department || faculty.dept}</div>
+                  <div className="text-sm text-blue-700 font-semibold mb-2">{faculty.researchInterests || faculty.field}</div>
+                  <div className="text-xs text-gray-500">{faculty.publications || faculty.pubs || faculty.publications_count || 0} Publications</div>
                 </div>
-                <h3 className="text-lg font-bold text-blue-900 mb-1">
-                  {faculty.name}
-                </h3>
-                <div className="text-sm text-gray-600 mb-2">{faculty.department || faculty.dept}</div>
-                <div className="text-sm text-blue-700 font-semibold mb-2">
-                  {faculty.researchInterests || faculty.field}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {faculty.publications || faculty.pubs || faculty.publications_count || 0} Publications
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="col-span-4 text-center text-gray-600 italic">No faculty researchers listed yet. Add faculty from the admin panel.</div>
+            )}
           </div>
         </div>
       </section>
@@ -857,26 +769,15 @@ export default function Home({ fallback }) {
       {/* Student Innovation Hub */}
       <section className="max-w-6xl mx-auto mt-20 px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 text-blue-900">
-            Student Innovation & Startups
-          </h2>
+          <h2 className="text-4xl font-bold mb-4 text-blue-900">Student Innovation & Startups</h2>
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
-          <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            Empowering students to transform innovative ideas into successful
-            ventures through our Technology Business Incubator and Innovation
-            Lab.
-          </p>
+          <p className="text-gray-600 text-lg max-w-3xl mx-auto">Empowering students to transform innovative ideas into successful ventures through our Technology Business Incubator and Innovation Lab.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-xl shadow-lg">
             <div className="text-4xl mb-4">🏭</div>
-            <h3 className="text-2xl font-bold text-blue-900 mb-3">
-              Startup Incubator
-            </h3>
-            <p className="text-gray-700 mb-4">
-              Pre-incubation and incubation support with mentorship, seed
-              funding, and workspace for student startups.
-            </p>
+            <h3 className="text-2xl font-bold text-blue-900 mb-3">Startup Incubator</h3>
+            <p className="text-gray-700 mb-4">Pre-incubation and incubation support with mentorship, seed funding, and workspace for student startups.</p>
             <ul className="text-sm text-gray-600 space-y-2">
               <li>✓ Mentorship by Industry Experts</li>
               <li>✓ Seed Funding up to ₹10 Lakhs</li>
@@ -886,16 +787,10 @@ export default function Home({ fallback }) {
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-8 rounded-xl shadow-lg">
             <div className="text-4xl mb-4">🔬</div>
-            <h3 className="text-2xl font-bold text-blue-900 mb-3">
-              Innovation Lab
-            </h3>
-            <p className="text-gray-700 mb-4">
-              State-of-the-art makerspaces equipped with 3D printers,
-              electronics kits, and prototyping tools.
-            </p>
+            <h3 className="text-2xl font-bold text-blue-900 mb-3">Innovation Lab</h3>
+            <p className="text-gray-700 mb-4">State-of-the-art makerspaces equipped with 3D printers, electronics kits, and prototyping tools.</p>
             <ul className="text-sm text-gray-600 space-y-2">
               <li>✓ 3D Printing & Rapid Prototyping</li>
-              <li>✓ Electronics & Hardware Labs</li>
               <li>✓ Software Development Tools</li>
               <li>✓ 24/7 Access for Registered Members</li>
             </ul>
@@ -922,19 +817,18 @@ export default function Home({ fallback }) {
             Recent Student Startups
           </h3>
           <div className="grid md:grid-cols-2 gap-6">
-            {(Array.isArray(displayedProjects) && displayedProjects.length ? displayedProjects : [
-              { title: "EduTech Solutions", pi: "Rahul Verma, Priya Singh", description: "AI-powered personalized learning platform for K-12 students", fundingAgency: "Seed Funded", id: "fb1" },
-              { title: "AgriSense", pi: "Amit Kumar, Sneha Patel", description: "IoT-based crop monitoring and precision agriculture system", fundingAgency: "Pre-Incubation", id: "fb2" },
-              { title: "HealthConnect", pi: "Neha Sharma, Vikram Reddy", description: "Telemedicine platform connecting rural patients with doctors", fundingAgency: "Angel Investment", id: "fb3" },
-              { title: "GreenEnergy Tech", pi: "Karan Mehta, Anjali Gupta", description: "Smart energy management system for residential buildings", fundingAgency: "Seed Funded", id: "fb4" },
-            ]).map((startup, idx) => (
-              <div key={startup.id || idx} className="border-l-4 border-yellow-400 pl-4">
-                <h4 className="text-lg font-bold text-blue-900">{startup.title || startup.name}</h4>
-                <div className="text-sm text-gray-600 mb-2">Founded by: {startup.principalInvestigator || startup.pi || startup.founders}</div>
-                <p className="text-gray-700 text-sm mb-2">{startup.description || startup.desc}</p>
-                <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">{startup.fundingAgency || startup.funding}</span>
-              </div>
-            ))}
+            {Array.isArray(displayedProjects) && displayedProjects.length > 0 ? (
+              displayedProjects.map((startup, idx) => (
+                <div key={startup.id || idx} className="border-l-4 border-yellow-400 pl-4">
+                  <h4 className="text-lg font-bold text-blue-900">{startup.title || startup.name}</h4>
+                  <div className="text-sm text-gray-600 mb-2">Founded by: {startup.principalInvestigator || startup.pi || startup.founders}</div>
+                  <p className="text-gray-700 text-sm mb-2">{startup.description || startup.desc}</p>
+                  <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">{startup.fundingAgency || startup.funding}</span>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-2 text-center text-gray-600 italic">No startups listed yet. Add project startups from admin panel.</div>
+            )}
           </div>
         </div>
       </section>
@@ -949,39 +843,20 @@ export default function Home({ fallback }) {
             <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {(Array.isArray(researchInnovationPage.researchCenters) && researchInnovationPage.researchCenters.length
-              ? researchInnovationPage.researchCenters
-              : [
-                  {
-                    icon: "💻",
-                    name: "AI & ML Lab",
-                    focus: "High-performance computing cluster with GPU servers",
-                  },
-                  {
-                    icon: "📡",
-                    name: "IoT Center",
-                    focus: "Sensors, microcontrollers, and networking equipment",
-                  },
-                  {
-                    icon: "🧪",
-                    name: "Research Labs",
-                    focus: "Specialized labs for each engineering domain",
-                  },
-                  {
-                    icon: "📖",
-                    name: "Digital Library",
-                    focus: "Access to 10,000+ journals and research databases",
-                  },
-                ]).map((facility, idx) => (
-              <div
-                key={facility.name || idx}
-                className="bg-gray-800 p-6 rounded-xl text-center hover:bg-gray-700 transition"
-              >
-                <div className="text-5xl mb-3">{facility.icon || "🔬"}</div>
-                <h3 className="text-lg font-bold mb-2">{facility.name}</h3>
-                <p className="text-sm text-gray-400">{facility.focus || facility.desc}</p>
-              </div>
-            ))}
+            {researchCenters.length > 0 ? (
+              researchCenters.map((facility, idx) => (
+                <div
+                  key={facility.name || idx}
+                  className="bg-gray-800 p-6 rounded-xl text-center hover:bg-gray-700 transition"
+                >
+                  <div className="text-5xl mb-3">{facility.icon || "🔬"}</div>
+                  <h3 className="text-lg font-bold mb-2">{facility.name}</h3>
+                  <p className="text-sm text-gray-400">{facility.focus || facility.desc}</p>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-4 text-center text-gray-200 italic">No research facilities listed yet. Add them via the admin panel.</div>
+            )}
           </div>
         </div>
       </section>
@@ -1008,29 +883,26 @@ export default function Home({ fallback }) {
             <div className="text-xl text-gray-700">Copyrights Registered</div>
           </div>
         </div>
-        <div className="mt-12 bg-blue-50 p-8 rounded-xl">
+          <div className="mt-12 bg-blue-50 p-8 rounded-xl">
           <h3 className="text-2xl font-bold text-blue-900 mb-6">
             {researchInnovationPage.recentPatentsTitle || "Recent Patents"}
           </h3>
           <div className="space-y-4">
-            {(Array.isArray(researchInnovationPage.patents) && researchInnovationPage.patents.length
-              ? researchInnovationPage.patents
-              : [
-                  "Smart IoT-based Water Quality Monitoring System - Patent No. 202401234",
-                  "AI-Powered Crop Disease Detection using Computer Vision - Patent No. 202401156",
-                  "Blockchain-based Secure Voting System - Patent No. 202301987",
-                  "Energy-Efficient Routing Protocol for Wireless Sensor Networks - Patent No. 202301845",
-                ]).map((patent, idx) => (
-              <div
-                key={idx}
-                className="flex items-start gap-3 bg-white p-4 rounded-lg"
-              >
-                <div className="text-yellow-500 text-xl">📜</div>
-                <div className="text-gray-700">
-                  {typeof patent === "string" ? patent : `${patent.title || patent.name} - ${patent.number || patent.patentNumber || ""}`}
+            {patents.length > 0 ? (
+              patents.map((patent, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-start gap-3 bg-white p-4 rounded-lg"
+                >
+                  <div className="text-yellow-500 text-xl">📜</div>
+                  <div className="text-gray-700">
+                    {typeof patent === "string" ? patent : `${patent.title || patent.name} - ${patent.number || patent.patentNumber || ""}`}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="text-gray-700 italic">No patents listed yet. Add recent patents via the admin panel.</div>
+            )}
           </div>
         </div>
       </section>
@@ -1049,39 +921,30 @@ export default function Home({ fallback }) {
             </p>
           </div>
           <div className="grid md:grid-cols-5 gap-6 mb-12">
-            {[
-              "TCS",
-              "Infosys",
-              "Microsoft",
-              "Google",
-              "IBM",
-              "Amazon",
-              "Intel",
-              "NVIDIA",
-              "Adobe",
-              "SAP",
-            ].map((company, idx) => (
-              <div
-                key={idx}
-                className="bg-white/10 backdrop-blur-sm p-6 rounded-xl text-center font-bold text-xl hover:bg-white/20 transition"
-              >
-                {company}
-              </div>
-            ))}
+            {partners.length > 0 ? (
+              partners.map((company, idx) => (
+                <div
+                  key={company.name || idx}
+                  className="bg-white/10 backdrop-blur-sm p-6 rounded-xl text-center font-bold text-xl hover:bg-white/20 transition"
+                >
+                  {company.name || company}
+                </div>
+              ))
+            ) : (
+              <div className="col-span-5 text-center italic text-white/90">No industry partners listed yet.</div>
+            )}
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {(Array.isArray(researchInnovationPage.innovationPrograms) && researchInnovationPage.innovationPrograms.length
-              ? researchInnovationPage.innovationPrograms.slice(0, 3)
-              : [
-                  { name: "Joint Research Projects", description: "Collaborative research with industry partners on cutting-edge technologies" },
-                  { name: "Internship Programs", description: "Industry internships and project opportunities for students" },
-                  { name: "Knowledge Transfer", description: "Workshops, seminars, and training programs by industry experts" },
-                ]).map((program, idx) => (
-              <div key={program.name || idx} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
-                <h3 className="text-xl font-bold mb-3">{program.name}</h3>
-                <p className="text-sm opacity-90">{program.description || program.focus}</p>
-              </div>
-            ))}
+            {innovationPrograms.length > 0 ? (
+              innovationPrograms.slice(0, 3).map((program, idx) => (
+                <div key={program.name || idx} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                  <h3 className="text-xl font-bold mb-3">{program.name}</h3>
+                  <p className="text-sm opacity-90">{program.description || program.focus}</p>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-3 text-center italic text-white/90">No innovation programs defined yet.</div>
+            )}
           </div>
         </div>
       </section>
@@ -1099,49 +962,44 @@ export default function Home({ fallback }) {
             <h3 className="text-2xl font-bold text-blue-900 mb-4">
               Internal Grants
             </h3>
-            <ul className="space-y-3">
-              {(researchInnovationPage.internalGrants && Array.isArray(researchInnovationPage.internalGrants) && researchInnovationPage.internalGrants.length
-                ? researchInnovationPage.internalGrants
-                : [
-                    { title: "Seed Grant for Young Researchers", amount: "₹50,000 - ₹2 Lakhs" },
-                    { title: "Faculty Research Development Grant", amount: "₹1 - ₹5 Lakhs" },
-                    { title: "Student Innovation Project Grant", amount: "₹25,000 - ₹1 Lakh" },
-                    { title: "Conference Travel Support", amount: "Up to ₹1 Lakh" },
-                  ]).map((grant, idx) => (
-                <li
-                  key={idx}
-                  className="flex justify-between items-center bg-white p-4 rounded-lg"
-                >
-                  <span className="text-gray-700 font-semibold">
-                    {grant.title}
-                  </span>
-                  <span className="text-blue-700 font-bold">
-                    {grant.amount}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            {internalGrants.length > 0 ? (
+              <ul className="space-y-3">
+                {internalGrants.map((grant, idx) => (
+                  <li
+                    key={idx}
+                    className="flex justify-between items-center bg-white p-4 rounded-lg"
+                  >
+                    <span className="text-gray-700 font-semibold">
+                      {grant.title}
+                    </span>
+                    <span className="text-blue-700 font-bold">
+                      {grant.amount}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-gray-700 italic">No internal grants configured yet.</div>
+            )}
           </div>
           <div className="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-xl shadow-lg">
             <h3 className="text-2xl font-bold text-blue-900 mb-4">
               External Funding Sources
             </h3>
-            <ul className="space-y-3 text-gray-700">
-              {(Array.isArray(researchInnovationPage.fundingSources) && researchInnovationPage.fundingSources.length
-                ? researchInnovationPage.fundingSources
-                : [
-                    { name: "DST-SERB", amount: "₹15 Cr" },
-                    { name: "AICTE", amount: "₹5 Cr" },
-                    { name: "ICSSR", amount: "₹3 Cr" },
-                  ]).map((source, idx) => (
-                <li key={source.name || idx} className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>
-                  <div>
-                    <strong>{source.name}:</strong> {source.amount || `${source.projects || 0} projects`}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {fundingSources.length > 0 ? (
+              <ul className="space-y-3 text-gray-700">
+                {fundingSources.map((source, idx) => (
+                  <li key={source.name || idx} className="flex items-start gap-2">
+                    <span className="text-green-600">✓</span>
+                    <div>
+                      <strong>{source.name}:</strong> {source.amount || `${source.projects || 0} projects`}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-gray-700 italic">No external funding sources listed yet.</div>
+            )}
           </div>
         </div>
       </section>
@@ -1155,9 +1013,8 @@ export default function Home({ fallback }) {
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
         </div>
         <div className="space-y-6">
-            {(() => {
-            const recent = Array.isArray(displayedPublications) && displayedPublications.length ? displayedPublications.slice(0, 3) : (defaultPublicSettings.researchInnovationPage?.publications || []);
-            return recent.map((pub) => {
+          {Array.isArray(displayedPublications) && displayedPublications.length > 0 ? (
+            displayedPublications.slice(0,3).map((pub) => {
               const citations = pub.citation_count ?? pub.citations ?? 0;
               const impact = pub.impactFactor || pub.impact;
               return (
@@ -1194,8 +1051,10 @@ export default function Home({ fallback }) {
                   </Link>
                 </div>
               );
-            });
-          })()}
+            })
+          ) : (
+            <div className="text-center text-gray-600 italic">No publications found. Add publications via the admin panel.</div>
+          )}
         </div>
         <div className="text-center mt-8">
           <Link href="/all-publications">
@@ -1214,34 +1073,38 @@ export default function Home({ fallback }) {
             </h2>
             <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6"></div>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {(Array.isArray(newsData) ? newsData : []).slice(0, 6).map((news, idx) => (
-              <div
-                key={news.id || idx}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-2"
-              >
-                <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
-                  <div className="text-4xl text-center mb-2">{news.image}</div>
-                  <div className="text-xs text-center opacity-90">{news.date || news.publishedAt}</div>
+          {Array.isArray(newsData) && newsData.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-8">
+              {newsData.slice(0, 6).map((news, idx) => (
+                <div
+                  key={news.id || idx}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-2"
+                >
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
+                    <div className="text-4xl text-center mb-2">{news.image}</div>
+                    <div className="text-xs text-center opacity-90">{news.date || news.publishedAt}</div>
+                  </div>
+                  <div className="p-6">
+                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                      {news.category || news.type}
+                    </span>
+                    <h3 className="text-lg font-bold text-blue-900 mb-3">
+                      {news.title}
+                    </h3>
+                    <p className="text-gray-700 text-sm mb-4">{news.summary || news.description || news.desc || news.body}</p>
+                    <a
+                      href="#"
+                      className="text-blue-700 font-semibold hover:underline text-sm"
+                    >
+                      Read More →
+                    </a>
+                  </div>
                 </div>
-                <div className="p-6">
-                  <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
-                    {news.category || news.type}
-                  </span>
-                  <h3 className="text-lg font-bold text-blue-900 mb-3">
-                    {news.title}
-                  </h3>
-                  <p className="text-gray-700 text-sm mb-4">{news.summary || news.description || news.desc || news.body}</p>
-                  <a
-                    href="#"
-                    className="text-blue-700 font-semibold hover:underline text-sm"
-                  >
-                    Read More →
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-700 italic">No news or events published yet.</div>
+          )}
           <div className="text-center mt-12">
             <Link href="/all-news-events">
               <span className="inline-block bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer">
