@@ -93,6 +93,13 @@ const jsonBlocks = [
     type: "json",
   },
   {
+    key: "homePage",
+    label: "Homepage Override",
+    description: "Use custom HTML to replace the full homepage body.",
+    section: "homepage",
+    type: "json",
+  },
+  {
     key: "aboutPage",
     label: "About Page",
     description: "Content for the About page (hero, overview, vision, mission, values).",
@@ -585,6 +592,16 @@ export default function SiteSettingsPage() {
                       onSave={saveDraft}
                       onPublish={publishNow}
                       uploadMedia={uploadMedia}
+                    />
+                  ) : block.key === "slugPages" ? (
+                    <SlugPagesEditor
+                      key={block.key}
+                      block={block}
+                      setting={settingMap[block.key]}
+                      defaultValue={defaultPublicSettings[block.key]}
+                      saving={savingKey === block.key}
+                      onSave={saveDraft}
+                      onPublish={publishNow}
                     />
                   ) : block.key && block.key.endsWith("Page") ? (
                     <GenericPageEditor
@@ -1251,6 +1268,7 @@ function GenericPageEditor({ block, setting, defaultValue, saving, onSave, onPub
   const programs = draft?.programs || [];
   const placementStats = draft?.placementStats || [];
   const successStories = draft?.successStories || [];
+  const pageContentHtml = draft?.pageContentHtml || "";
 
   return (
     <div className="rounded-2xl border bg-gray-50 p-4 md:col-span-2">
@@ -1289,6 +1307,18 @@ function GenericPageEditor({ block, setting, defaultValue, saving, onSave, onPub
             </div>
           </div>
         )}
+
+        <div>
+          <div className="font-medium mb-2">Full Page Override</div>
+          <p className="text-xs text-gray-500 mb-2">Use this when you want the public page to render a custom HTML layout instead of the default structured sections.</p>
+          <textarea
+            rows={10}
+            value={pageContentHtml}
+            onChange={(e) => updateField('pageContentHtml', e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg font-mono text-sm"
+            placeholder="<h2>Custom page content</h2><p>...</p>"
+          />
+        </div>
 
         {/* Values (title + desc) */}
         {Array.isArray(values) && (
@@ -1484,6 +1514,273 @@ function GenericPageEditor({ block, setting, defaultValue, saving, onSave, onPub
             <FaSave /> {saving ? 'Saving...' : 'Save Draft'}
           </button>
           <button type="button" onClick={publish} disabled={saving} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">Publish</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SlugPagesEditor({ block, setting, defaultValue, saving, onSave, onPublish }) {
+  const initialPages = safeParseJson(setting?.draftValue ?? setting?.publishedValue ?? setting?.value ?? defaultValue, defaultValue) || {};
+  const [draft, setDraft] = useState(() => (initialPages && typeof initialPages === "object" && !Array.isArray(initialPages) ? initialPages : {}));
+  const [selectedSlug, setSelectedSlug] = useState("");
+  const [newSlug, setNewSlug] = useState("");
+  const [pageForm, setPageForm] = useState({
+    title: "",
+    subtitle: "",
+    gradient: "from-blue-600 to-indigo-600",
+    content: "<p>Write page content here.</p>",
+  });
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const nextPages = safeParseJson(setting?.draftValue ?? setting?.publishedValue ?? setting?.value ?? defaultValue, defaultValue) || {};
+    const normalizedPages = nextPages && typeof nextPages === "object" && !Array.isArray(nextPages) ? nextPages : {};
+    setDraft(normalizedPages);
+    const firstSlug = Object.keys(normalizedPages)[0] || "";
+    setSelectedSlug((current) => (current && normalizedPages[current] ? current : firstSlug));
+  }, [setting, defaultValue]);
+
+  useEffect(() => {
+    if (!selectedSlug) {
+      setPageForm({
+        title: "",
+        subtitle: "",
+        gradient: "from-blue-600 to-indigo-600",
+        content: "<p>Write page content here.</p>",
+      });
+      return;
+    }
+
+    const page = draft[selectedSlug] || {};
+    setPageForm({
+      title: page.title || "",
+      subtitle: page.subtitle || "",
+      gradient: page.gradient || "from-blue-600 to-indigo-600",
+      content:
+        typeof page.content === "string"
+          ? page.content
+          : page.content
+          ? JSON.stringify(page.content, null, 2)
+          : "<p>Write page content here.</p>",
+    });
+  }, [selectedSlug, draft]);
+
+  const sanitizeSlug = (value) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
+  const commitPage = (slug, form) => {
+    const nextDraft = { ...(draft || {}) };
+    const parsedContent = (() => {
+      const raw = form.content ?? "";
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw;
+      }
+    })();
+
+    nextDraft[slug] = {
+      title: form.title || "Untitled Page",
+      subtitle: form.subtitle || "",
+      gradient: form.gradient || "from-blue-600 to-indigo-600",
+      content: parsedContent,
+    };
+
+    setDraft(nextDraft);
+    return nextDraft;
+  };
+
+  const addPage = () => {
+    setError("");
+    const slug = sanitizeSlug(newSlug);
+    if (!slug) {
+      setError("Enter a valid slug such as student-life or alumni.");
+      return;
+    }
+    if (draft[slug]) {
+      setError("That slug already exists.");
+      return;
+    }
+
+    const nextDraft = {
+      ...(draft || {}),
+      [slug]: {
+        title: "New Page",
+        subtitle: "Custom page controlled from admin",
+        gradient: "from-blue-600 to-indigo-600",
+        content: "<p>Add your page content here.</p>",
+      },
+    };
+
+    setDraft(nextDraft);
+    setSelectedSlug(slug);
+    setNewSlug("");
+    setPageForm({
+      title: "New Page",
+      subtitle: "Custom page controlled from admin",
+      gradient: "from-blue-600 to-indigo-600",
+      content: "<p>Add your page content here.</p>",
+    });
+  };
+
+  const save = async () => {
+    if (!selectedSlug) {
+      setError("Select or create a slug page first.");
+      return;
+    }
+
+    setError("");
+    const nextDraft = commitPage(selectedSlug, pageForm);
+    await onSave(block.key, JSON.stringify(nextDraft), { section: block.section, description: block.description, type: block.type });
+  };
+
+  const publish = async () => {
+    await save();
+    await onPublish(block.key);
+  };
+
+  const removePage = () => {
+    if (!selectedSlug) return;
+    const nextDraft = { ...(draft || {}) };
+    delete nextDraft[selectedSlug];
+    const nextSlug = Object.keys(nextDraft)[0] || "";
+    setDraft(nextDraft);
+    setSelectedSlug(nextSlug);
+  };
+
+  const pages = Object.keys(draft || {}).sort();
+
+  return (
+    <div className="rounded-2xl border bg-gray-50 p-4 md:col-span-2">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 className="font-semibold text-gray-900">{block.label}</h3>
+          <p className="text-xs text-gray-500">Create and override dynamic slug pages from one place. These pages render on the public route /[slug].</p>
+        </div>
+      </div>
+
+      {error && <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+        <div className="rounded-xl border bg-white p-3">
+          <div className="flex items-center gap-2 mb-3">
+            <input
+              type="text"
+              value={newSlug}
+              onChange={(e) => setNewSlug(e.target.value)}
+              placeholder="new-page-slug"
+              className="w-full rounded-lg border px-3 py-2 text-sm"
+            />
+            <button type="button" onClick={addPage} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white">
+              <FaPlus />
+            </button>
+          </div>
+
+          <div className="max-h-[560px] space-y-2 overflow-y-auto pr-1">
+            {pages.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-3 text-sm text-gray-500">
+                No slug pages yet.
+              </div>
+            ) : (
+              pages.map((slug) => {
+                const isActive = slug === selectedSlug;
+                return (
+                  <button
+                    key={slug}
+                    type="button"
+                    onClick={() => setSelectedSlug(slug)}
+                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition ${isActive ? "border-blue-500 bg-blue-50" : "bg-white hover:bg-gray-50"}`}
+                  >
+                    <span className="font-medium text-gray-900">/{slug}</span>
+                    <span className="text-xs text-gray-500">edit</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-white p-4">
+          {!selectedSlug ? (
+            <div className="rounded-lg border border-dashed p-6 text-sm text-gray-500">Select or create a slug page to start editing.</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <InputField label="Slug" value={selectedSlug} onChange={(value) => {
+                  const nextSlug = sanitizeSlug(value);
+                  if (!nextSlug || nextSlug === selectedSlug) {
+                    setSelectedSlug(nextSlug || selectedSlug);
+                    return;
+                  }
+                  if (draft[nextSlug]) {
+                    setError("That slug already exists.");
+                    return;
+                  }
+                  setError("");
+                  setDraft((current) => {
+                    const copy = { ...(current || {}) };
+                    copy[nextSlug] = copy[selectedSlug];
+                    delete copy[selectedSlug];
+                    return copy;
+                  });
+                  setSelectedSlug(nextSlug);
+                }} />
+                <InputField label="Gradient" value={pageForm.gradient} onChange={(value) => setPageForm((current) => ({ ...current, gradient: value }))} placeholder="from-blue-600 to-indigo-600" />
+              </div>
+
+              <InputField label="Title" value={pageForm.title} onChange={(value) => setPageForm((current) => ({ ...current, title: value }))} placeholder="Page title" />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Subtitle</label>
+                <textarea
+                  rows={2}
+                  value={pageForm.subtitle}
+                  onChange={(e) => setPageForm((current) => ({ ...current, subtitle: e.target.value }))}
+                  className="w-full rounded-lg border px-4 py-2"
+                  placeholder="Page subtitle"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Content HTML</label>
+                <textarea
+                  rows={16}
+                  value={pageForm.content}
+                  onChange={(e) => setPageForm((current) => ({ ...current, content: e.target.value }))}
+                  className="w-full rounded-lg border px-4 py-2 font-mono text-sm"
+                  placeholder="<h2>Heading</h2><p>Page content</p>"
+                />
+                <p className="mt-2 text-xs text-gray-500">This content renders on the public page. HTML is allowed for richer layouts.</p>
+              </div>
+
+              <div className="rounded-lg border bg-gray-50 p-4">
+                <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Preview</div>
+                <div className={`rounded-xl bg-gradient-to-r ${pageForm.gradient} p-5 text-white`}> 
+                  <h4 className="text-2xl font-bold">{pageForm.title || "Untitled Page"}</h4>
+                  <p className="mt-1 text-sm opacity-90">{pageForm.subtitle || ""}</p>
+                </div>
+                <div className="mt-4 rounded-xl border bg-white p-4 text-sm text-gray-700">
+                  {pageForm.content || "No content yet."}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-60">
+                  <FaSave /> Save Draft
+                </button>
+                <button type="button" onClick={publish} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white disabled:opacity-60">
+                  <FaShareAlt /> Publish
+                </button>
+                <button type="button" onClick={removePage} className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white">
+                  <FaTrash /> Delete
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

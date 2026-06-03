@@ -9,6 +9,34 @@ export default function About({ fallback }) {
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
   const aboutPage = siteSettings.aboutPage || defaultPublicSettings.aboutPage;
+  const aboutPageHtml = aboutPage.pageContentHtml || "";
+
+  if (aboutPageHtml) {
+    return (
+      <SWRConfig value={{ fallback }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-900 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="mb-4">
+                <Link href="/" className="text-yellow-400 hover:underline">Home</Link>
+                <span className="mx-2">/</span>
+                <span>About Us</span>
+              </div>
+              <h1 className="text-5xl font-bold mb-4">{aboutPage.heroTitle}</h1>
+              <p className="text-xl opacity-90">{aboutPage.heroSubtitle}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: aboutPageHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
 
   return (
     <SWRConfig value={{ fallback }}>

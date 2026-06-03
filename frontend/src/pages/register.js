@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useSWR from "swr";
+import { SWRConfig } from "swr";
 import Footer from "../components/Footer";
 import Chatbot from "../components/Chatbot";
 import Link from "next/link";
@@ -21,6 +22,7 @@ export default function Register() {
     ...normalizeSiteSettings(siteSettingsData),
   };
   const pageSettings = siteSettings.registerPage || {};
+  const pageContentHtml = pageSettings.pageContentHtml || "";
   const [selectedType, setSelectedType] = useState("admission");
   const [formData, setFormData] = useState({
     // Common fields
@@ -60,6 +62,28 @@ export default function Register() {
       participants: "1",
     });
   };
+
+  if (pageContentHtml) {
+    return (
+      <>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "Student Registration Portal"}</h1>
+              <p className="text-xl opacity-90">{pageSettings.heroSubtitle || "Start your journey with BBIT"}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: pageContentHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </>
+    );
+  }
 
   const defaultRegistrationTypes = [
     {

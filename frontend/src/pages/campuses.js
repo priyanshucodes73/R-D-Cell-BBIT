@@ -21,7 +21,30 @@ export default function Campuses() {
     ...normalizeSiteSettings(siteSettingsData),
   };
   const pageSettings = siteSettings.campusesPage || {};
+  const pageContentHtml = pageSettings.pageContentHtml || "";
   const [selectedCampus, setSelectedCampus] = useState(0);
+
+  if (pageContentHtml) {
+    return (
+      <SWRConfig value={{ fallback: {} }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-teal-700 to-green-700 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "Our Campus"}</h1>
+              <p className="text-xl opacity-90">{pageSettings.heroSubtitle || "Premier Engineering Institute in Kolkata - NBA & NAAC Accredited"}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: pageContentHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
 
   const campuses = pageSettings.campuses || [
     {

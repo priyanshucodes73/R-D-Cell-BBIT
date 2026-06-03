@@ -11,6 +11,7 @@ export default function ContactUs({ fallback }) {
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
   const contactPage = siteSettings.contactPage || defaultPublicSettings.contactPage;
+  const contactPageHtml = contactPage.pageContentHtml || "";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,6 +25,28 @@ export default function ContactUs({ fallback }) {
     alert("Thank you for contacting us! We'll get back to you soon.");
     setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
   };
+
+  if (contactPageHtml) {
+    return (
+      <SWRConfig value={{ fallback }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-blue-900 to-indigo-700 text-white py-16">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-5xl font-bold mb-4">{contactPage.heroTitle}</h1>
+              <p className="text-xl opacity-90">{contactPage.heroSubtitle}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-12">
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: contactPageHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
 
   return (
     <SWRConfig value={{ fallback }}>

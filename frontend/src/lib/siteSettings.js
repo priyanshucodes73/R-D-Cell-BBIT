@@ -71,6 +71,9 @@ export const defaultPublicSettings = {
   aboutTitle: "About BBIT R&D Cell",
   aboutBody:
     "BBIT R&D Cell promotes research excellence, innovation, and entrepreneurship through projects, publications, patents, and industry collaboration.",
+  homePage: {
+    pageContentHtml: "",
+  },
   aboutPage: {
     heroTitle: "About BBIT",
     heroSubtitle: "Building future leaders through excellence in education, research, and innovation",

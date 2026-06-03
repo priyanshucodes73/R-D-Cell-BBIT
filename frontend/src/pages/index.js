@@ -201,6 +201,32 @@ export default function Home({ fallback }) {
     revalidateOnReconnect: true,
   });
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
+  const homePage = siteSettings.homePage || defaultPublicSettings.homePage;
+  const pageContentHtml = homePage.pageContentHtml || "";
+
+  if (pageContentHtml) {
+    return (
+      <SWRConfig value={{ fallback }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <p className="text-sm uppercase tracking-[0.3em] text-yellow-300 mb-3">{siteSettings.siteName}</p>
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-4">{homePage.heroTitle || siteSettings.heroTitle || "Homepage"}</h1>
+              <p className="text-lg md:text-xl text-white/85 max-w-3xl">{homePage.heroSubtitle || siteSettings.heroSubtitle || ""}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-10">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: pageContentHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
+
   const editableUpperNavLinks = Array.isArray(siteSettings.upperNavLinks) && siteSettings.upperNavLinks.length
     ? siteSettings.upperNavLinks
     : defaultPublicSettings.upperNavLinks;

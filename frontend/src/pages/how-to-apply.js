@@ -129,9 +129,32 @@ export default function HowToApply({ fallback }) {
     ...normalizeSiteSettings(siteSettingsData),
   };
   const pageSettings = siteSettings.howToApplyPage || {};
+  const pageContentHtml = pageSettings.pageContentHtml || "";
   const processSteps = pageSettings.processSteps || defaultProcessSteps;
   const documentChecklist = pageSettings.documents || defaultDocuments;
   const notes = pageSettings.notes || defaultNotes;
+
+  if (pageContentHtml) {
+    return (
+      <SWRConfig value={{ fallback }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-green-600 via-teal-600 to-blue-600 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "How To Apply"}</h1>
+              <p className="text-xl opacity-90">{pageSettings.heroSubtitle || "Step-by-step application process"}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: pageContentHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
 
   return (
     <SWRConfig value={{ fallback }}>

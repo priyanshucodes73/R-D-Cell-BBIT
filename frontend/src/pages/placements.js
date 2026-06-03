@@ -11,6 +11,29 @@ export default function Placements({ fallback }) {
   const { data: siteSettingsData } = useSWR(apiBase + "/api/site-settings", fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
   const placementsPage = siteSettings.placementsPage || defaultPublicSettings.placementsPage;
+  const placementsPageHtml = placementsPage.pageContentHtml || "";
+
+  if (placementsPageHtml) {
+    return (
+      <SWRConfig value={{ fallback }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-green-900 via-teal-900 to-green-900 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-5xl font-bold mb-4">{placementsPage.heroTitle}</h1>
+              <p className="text-xl opacity-90">{placementsPage.heroSubtitle}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: placementsPageHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
 
   const placementStats = placementsPage.placementStats || [];
 

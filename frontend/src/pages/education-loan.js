@@ -53,9 +53,32 @@ export default function EducationLoan({ fallback }) {
     ...normalizeSiteSettings(siteSettingsData),
   };
   const pageSettings = siteSettings.educationLoanPage || {};
+  const pageContentHtml = pageSettings.pageContentHtml || "";
   const partnerBanks = pageSettings.partnerBanks || defaultPartnerBanks;
   const loanFeatures = pageSettings.loanFeatures || defaultLoanFeatures;
   const eligibility = pageSettings.eligibility || defaultEligibility;
+
+  if (pageContentHtml) {
+    return (
+      <SWRConfig value={{ fallback }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "Education Loan Assistance"}</h1>
+              <p className="text-xl opacity-90">{pageSettings.heroSubtitle || "Financial support for students"}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: pageContentHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
 
   return (
     <SWRConfig value={{ fallback }}>

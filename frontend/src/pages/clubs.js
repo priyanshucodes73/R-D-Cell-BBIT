@@ -21,9 +21,32 @@ export default function Clubs() {
     ...normalizeSiteSettings(siteSettingsData),
   };
   const pageSettings = siteSettings.clubsPage || {};
+  const pageContentHtml = pageSettings.pageContentHtml || "";
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  if (pageContentHtml) {
+    return (
+      <SWRConfig value={{ fallback: {} }}>
+        <div className="min-h-screen bg-gray-50">
+          <section className="bg-gradient-to-r from-purple-700 to-pink-700 text-white py-20">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-5xl font-bold mb-4">{pageSettings.heroTitle || "Clubs & Societies"}</h1>
+              <p className="text-xl opacity-90">{pageSettings.heroSubtitle || "Discover student-led clubs, sports, culture, and leadership opportunities"}</p>
+            </div>
+          </section>
+          <section className="max-w-6xl mx-auto px-4 py-16">
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: pageContentHtml }} />
+            </div>
+          </section>
+          <Footer />
+          <Chatbot />
+        </div>
+      </SWRConfig>
+    );
+  }
 
   const clubStats = pageSettings.stats || [
     { label: "Active Clubs & Societies", value: "40+", icon: "🏛️", color: "orange" },

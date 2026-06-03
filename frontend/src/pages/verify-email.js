@@ -22,6 +22,22 @@ export default function VerifyEmail() {
   const { data: siteSettingsData } = useSWR(apiBase ? `${apiBase}/api/site-settings` : null, fetcher);
   const siteSettings = { ...defaultPublicSettings, ...normalizeSiteSettings(siteSettingsData) };
   const pageSettings = siteSettings.verifyEmailPage || {};
+  const pageContentHtml = pageSettings.pageContentHtml || '';
+
+  if (pageContentHtml) {
+    return (
+      <>
+        <Head>
+          <title>{pageSettings.pageTitle || 'Verify Email - BBIT R&D Cell'}</title>
+        </Head>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: pageContentHtml }} />
+          </div>
+        </div>
+      </>
+    );
+  }
 
   useEffect(() => {
     if (token) {

@@ -42,6 +42,13 @@ export default function Chatbot() {
         setMessages((m) => [...m, { text: reply, sender: "bot" }]);
         setTyping(false);
         return;
+      } else {
+        // surface provider error to the user for debugging
+        let textResp = "";
+        try { textResp = await r.text(); } catch (e) { textResp = String(e); }
+        setMessages((m) => [...m, { text: `AI service error: ${r.status} ${r.statusText} — ${textResp}`, sender: "bot" }]);
+        setTyping(false);
+        return;
       }
       // else fallthrough to local
     } catch (e) {
@@ -89,7 +96,24 @@ export default function Chatbot() {
           {/* Header */}
           <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 text-black flex items-center justify-between px-4 py-3 font-semibold text-lg">
             <div className="flex items-center gap-3">
-              <img src="/bbit-logo.png" alt="BBIT" className="w-8 h-8 rounded-md shadow-sm" />
+              <img
+                src="/bbit-logo.png"
+                alt="BBIT"
+                className="w-10 h-10 rounded-md shadow-sm object-cover"
+                onError={(e) => {
+                  // fallback to inline SVG if file not available
+                  try {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+                        <rect width="48" height="48" rx="8" fill="#0B63C6" />
+                        <text x="50%" y="55%" font-size="18" fill="white" text-anchor="middle" font-family="Arial" font-weight="700">BBIT</text>
+                      </svg>`);
+                  } catch (err) {
+                    // ignore
+                  }
+                }}
+              />
               <div>
                 <div className="text-black font-bold">BBIT Assistant</div>
                 <div className="text-black text-xs opacity-80">Research & Innovation</div>
@@ -115,7 +139,11 @@ export default function Chatbot() {
                     <FaRobot className="text-yellow-600 w-6 h-6" />
                   </div>
                 )}
-                <div className={`${msg.sender === 'user' ? 'bg-blue-900 text-white' : 'bg-yellow-50 text-black'} rounded-xl px-3 py-2 text-sm shadow-sm max-w-[76%]`}>{msg.text}</div>
+                <div
+                  className={`rounded-2xl px-4 py-2 text-sm shadow-sm max-w-[76%] break-words whitespace-pre-wrap ${msg.sender === 'user' ? 'bg-blue-900 text-white' : 'bg-yellow-50 text-black'}`}
+                >
+                  {msg.text}
+                </div>
                 {msg.sender === 'user' && (
                   <div className="flex items-end mt-1">
                     <div className="w-6 h-6 rounded-full bg-blue-700 text-white flex items-center justify-center text-xs">U</div>

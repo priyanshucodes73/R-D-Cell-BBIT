@@ -1493,6 +1493,14 @@ export default function GenericPage() {
 
   const page = slug ? (siteSettings.slugPages?.[slug] || pageContent[slug]) : null;
 
+  const renderPageContent = (content) => {
+    if (typeof content === "string") {
+      return <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />;
+    }
+
+    return content;
+  };
+
   if (!page) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -1529,7 +1537,7 @@ export default function GenericPage() {
 
       <section className="max-w-6xl mx-auto px-4 py-16">
         <div className="bg-white p-8 md:p-12 rounded-xl shadow-lg">
-          {page.content}
+          {renderPageContent(page.content)}
         </div>
       </section>
 
