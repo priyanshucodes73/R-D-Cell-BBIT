@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { FaArrowLeft, FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { fetchWithAuth } from "../../lib/auth";
+import AdminPageShell from "../../components/admin/AdminPageShell";
 
 export default function FacultyManager() {
   const router = useRouter();
@@ -149,48 +150,36 @@ export default function FacultyManager() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <button className="p-3 bg-white rounded-lg shadow hover:bg-gray-50">
-                <FaArrowLeft />
-              </button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">Faculty Management</h1>
-              <p className="text-gray-600">Manage faculty members</p>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditMode(false);
-              resetForm();
-            }}
-            className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-lg"
-          >
-            <FaPlus /> Add Faculty
-          </button>
-        </div>
-
-        <div className="mb-6 bg-white p-4 rounded-lg shadow">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search faculty..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
-            />
-          </div>
-        </div>
-
+    <AdminPageShell
+      title="Faculty Management"
+      description="Maintain faculty profiles in a cleaner, more professional control surface."
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      searchPlaceholder="Search faculty..."
+      summary={[
+        { label: "Total", value: String(faculty.length), note: "All faculty records currently available." },
+        { label: "Filtered", value: String(filteredFaculty.length), note: "Records matching your search." },
+        { label: "Focus", value: "Profiles", note: "Keep roles, research, and bios updated." },
+      ]}
+      loading={loading}
+      onRefresh={fetchFaculty}
+      primaryAction={
+        <button
+          onClick={() => {
+            setShowForm(true);
+            setEditMode(false);
+            resetForm();
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-purple-600 px-4 py-3 font-semibold text-white transition hover:bg-purple-700"
+        >
+          <FaPlus /> Add Faculty
+        </button>
+      }
+    >
+      <div className="space-y-6">
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
               <div className="p-6 border-b bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-xl">
                 <h2 className="text-2xl font-bold">
                   {editMode ? "Edit Faculty" : "Add New Faculty"}
@@ -330,13 +319,13 @@ export default function FacultyManager() {
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+          <div className="flex min-h-[320px] items-center justify-center rounded-[2rem] border border-dashed border-slate-300 bg-white/70">
+            <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredFaculty.map((f) => (
-              <div key={f.id} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+              <div key={f.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
                 <div className="flex justify-between items-start mb-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                     {f.name.charAt(0)}
@@ -368,13 +357,13 @@ export default function FacultyManager() {
               </div>
             ))}
             {filteredFaculty.length === 0 && (
-              <div className="col-span-3 text-center py-12 bg-white rounded-lg shadow">
-                <p className="text-gray-500 text-lg">No faculty members found</p>
+              <div className="col-span-3 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-lg text-slate-500">No faculty members found</p>
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

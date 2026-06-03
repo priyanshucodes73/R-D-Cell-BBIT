@@ -511,6 +511,7 @@ let Publication,
   NewsEvent,
   Patent,
   SiteSetting,
+  AuditLog,
   User;
 
 function defineModels(sq) {
@@ -641,6 +642,22 @@ function defineModels(sq) {
       description: { type: DataTypes.TEXT },
       type: { type: DataTypes.STRING, defaultValue: "text" },
       isPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
+    },
+    { timestamps: true }
+  );
+
+  AuditLog = sequelize.define(
+    "AuditLog",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      action: { type: DataTypes.STRING, allowNull: false },
+      scope: { type: DataTypes.STRING, defaultValue: "Content" },
+      description: { type: DataTypes.TEXT, allowNull: false },
+      entityType: { type: DataTypes.STRING },
+      entityId: { type: DataTypes.STRING },
+      actorEmail: { type: DataTypes.STRING },
+      actorRole: { type: DataTypes.STRING },
+      metadata: { type: DataTypes.TEXT },
     },
     { timestamps: true }
   );
@@ -1306,6 +1323,9 @@ async function init() {
     // Sync models to database to create base schema (if not already created)
     try {
       await dbSequelize.sync({ alter: false }); // false = don't modify existing tables
+      if (AuditLog) {
+        await AuditLog.sync();
+      }
       console.log("Database schema synced");
     } catch (e) {
       console.error("Database sync error", e && e.message ? e.message : e);
@@ -1536,6 +1556,37 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+async function recordAuditLog({ action, scope = "Content", description, entityType = null, entityId = null, actor = null, metadata = null }) {
+  if (!AuditLog) return;
+
+  try {
+    await AuditLog.create({
+      action,
+      scope,
+      description,
+      entityType,
+      entityId: entityId != null ? String(entityId) : null,
+      actorEmail: actor?.email || null,
+      actorRole: actor?.role || null,
+      metadata: metadata ? JSON.stringify(metadata) : null,
+    });
+  } catch (error) {
+    console.warn("Failed to record audit log", error.message);
+  }
+}
+
+function auditActorFromRequest(req) {
+  return req.user ? { email: req.user.email, role: req.user.role } : null;
+}
+
+function safeJsonParse(value) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
 // Admin-only guard
 const requireAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
@@ -1719,6 +1770,16 @@ app.put("/api/site-settings/:key", authenticateToken, requireAdmin, async (req, 
       await setting.update(payload);
     }
 
+    await recordAuditLog({
+      action: publish ? "publish_setting" : "save_setting",
+      scope: "Site settings",
+      description: `${key} was ${publish ? "published" : "saved as draft"}.`,
+      entityType: "SiteSetting",
+      entityId: key,
+      actor: auditActorFromRequest(req),
+      metadata: { key, publish: Boolean(publish), section: section ?? setting.section },
+    });
+
     res.json({ message: "Site setting saved", setting });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1737,7 +1798,47 @@ app.post("/api/site-settings/:key/publish", authenticateToken, requireAdmin, asy
 
     await SiteSetting.update({ publishedValue: publishValue }, { where: { key } });
     const updated = await SiteSetting.findOne({ where: { key } });
+
+    await recordAuditLog({
+      action: "publish_setting",
+      scope: "Site settings",
+      description: `${key} was published.`,
+      entityType: "SiteSetting",
+      entityId: key,
+      actor: auditActorFromRequest(req),
+      metadata: { key },
+    });
+
     res.json({ message: "Published", setting: updated });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/site-settings/publish-all", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const settings = await SiteSetting.findAll();
+    const updatedKeys = [];
+
+    for (const setting of settings) {
+      const publishValue = setting.draftValue ?? setting.value;
+      if (publishValue !== undefined && publishValue !== null) {
+        await setting.update({ publishedValue: publishValue });
+        updatedKeys.push(setting.key);
+      }
+    }
+
+    await recordAuditLog({
+      action: "publish_all_settings",
+      scope: "Publishing",
+      description: `Published ${updatedKeys.length} site settings.`,
+      entityType: "SiteSetting",
+      entityId: "bulk",
+      actor: auditActorFromRequest(req),
+      metadata: { updatedKeys },
+    });
+
+    res.json({ message: "All site settings published", updatedKeys });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -1748,7 +1849,32 @@ app.post("/api/site-settings/reset", authenticateToken, requireAdmin, async (req
     for (const setting of defaultSiteSettings.map(normalizeDefaultSetting)) {
       await SiteSetting.upsert(setting);
     }
+
+    await recordAuditLog({
+      action: "reset_site_settings",
+      scope: "Site settings",
+      description: "Site settings were reset to defaults.",
+      entityType: "SiteSetting",
+      entityId: "reset",
+      actor: auditActorFromRequest(req),
+    });
+
     res.json({ message: "Site settings reset to defaults" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/api/admin/audit-log", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit || "12", 10) || 12, 50);
+    const logs = await AuditLog.findAll({ order: [["createdAt", "DESC"]], limit });
+    res.json({
+      logs: logs.map((log) => ({
+        ...log.toJSON(),
+        metadata: log.metadata ? safeJsonParse(log.metadata) : null,
+      })),
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -1792,6 +1918,14 @@ app.get("/api/publications/:id", async (req, res) => {
 app.post("/api/publications", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const pub = await Publication.create(req.body);
+    await recordAuditLog({
+      action: "create_publication",
+      scope: "Publications",
+      description: `Created publication ${pub.title}.`,
+      entityType: "Publication",
+      entityId: pub.id,
+      actor: auditActorFromRequest(req),
+    });
     res.status(201).json(pub);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -1803,6 +1937,14 @@ app.put("/api/publications/:id", authenticateToken, requireAdmin, async (req, re
     const pub = await Publication.findByPk(req.params.id);
     if (!pub) return res.status(404).json({ error: "Publication not found" });
     await pub.update(req.body);
+    await recordAuditLog({
+      action: "update_publication",
+      scope: "Publications",
+      description: `Updated publication ${pub.title}.`,
+      entityType: "Publication",
+      entityId: pub.id,
+      actor: auditActorFromRequest(req),
+    });
     res.json(pub);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -1813,7 +1955,16 @@ app.delete("/api/publications/:id", authenticateToken, requireAdmin, async (req,
   try {
     const pub = await Publication.findByPk(req.params.id);
     if (!pub) return res.status(404).json({ error: "Publication not found" });
+    const title = pub.title;
     await pub.destroy();
+    await recordAuditLog({
+      action: "delete_publication",
+      scope: "Publications",
+      description: `Deleted publication ${title}.`,
+      entityType: "Publication",
+      entityId: req.params.id,
+      actor: auditActorFromRequest(req),
+    });
     res.json({ message: "Publication deleted successfully" });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1871,6 +2022,14 @@ app.post(
       updates.imageUrl = url;
 
       await pub.update(updates);
+      await recordAuditLog({
+        action: "update_publication_image",
+        scope: "Publications",
+        description: `Updated publication image for ${pub.title}.`,
+        entityType: "Publication",
+        entityId: pub.id,
+        actor: auditActorFromRequest(req),
+      });
       res.status(200).json(pub);
     } catch (err) {
       console.error(err);
@@ -1916,6 +2075,14 @@ app.get("/api/projects/:id", async (req, res) => {
 app.post("/api/projects", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const project = await ResearchProject.create(req.body);
+    await recordAuditLog({
+      action: "create_project",
+      scope: "Projects",
+      description: `Created project ${project.title}.`,
+      entityType: "ResearchProject",
+      entityId: project.id,
+      actor: auditActorFromRequest(req),
+    });
     res.status(201).json(project);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -1927,6 +2094,14 @@ app.put("/api/projects/:id", authenticateToken, requireAdmin, async (req, res) =
     const project = await ResearchProject.findByPk(req.params.id);
     if (!project) return res.status(404).json({ error: "Project not found" });
     await project.update(req.body);
+    await recordAuditLog({
+      action: "update_project",
+      scope: "Projects",
+      description: `Updated project ${project.title}.`,
+      entityType: "ResearchProject",
+      entityId: project.id,
+      actor: auditActorFromRequest(req),
+    });
     res.json(project);
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -1937,7 +2112,16 @@ app.delete("/api/projects/:id", authenticateToken, requireAdmin, async (req, res
   try {
     const project = await ResearchProject.findByPk(req.params.id);
     if (!project) return res.status(404).json({ error: "Project not found" });
+    const title = project.title;
     await project.destroy();
+    await recordAuditLog({
+      action: "delete_project",
+      scope: "Projects",
+      description: `Deleted project ${title}.`,
+      entityType: "ResearchProject",
+      entityId: req.params.id,
+      actor: auditActorFromRequest(req),
+    });
     res.json({ message: "Project deleted successfully" });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2285,6 +2469,8 @@ app.get("/api/stats", async (req, res) => {
       patents: await Patent.count(),
       activeProjects: await ResearchProject.count({ where: { status: 'Ongoing' } }),
       recentPublications: await Publication.count({ where: { year: new Date().getFullYear() } }),
+      pendingContacts: await ContactInquiry.count({ where: { status: "pending" } }),
+      pendingRegistrations: await Registration.count({ where: { status: "pending" } }),
     };
     res.json(stats);
   } catch (e) {
@@ -2761,31 +2947,49 @@ app.get("/", (req, res) => {
 app.post("/api/ai/chat", async (req, res) => {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const message = (req.body && req.body.message) ? String(req.body.message) : null;
+  const history = Array.isArray(req.body?.history) ? req.body.history : [];
   if (!message) return res.status(400).json({ error: "Missing 'message' in request body" });
   if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY not configured on server" });
+
+  const systemPrompt = [
+    "You are BBIT Assistant, a helpful, concise AI assistant for the Budge Budge Institute of Technology R&D Cell website.",
+    "Help users with admissions, programs, research, projects, publications, placements, campus life, contact info, and admin/site features.",
+    "If you are unsure about a specific internal detail, say so briefly and point the user to the relevant site page or admin panel.",
+    "Keep replies short, natural, and friendly unless the user asks for detail."
+  ].join(" ");
+
+  const safeHistory = history
+    .slice(-8)
+    .filter((item) => item && (item.role === "user" || item.role === "assistant") && typeof item.content === "string")
+    .map((item) => ({ role: item.role, content: item.content }));
 
   try {
     const payload = {
       model: process.env.OPENROUTER_MODEL || "gpt-4o-mini",
       messages: [
+        { role: "system", content: systemPrompt },
+        ...safeHistory,
         { role: "user", content: message }
       ],
-      max_tokens: 600
+      max_tokens: 600,
+      temperature: 0.6,
     };
 
-    const r = await fetch("https://api.openrouter.ai/v1/chat/completions", {
+    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": process.env.OPENROUTER_REFERER || process.env.FRONTEND_URL || "http://localhost:3000",
+        "X-Title": process.env.OPENROUTER_TITLE || "BBIT R&D Cell Assistant",
       },
       body: JSON.stringify(payload),
-      timeout: 60000,
     });
 
     if (!r.ok) {
       const text = await r.text();
-      return res.status(r.status).json({ error: "AI provider error", detail: text });
+      console.error("AI provider error", r.status, text);
+      throw new Error(`AI provider error ${r.status}`);
     }
 
     const data = await r.json();
@@ -2801,10 +3005,20 @@ app.post("/api/ai/chat", async (req, res) => {
     }
     if (!reply && typeof data === 'string') reply = data;
 
-    return res.json({ reply: reply || "(no reply)" , raw: data});
+    return res.json({ reply: reply || "(no reply)", source: "openrouter", raw: data });
   } catch (err) {
     console.error('AI proxy error', err);
-    return res.status(500).json({ error: 'AI proxy failed', detail: String(err) });
+
+    const lower = message.toLowerCase();
+    let reply = "I'm here to help with BBIT-related questions.";
+    if (/hello|hi|hey/.test(lower)) reply = "Hello. How can I help you with BBIT today?";
+    else if (/project/.test(lower)) reply = "You can browse projects on the Research Projects pages or manage them from the admin panel.";
+    else if (/publication|paper|journal/.test(lower)) reply = "Publications are managed from the admin panel and displayed on the Publications pages.";
+    else if (/admission|apply|registration/.test(lower)) reply = "Admissions and registration content can be updated from the admin site settings.";
+    else if (/contact|email/.test(lower)) reply = "Use the Contact Us page for office details, email, and inquiry forms.";
+    else if (/admin|panel|settings/.test(lower)) reply = "The admin panel lets you manage page content, navigation, and site settings.";
+
+    return res.json({ reply, source: "fallback" });
   }
 });
 

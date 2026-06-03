@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaArrowLeft, FaTrash, FaSearch, FaEnvelope, FaPhone, FaEye } from "react-icons/fa";
 import { fetchWithAuth } from "../../lib/auth";
+import AdminPageShell from "../../components/admin/AdminPageShell";
 
 export default function ContactsManager() {
   const router = useRouter();
@@ -58,39 +59,24 @@ export default function ContactsManager() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <button className="p-3 bg-white rounded-lg shadow hover:bg-gray-50">
-                <FaArrowLeft />
-              </button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">Contact Inquiries</h1>
-              <p className="text-gray-600">View and manage contact submissions</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6 bg-white p-4 rounded-lg shadow">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search contacts by name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Detail Modal */}
+    <AdminPageShell
+      title="Contact Inquiries"
+      description="Review and manage contact submissions from a cleaner, more serious control surface."
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      searchPlaceholder="Search contacts by name or email..."
+      summary={[
+        { label: "Inbox", value: String(contacts.length), note: "Total contact submissions in the queue." },
+        { label: "Filtered", value: String(filteredContacts.length), note: "Items matching your current search." },
+        { label: "Focus", value: "Respond fast", note: "Open details, review, and remove noise." },
+      ]}
+      loading={loading}
+      onRefresh={fetchContacts}
+    >
+      <div className="space-y-6">
         {selectedContact && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-2xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
               <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-xl">
                 <h2 className="text-2xl font-bold">Contact Inquiry Details</h2>
               </div>
@@ -133,13 +119,13 @@ export default function ContactsManager() {
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+          <div className="flex min-h-[320px] items-center justify-center rounded-[2rem] border border-dashed border-slate-300 bg-white/70">
+            <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
           </div>
         ) : (
           <div className="space-y-4">
             {filteredContacts.map((contact) => (
-              <div key={contact.id} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+              <div key={contact.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-4 mb-3">
@@ -188,13 +174,13 @@ export default function ContactsManager() {
               </div>
             ))}
             {filteredContacts.length === 0 && (
-              <div className="text-center py-12 bg-white rounded-lg shadow">
-                <p className="text-gray-500 text-lg">No contact inquiries found</p>
+              <div className="rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-lg text-slate-500">No contact inquiries found</p>
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

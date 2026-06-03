@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { FaArrowLeft, FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { fetchWithAuth } from "../../lib/auth";
+import AdminPageShell from "../../components/admin/AdminPageShell";
 
 export default function PatentsManager() {
   const router = useRouter();
@@ -116,48 +117,36 @@ export default function PatentsManager() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <button className="p-3 bg-white rounded-lg shadow hover:bg-gray-50">
-                <FaArrowLeft />
-              </button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">Patents Management</h1>
-              <p className="text-gray-600">Manage patents and IP</p>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditMode(false);
-              resetForm();
-            }}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg"
-          >
-            <FaPlus /> Add Patent
-          </button>
-        </div>
-
-        <div className="mb-6 bg-white p-4 rounded-lg shadow">
-          <div className="relative">
-            <FaSearch className="absolute left-3 top-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search patents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-        </div>
-
+    <AdminPageShell
+      title="Patents Management"
+      description="Track intellectual property records in a cleaner, more serious workspace."
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      searchPlaceholder="Search patents..."
+      summary={[
+        { label: "Total", value: String(patents.length), note: "All patent records in the system." },
+        { label: "Filtered", value: String(filteredPatents.length), note: "Records matching your search." },
+        { label: "Focus", value: "IP tracking", note: "Keep filing, status, and grants visible." },
+      ]}
+      loading={loading}
+      onRefresh={fetchPatents}
+      primaryAction={
+        <button
+          onClick={() => {
+            setShowForm(true);
+            setEditMode(false);
+            resetForm();
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700"
+        >
+          <FaPlus /> Add Patent
+        </button>
+      }
+    >
+      <div className="space-y-6">
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
               <div className="p-6 border-b bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-xl">
                 <h2 className="text-2xl font-bold">
                   {editMode ? "Edit Patent" : "Add New Patent"}
@@ -282,13 +271,13 @@ export default function PatentsManager() {
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
+          <div className="flex min-h-[320px] items-center justify-center rounded-[2rem] border border-dashed border-slate-300 bg-white/70">
+            <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {filteredPatents.map((patent) => (
-              <div key={patent.id} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+              <div key={patent.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <span
@@ -339,13 +328,13 @@ export default function PatentsManager() {
               </div>
             ))}
             {filteredPatents.length === 0 && (
-              <div className="col-span-2 text-center py-12 bg-white rounded-lg shadow">
-                <p className="text-gray-500 text-lg">No patents found</p>
+              <div className="col-span-2 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-lg text-slate-500">No patents found</p>
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
+    </AdminPageShell>
   );
 }
