@@ -1,7 +1,25 @@
 module.exports.up = async (queryInterface, Sequelize) => {
   const tableName = "AuditLogs";
-  const tableDesc = await queryInterface.describeTable(tableName).catch(() => null);
-  if (tableDesc) {
+  const sequelize = queryInterface.sequelize;
+  const dialect = sequelize && typeof sequelize.getDialect === "function" ? sequelize.getDialect() : "sqlite";
+
+  const tableExists = async () => {
+    if (dialect === "sqlite") {
+      const [rows] = await sequelize.query(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=$tableName LIMIT 1",
+        { bind: { tableName } }
+      );
+      return Array.isArray(rows) ? rows.length > 0 : !!rows;
+    }
+
+    const [rows] = await sequelize.query(
+      "SELECT table_name FROM information_schema.tables WHERE table_name = $tableName LIMIT 1",
+      { bind: { tableName: tableName.toLowerCase() } }
+    );
+    return Array.isArray(rows) ? rows.length > 0 : !!rows;
+  };
+
+  if (await tableExists()) {
     return;
   }
 
