@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
-const { Sequelize, DataTypes } = require("sequelize");
+const { Sequelize, DataTypes, Op } = require("sequelize");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -3100,6 +3100,67 @@ app.get("/", (req, res) => {
   });
 });
 
+// Helper: synthesize a short reply from local site data when AI provider fails
+async function synthesizeFromSiteData(query) {
+  try {
+    if (!query || typeof query !== 'string') return null;
+    // build a simple keyword string from query (ignore short words)
+    const words = query
+      .replace(/[^a-zA-Z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .map((w) => w.trim())
+      .filter((w) => w.length > 3)
+      .slice(0, 6);
+
+    let like = '%' + (words.length ? words.join('%') : query.slice(0, 20)) + '%';
+
+    const snippets = [];
+
+    // Publications
+    try {
+      const pubs = await Publication.findAll({ where: { [Op.or]: [{ title: { [Op.like]: like } }, { abstract: { [Op.like]: like } }] }, limit: 3 });
+      for (const p of pubs) {
+        snippets.push(`Publication: ${p.title}${p.authors ? ' — ' + p.authors : ''}\n${(p.abstract || '').slice(0, 300)}${(p.abstract && p.abstract.length > 300) ? '...' : ''}`);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Research projects
+    try {
+      const projs = await ResearchProject.findAll({ where: { [Op.or]: [{ title: { [Op.like]: like } }, { description: { [Op.like]: like } }] }, limit: 3 });
+      for (const pr of projs) {
+        snippets.push(`Project: ${pr.title} (${pr.status})\n${(pr.description || '').slice(0, 300)}${(pr.description && pr.description.length > 300) ? '...' : ''}`);
+      }
+    } catch (e) { }
+
+    // News / Events
+    try {
+      const news = await NewsEvent.findAll({ where: { [Op.or]: [{ title: { [Op.like]: like } }, { description: { [Op.like]: like } }] }, limit: 3 });
+      for (const n of news) {
+        snippets.push(`News: ${n.title} (${n.date})\n${(n.description || '').slice(0, 300)}${(n.description && n.description.length > 300) ? '...' : ''}`);
+      }
+    } catch (e) { }
+
+    // Site settings (public)
+    try {
+      const sets = await SiteSetting.findAll({ where: { isPublic: true, [Op.or]: [{ key: { [Op.like]: like } }, { publishedValue: { [Op.like]: like } }, { draftValue: { [Op.like]: like } }, { value: { [Op.like]: like } }] }, limit: 6 });
+      for (const s of sets) {
+        const v = (s.publishedValue || s.draftValue || s.value || '').slice(0, 250);
+        if (v) snippets.push(`Setting: ${s.key} — ${v}${v.length >= 250 ? '...' : ''}`);
+      }
+    } catch (e) { }
+
+    if (!snippets.length) return null;
+
+    const header = "I couldn't reach the external AI service; here are relevant items from the website that may help:";
+    return `${header}\n\n${snippets.slice(0, 8).join('\n\n')}\n\nIf you want more detail, ask about one of the items above.`;
+  } catch (err) {
+    console.warn('synthesizeFromSiteData failed', err && err.message ? err.message : err);
+    return null;
+  }
+}
+
 // ===== AI Proxy Endpoint =====
 // POST /api/ai/chat { message: string }
 app.post("/api/ai/chat", async (req, res) => {
@@ -3231,6 +3292,13 @@ app.post("/api/ai/chat", async (req, res) => {
     return res.json({ reply: reply || "(no reply)", source: "openrouter", raw: data });
   } catch (err) {
     console.error('AI proxy error', err);
+    // Try local site data synthesis as a fallback before simple canned replies
+    try {
+      const local = await synthesizeFromSiteData(message);
+      if (local) return res.json({ reply: local, source: "local-site" });
+    } catch (e) {
+      console.warn('Local synthesis failed', e && e.message ? e.message : e);
+    }
 
     const lower = message.toLowerCase();
     let reply = "I'm here to help with BBIT-related questions.";
