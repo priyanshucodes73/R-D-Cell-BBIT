@@ -73,7 +73,7 @@ export const defaultPublicSettings = {
   heroTitle: "Research, Innovation, and Entrepreneurship at BBIT",
   heroSubtitle: "A living research platform where faculty, students, and industry collaborate.",
   appName: "BBIT R&D Cell",
-  appIcon: "/icons/bbit-logo-circle.svg",
+  appIcon: "/cropped_circle-image.png",
   aboutTitle: "About BBIT R&D Cell",
   aboutBody:
     "BBIT R&D Cell promotes research excellence, innovation, and entrepreneurship through projects, publications, patents, and industry collaboration.",

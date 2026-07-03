@@ -6,7 +6,7 @@ export default async function handler(req, res) {
         const r = await fetch(`${apiBase}/api/site-settings`)
         const settings = r.ok ? await r.json() : {}
         const merged = { ...defaultPublicSettings, ...(settings || {}).settings }
-        const siteLogo = merged.appIconPwa || merged.siteLogoPwa || merged.appIcon || merged.siteLogo || '/icons/bbit-logo-circle.svg'
+        const siteLogo = merged.appIconPwa || merged.siteLogoPwa || merged.appIcon || merged.siteLogo || '/cropped_circle-image.png'
 
         // If requesting a PNG (size query param), proxy to backend PNG endpoint so server can rasterize
         if (req.query.size) {
@@ -25,6 +25,6 @@ export default async function handler(req, res) {
         return res.redirect(target)
     } catch (err) {
         console.error('site-logo api error', err)
-        return res.redirect('/icons/bbit-logo-circle.svg')
+        return res.redirect('/cropped_circle-image.png')
     }
 }

@@ -466,7 +466,7 @@ export default function SiteSettingsPage() {
 
   const homepagePreview = {
     siteName: readSetting(settingMap.siteName, defaultPublicSettings.siteName),
-    siteLogo: readSetting(settingMap.siteLogo, defaultPublicSettings.siteLogo || "/icons/bbit-logo-circle.svg"),
+    siteLogo: readSetting(settingMap.siteLogo, defaultPublicSettings.siteLogo || "/cropped_circle-image.png"),
     topAnnouncement: readSetting(settingMap.topAnnouncement, defaultPublicSettings.topAnnouncement),
     accreditationBanner: readSetting(settingMap.accreditationBanner, defaultPublicSettings.accreditationBanner),
     admissionHelpline: readSetting(settingMap.admissionHelpline, defaultPublicSettings.admissionHelpline),
@@ -804,7 +804,7 @@ export default function SiteSettingsPage() {
                 <div className="px-4 py-3 border-t border-white/10 bg-white/5">
                   <div className="flex items-center justify-center gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 overflow-hidden shadow-sm">
-                      <img src={homepagePreview.siteLogo || '/icons/bbit-logo-circle.svg'} alt="logo" className="h-12 w-12 object-contain rounded-full" />
+                      <img src={homepagePreview.siteLogo || '/cropped_circle-image.png'} alt="logo" className="h-12 w-12 object-contain rounded-full" />
                     </div>
                     <div className="max-w-full rounded-full bg-white/90 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-900 shadow-lg">
                       <span className="block truncate max-w-[48ch]">{homepagePreview.accreditationBanner}</span>

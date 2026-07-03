@@ -514,7 +514,7 @@ export default function Home({ fallback }) {
                 >
                   <div className="relative">
                     <img
-                      src="/icons/bbit-logo-circle.svg"
+                      src="/cropped_circle-image.png"
                       alt="BBIT Logo"
                       className="h-12 w-12 md:h-14 md:w-14 object-contain drop-shadow-xl flex-shrink-0 group-hover:drop-shadow-2xl transition-all duration-300 rounded-full"
                     />
