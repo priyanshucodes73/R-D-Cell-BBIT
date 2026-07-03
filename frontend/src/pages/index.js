@@ -589,6 +589,17 @@ export default function Home({ fallback }) {
                       </Link>
                     </div>
                   )}
+                  {/* Mobile Download CTA */}
+                  <div className="mb-3">
+                    <Link href="/download-app">
+                      <a className="group relative w-full block text-left text-white font-bold uppercase tracking-wide px-5 py-3.5 rounded-xl bg-gradient-to-r from-yellow-500/20 to-yellow-400/10 hover:from-yellow-500/30 hover:to-yellow-400/20 transition-all duration-300 cursor-pointer border border-yellow-300/20" onClick={() => setShowMobileMenu(false)}>
+                        <span className="relative z-10 flex items-center justify-between">
+                          <span className="text-sm flex items-center gap-2"><FaDownload className="w-4 h-4 text-yellow-300" /> Download App</span>
+                          <span className="text-yellow-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">→</span>
+                        </span>
+                      </a>
+                    </Link>
+                  </div>
                   {navLinksWithAccreditation.map((link, index) => (
                     <div
                       key={link.name}
