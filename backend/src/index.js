@@ -11,6 +11,7 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const cookieParser = require("cookie-parser");
 const fs = require("fs");
 const path = require("path");
+const dnsPromises = require('dns').promises;
 
 require("dotenv").config();
 
@@ -97,9 +98,8 @@ app.use(
     origin: (origin, callback) => {
       const allowed = isOriginAllowed(origin);
       console.log(`[CORS] origin=${origin || '(none)'} allowed=${allowed}`);
-      // Reflect the request origin so credentialed requests work across preview/custom domains.
-      // Keep the allow/deny calculation only for diagnostics.
-      return callback(null, true);
+      // Respect the allow/deny decision when responding to browser requests
+      return callback(null, allowed);
     },
     credentials: true,
   })
@@ -3274,4 +3274,16 @@ app.get('/api/ai/check-provider', async (req, res) => {
 const port = process.env.PORT || 4000;
 init().then(() => {
   app.listen(port, () => console.log(`API listening on ${port}`));
+});
+
+// Diagnostics endpoint: resolve DNS from the running server
+app.get('/api/diagnostics/dns', async (req, res) => {
+  const host = req.query.host || 'api.openrouter.ai';
+  try {
+    const addresses = await dnsPromises.lookup(host, { all: true });
+    return res.json({ ok: true, host, addresses });
+  } catch (err) {
+    console.error('DNS diagnostic failed', err && err.message ? err.message : err);
+    return res.status(500).json({ ok: false, host, error: err.message });
+  }
 });
