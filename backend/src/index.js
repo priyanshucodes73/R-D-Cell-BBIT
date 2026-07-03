@@ -1847,11 +1847,53 @@ app.post("/api/site-settings/:key/publish", authenticateToken, requireAdmin, asy
           const out192 = path.join(uploadsDir, `${slug}-192.png`)
           const out512 = path.join(uploadsDir, `${slug}-512.png`)
 
+          // Generate PNG icons locally first
           await sharp(buffer).resize(192, 192, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } }).png().toFile(out192)
           await sharp(buffer).resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } }).png().toFile(out512)
 
-          const publicBase = process.env.FRONTEND_URL || 'http://localhost:3005'
-          const pwaUrl = `${publicBase}/uploads/${slug}-512.png`
+          let pwaUrl = null
+
+          // If using S3, upload generated icons to S3 and set public URL
+          if (useS3 && s3Client) {
+            try {
+              const bucket = process.env.S3_BUCKET
+              const region = process.env.AWS_REGION || process.env.S3_REGION || 'us-east-1'
+              const key192 = `pwa-icons/${slug}-192.png`
+              const key512 = `pwa-icons/${slug}-512.png`
+
+              const body192 = fs.readFileSync(out192)
+              const body512 = fs.readFileSync(out512)
+
+              await s3Client.send(new PutObjectCommand({ Bucket: bucket, Key: key192, Body: body192, ContentType: 'image/png' }))
+              await s3Client.send(new PutObjectCommand({ Bucket: bucket, Key: key512, Body: body512, ContentType: 'image/png' }))
+
+              // Construct public URL. Allow override via S3_BASE_URL env var
+              if (process.env.S3_BASE_URL) {
+                pwaUrl = `${process.env.S3_BASE_URL.replace(/\/$/, '')}/${key512}`
+              } else {
+                pwaUrl = `https://${bucket}.s3.${region}.amazonaws.com/${key512}`
+              }
+            } catch (s3err) {
+              console.warn('S3 upload failed, falling back to local files', s3err && s3err.message ? s3err.message : s3err)
+            }
+          }
+
+          // If no S3 or upload failed, ensure local uploads are served and use that URL
+          if (!pwaUrl) {
+            const publicBase = process.env.FRONTEND_URL || 'http://localhost:3005'
+            pwaUrl = `${publicBase}/uploads/${slug}-512.png`
+
+            // Also copy to frontend/public/icons for static hosting convenience (local dev)
+            try {
+              const frontendIcons = path.join(__dirname, '..', '..', 'frontend', 'public', 'icons')
+              if (!fs.existsSync(frontendIcons)) fs.mkdirSync(frontendIcons, { recursive: true })
+              fs.copyFileSync(out192, path.join(frontendIcons, `${slug}-192.png`))
+              fs.copyFileSync(out512, path.join(frontendIcons, `${slug}-512.png`))
+            } catch (copyErr) {
+              // Not critical
+              console.warn('Failed copying PWA icons to frontend/public/icons', copyErr && copyErr.message ? copyErr.message : copyErr)
+            }
+          }
 
           // Upsert a helper setting `siteLogoPwa` or `appIconPwa` so frontends and manifest can use it
           const pwaKey = key === 'appIcon' ? 'appIconPwa' : 'siteLogoPwa'
@@ -3136,6 +3178,12 @@ app.post("/api/ai/chat", async (req, res) => {
 
     return res.json({ reply, source: "fallback" });
   }
+});
+
+// AI health endpoint
+app.get('/api/ai/health', (req, res) => {
+  const hasKey = Boolean(process.env.OPENROUTER_API_KEY);
+  res.json({ ok: true, hasKey });
 });
 
 const port = process.env.PORT || 4000;

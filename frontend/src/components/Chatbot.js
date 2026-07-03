@@ -21,6 +21,8 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
+  const [providerStatus, setProviderStatus] = useState('unknown'); // unknown|ok|missing|error
+  const [lastFailed, setLastFailed] = useState(null);
   const chatEndRef = useRef(null);
   const loadingTimerRef = useRef(null);
 
@@ -75,6 +77,30 @@ export default function Chatbot() {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [open, messages]);
+
+  useEffect(() => {
+    // poll AI health endpoint
+    let mounted = true;
+    const check = async () => {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+        const r = await fetch(`${apiBase}/api/ai/health`, { cache: 'no-store' })
+        if (!mounted) return
+        if (!r.ok) {
+          setProviderStatus('error')
+          return
+        }
+        const data = await r.json()
+        if (data && data.hasKey) setProviderStatus('ok')
+        else setProviderStatus('missing')
+      } catch (e) {
+        setProviderStatus('error')
+      }
+    }
+    check()
+    const id = setInterval(check, 30000)
+    return () => { mounted = false; clearInterval(id) }
+  }, [])
 
   const toApiHistory = (items) =>
     items
@@ -133,6 +159,8 @@ export default function Chatbot() {
         const payload = await response.json();
         const reply = payload?.reply || (payload.raw ? JSON.stringify(payload.raw).slice(0, 1000) : "(no reply)");
         pushBotReply(reply);
+        setProviderStatus('ok')
+        setLastFailed(null)
         return;
       } else {
         // Try to parse provider error, but do not show raw JSON to users.
@@ -150,6 +178,8 @@ export default function Chatbot() {
 
         // Show concise, friendly message and fall back to helpful canned reply.
         pushBotReply("AI is temporarily unavailable — showing a helpful fallback reply.");
+        setProviderStatus('error')
+        setLastFailed({ message: text })
 
         // Immediately provide a helpful fallback reply based on the user's input.
         const lower = String(text || "").toLowerCase();
@@ -165,6 +195,8 @@ export default function Chatbot() {
       }
     } catch (error) {
       console.warn("AI proxy failed, falling back:", error && error.message ? error.message : error);
+      setProviderStatus('error')
+      setLastFailed({ message: text })
     }
 
     setTimeout(() => {
@@ -195,6 +227,8 @@ export default function Chatbot() {
             onClick={() => setOpen(true)}
             aria-label="Open AI chat"
           >
+            {/* provider status badge */}
+            <span className={`absolute -top-2 -left-2 rounded-full w-3 h-3 ${providerStatus === 'ok' ? 'bg-emerald-400' : providerStatus === 'missing' ? 'bg-yellow-400' : providerStatus === 'error' ? 'bg-red-500' : 'bg-gray-300'} shadow-sm`} />
             <div className="absolute -top-12 right-0 hidden sm:flex items-center">
               <div className="bg-white/90 text-xs text-slate-800 font-semibold px-3 py-1 rounded-full shadow-sm transform transition-all duration-200 opacity-0 group-hover:opacity-100">
                 AI Chat
@@ -301,14 +335,33 @@ export default function Chatbot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
             />
-            <button
-              className={`px-3 py-2 rounded-lg text-white font-semibold ${input.trim() ? "bg-yellow-600 hover:bg-yellow-700" : "bg-yellow-300 cursor-not-allowed"}`}
-              type="submit"
-              disabled={!input.trim()}
-              aria-label="Send message"
-            >
-              Send
-            </button>
+            <div className="flex items-center gap-2">
+              {lastFailed && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // retry last failed message
+                    if (lastFailed?.message) {
+                      // show the message again and reattempt
+                      setMessages((c) => [...c, { text: lastFailed.message, sender: 'user' }]);
+                      respondTo(lastFailed.message);
+                      setLastFailed(null);
+                    }
+                  }}
+                  className="text-sm px-3 py-2 rounded-lg border border-yellow-300 text-yellow-800 bg-yellow-100 hover:bg-yellow-200"
+                >
+                  Retry
+                </button>
+              )}
+              <button
+                className={`px-3 py-2 rounded-lg text-white font-semibold ${input.trim() ? "bg-yellow-600 hover:bg-yellow-700" : "bg-yellow-300 cursor-not-allowed"}`}
+                type="submit"
+                disabled={!input.trim()}
+                aria-label="Send message"
+              >
+                Send
+              </button>
+            </div>
           </form>
         </div>
       )}
