@@ -1961,6 +1961,75 @@ app.post("/api/site-settings/publish-all", authenticateToken, requireAdmin, asyn
   }
 });
 
+// Serve a PNG version of the site/app icon on demand (resized)
+app.get('/api/site-logo.png', async (req, res) => {
+  try {
+    const size = parseInt(req.query.size, 10) || 192;
+    // Load public site settings and prefer PWA overrides
+    const settings = await SiteSetting.findAll();
+    const obj = toSiteSettingsObject(settings);
+    const siteLogo = obj.appIconPwa || obj.siteLogoPwa || obj.appIcon || obj.siteLogo || '/icons/bbit-logo-circle.svg';
+
+    let buffer = null;
+
+    // Helper to send PNG
+    const sendPng = async (buf) => {
+      const out = await sharp(buf).resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.status(200).send(out);
+    };
+
+    // Absolute URL -> fetch
+    if (/^https?:\/\//i.test(siteLogo)) {
+      try {
+        const r = await axios.get(siteLogo, { responseType: 'arraybuffer', timeout: 5000 });
+        buffer = Buffer.from(r.data);
+        return await sendPng(buffer);
+      } catch (err) {
+        console.warn('Failed to fetch remote siteLogo for PNG conversion', err && err.message ? err.message : err);
+      }
+    }
+
+    // Local uploads path (/uploads/...) -> read from uploadsDir
+    if (siteLogo.startsWith('/uploads/')) {
+      const rel = siteLogo.split('/uploads/')[1];
+      const abs = path.join(uploadsDir, rel);
+      if (fs.existsSync(abs)) {
+        buffer = fs.readFileSync(abs);
+        return await sendPng(buffer);
+      }
+    }
+
+    // Frontend public assets (/icons/... or other) -> resolve in frontend/public
+    if (siteLogo.startsWith('/')) {
+      const candidate = path.join(__dirname, '..', '..', 'frontend', 'public', siteLogo.replace(/^\//, ''));
+      if (fs.existsSync(candidate)) {
+        buffer = fs.readFileSync(candidate);
+        return await sendPng(buffer);
+      }
+    }
+
+    // Fallback: try reading the default svg in frontend public
+    try {
+      const fallback = path.join(__dirname, '..', '..', 'frontend', 'public', 'icons', 'bbit-logo-circle.svg');
+      if (fs.existsSync(fallback)) {
+        buffer = fs.readFileSync(fallback);
+        return await sendPng(buffer);
+      }
+    } catch (err) {
+      console.warn('Fallback site-logo read failed', err && err.message ? err.message : err);
+    }
+
+    // Ultimate fallback: transparent 1x1 PNG
+    const transparent = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=', 'base64');
+    return await sendPng(transparent);
+  } catch (e) {
+    console.error('site-logo.png error', e && e.message ? e.message : e);
+    res.status(500).json({ error: 'Failed generating site logo PNG' });
+  }
+});
+
 app.post("/api/site-settings/reset", authenticateToken, requireAdmin, async (req, res) => {
   try {
     for (const setting of defaultSiteSettings.map(normalizeDefaultSetting)) {
