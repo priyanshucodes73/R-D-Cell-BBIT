@@ -744,6 +744,7 @@ export default function SiteSettingsPage() {
                               disabled={uploadingIndex === index}
                               onChange={async (e) => {
                                 const file = e.target.files?.[0] || null;
+                                e.target.value = '';
                                 if (!file) return;
                                 try {
                                   setUploadingIndex(index);
@@ -1021,7 +1022,7 @@ function ImageSettingCard({ block, setting, defaultValue, saving, onSave, onPubl
       <div className="flex gap-3">
         <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium">
           <FaUpload /> {uploading ? 'Uploading...' : 'Upload Logo'}
-          <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => handleFile(e.target.files?.[0])} />
+          <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ''; handleFile(f); }} />
         </label>
         <button type="button" onClick={save} disabled={saving || uploading} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60">
           <FaSave /> {saving ? 'Saving...' : 'Save Draft'}
@@ -1216,7 +1217,7 @@ function ResearchPageEditor({ block, setting, defaultValue, saving, onSave, onPu
                     {c.image ? <img src={c.image} alt={c.name} className="h-12 w-12 object-cover rounded" /> : <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center text-sm">No Img</div>}
                     <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium">
                       Upload Image
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadForArray('researchCenters', i, 'image', e.target.files?.[0])} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ''; uploadForArray('researchCenters', i, 'image', f); }} />
                     </label>
                   </div>
                 </div>
@@ -1290,7 +1291,7 @@ function ResearchPageEditor({ block, setting, defaultValue, saving, onSave, onPu
                   {pr.image ? <img src={pr.image} alt={pr.name} className="h-12 w-12 object-cover rounded" /> : <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center text-sm">No Img</div>}
                   <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium">
                     Upload Image
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadForArray('innovationPrograms', i, 'image', e.target.files?.[0])} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ''; uploadForArray('innovationPrograms', i, 'image', f); }} />
                   </label>
                 </div>
                 <InputField label="Capacity/Info" value={pr.capacity || ''} onChange={(v) => updateArrayItem('innovationPrograms', i, 'capacity', v)} />
@@ -1489,7 +1490,7 @@ function GenericPageEditor({ block, setting, defaultValue, saving, onSave, onPub
                     {c.image ? <img src={c.image} alt={c.title || c.name} className="h-12 w-12 object-cover rounded" /> : <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center text-sm">No Img</div>}
                     <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium">
                       Upload Image
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadForArray('cards', i, 'image', e.target.files?.[0])} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ''; uploadForArray('cards', i, 'image', f); }} />
                     </label>
                     <InputField label="Icon (emoji/class)" value={c.icon || ''} onChange={(v) => updateArrayItem('cards', i, 'icon', v)} />
                   </div>

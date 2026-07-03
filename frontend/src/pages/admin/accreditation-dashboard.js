@@ -279,7 +279,7 @@ export default function AccreditationDashboard() {
                                         <div className="flex items-center gap-3">
                                             <label className="inline-flex items-center gap-2 px-3 py-2 bg-white border rounded cursor-pointer">
                                                 <FaUpload /> {item.uploading ? 'Uploading…' : 'Upload File'}
-                                                <input type="file" accept="*/*" className="hidden" onChange={(e) => handleFileChange(c, idx, e.target.files?.[0])} />
+                                                <input type="file" accept="*/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ''; handleFileChange(c, idx, f); }} />
                                             </label>
                                             {item.file ? <a className="text-sm text-blue-600" href={item.file} target="_blank" rel="noreferrer">View file</a> : <span className="text-sm text-gray-500">No file</span>}
                                             <button className="ml-auto text-red-600" onClick={() => removeEvidenceItem(c, idx)}><FaTrash /></button>

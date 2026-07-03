@@ -306,7 +306,7 @@ export default function PublicationsManager() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-gray-700 font-semibold mb-2">Image</label>
-                    <input type="file" accept="image/*" onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })} />
+                    <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ''; setFormData({ ...formData, file: f }); }} />
                     {formData.file && <div className="text-xs text-gray-500 mt-1">Selected: {formData.file.name}</div>}
                   </div>
                   <div>

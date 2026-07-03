@@ -307,7 +307,7 @@ export default function ProjectsManager() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-gray-700 font-semibold mb-2">Image</label>
-                    <input type="file" accept="image/*" onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })} />
+                    <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = ''; setFormData({ ...formData, file: f }); }} />
                   </div>
                   <div className="md:col-span-2">
                     <label className="inline-flex items-center gap-2">
@@ -406,10 +406,10 @@ export default function ProjectsManager() {
                   </p>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${proj.status === "Ongoing"
-                        ? "bg-green-100 text-green-800"
-                        : proj.status === "Completed"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-yellow-100 text-yellow-800"
+                      ? "bg-green-100 text-green-800"
+                      : proj.status === "Completed"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-yellow-100 text-yellow-800"
                       }`}
                   >
                     {proj.status}
