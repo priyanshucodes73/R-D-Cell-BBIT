@@ -110,8 +110,7 @@ export default function DownloadAppPage() {
                         </div>
                     </div>
                 </div>
+            </section>
         </div>
-            </section >
-        </div >
     );
 }
