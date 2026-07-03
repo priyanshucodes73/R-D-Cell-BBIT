@@ -61,6 +61,54 @@ svg {
   height: auto;
 }
 
+/* Admin-specific responsive helpers */
+.admin-content {
+  width: 100%;
+}
+
+.admin-content .table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-content table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+  /* allow horizontal scroll on small screens */
+}
+
+.admin-content th,
+.admin-content td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-content input,
+.admin-content select,
+.admin-content textarea {
+  width: 100%;
+}
+
+/* Stack cards nicely on small screens */
+.admin-content .responsive-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .admin-content .responsive-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-content .responsive-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .scrollbar-thin::-webkit-scrollbar-track {
   background: rgba(59, 130, 246, 0.1);
   border-radius: 10px;

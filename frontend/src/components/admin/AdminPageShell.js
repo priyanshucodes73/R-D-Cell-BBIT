@@ -74,8 +74,8 @@ export default function AdminPageShell({
                     key={item.href}
                     href={item.href}
                     className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${active
-                        ? "bg-cyan-400/15 text-white ring-1 ring-cyan-400/30"
-                        : "text-slate-200 hover:bg-white/10 hover:text-white"
+                      ? "bg-cyan-400/15 text-white ring-1 ring-cyan-400/30"
+                      : "text-slate-200 hover:bg-white/10 hover:text-white"
                       }`}
                   >
                     <Icon className="shrink-0 text-base" />
@@ -201,7 +201,9 @@ export default function AdminPageShell({
             </div>
           </header>
 
-          <main className="mt-6">{children}</main>
+          <main className="mt-6">
+            <div className="admin-content">{children}</div>
+          </main>
         </div>
       </div>
     </div>
