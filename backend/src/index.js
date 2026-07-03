@@ -138,7 +138,7 @@ const emailTransporter = nodemailer.createTransport({
 // Email Templates
 const sendVerificationEmail = async (email, verificationToken, firstName) => {
   const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:3005"}/verify-email?token=${verificationToken}`;
-  
+
   const mailOptions = {
     from: `"BBIT R&D Cell" <${process.env.EMAIL_USER || "noreply@bbit.edu.in"}>`,
     to: email,
@@ -334,7 +334,7 @@ const sendVerificationEmail = async (email, verificationToken, firstName) => {
 // Send Contact Form Email Notification
 const sendContactFormEmail = async (contactData) => {
   const { name, email, phone, subject, message } = contactData;
-  
+
   const mailOptions = {
     from: `"BBIT R&D Cell" <${process.env.EMAIL_USER || "noreply@bbit.edu.in"}>`,
     to: process.env.CONTACT_EMAIL || process.env.EMAIL_USER || "rnd@bbit.edu.in",
@@ -411,7 +411,7 @@ const sendContactFormEmail = async (contactData) => {
 // Send Auto-Reply to Contact Form Submitter
 const sendContactAutoReply = async (contactData) => {
   const { name, email, subject } = contactData;
-  
+
   const mailOptions = {
     from: `"BBIT R&D Cell" <${process.env.EMAIL_USER || "noreply@bbit.edu.in"}>`,
     to: email,
@@ -1865,6 +1865,92 @@ app.post("/api/site-settings/reset", authenticateToken, requireAdmin, async (req
   }
 });
 
+// Export accreditation evidence bundle as ZIP
+app.get('/api/accreditation/export', authenticateToken, requireAdmin, async (req, res) => {
+  const archiver = require('archiver');
+  const os = require('os');
+  const tmp = require('path').join(os.tmpdir(), `accredit_export_${Date.now()}`);
+  try {
+    if (!fs.existsSync(tmp)) fs.mkdirSync(tmp, { recursive: true });
+
+    // collect published settings and relevant models
+    const settings = await SiteSetting.findAll();
+    const settingsObj = {};
+    settings.forEach((s) => {
+      const raw = s.publishedValue ?? s.value ?? s.draftValue ?? null;
+      settingsObj[s.key] = safeJsonParse(raw);
+    });
+
+    // Save settings JSON
+    const fsExtra = require('fs');
+    fsExtra.writeFileSync(path.join(tmp, 'site-settings.json'), JSON.stringify(settingsObj, null, 2));
+
+    // Collect core tables
+    const pubs = await Publication.findAll();
+    const projs = await ResearchProject.findAll();
+    const facs = await Faculty.findAll();
+    const pats = await Patent.findAll();
+
+    fsExtra.writeFileSync(path.join(tmp, 'publications.json'), JSON.stringify(pubs.map(p => p.toJSON()), null, 2));
+    fsExtra.writeFileSync(path.join(tmp, 'research-projects.json'), JSON.stringify(projs.map(p => p.toJSON()), null, 2));
+    fsExtra.writeFileSync(path.join(tmp, 'faculty.json'), JSON.stringify(facs.map(f => f.toJSON()), null, 2));
+    fsExtra.writeFileSync(path.join(tmp, 'patents.json'), JSON.stringify(pats.map(p => p.toJSON()), null, 2));
+
+    // Find uploaded files referenced in settings (simple scan for '/uploads/' strings)
+    const filePaths = new Set();
+    const collectFilesFromValue = (val) => {
+      if (!val) return;
+      if (typeof val === 'string') {
+        if (val.includes('/uploads/')) {
+          // extract path after /uploads
+          const idx = val.indexOf('/uploads/');
+          const rel = val.substring(idx + 9); // removes '/uploads/'
+          const absolute = path.join(uploadsDir, rel);
+          if (fs.existsSync(absolute)) filePaths.add(absolute);
+        }
+      } else if (Array.isArray(val)) {
+        val.forEach(collectFilesFromValue);
+      } else if (typeof val === 'object') {
+        Object.values(val).forEach(collectFilesFromValue);
+      }
+    };
+
+    Object.values(settingsObj).forEach(collectFilesFromValue);
+
+    // Also scan publications/projects/faculty for imageUrl fields
+    pubs.forEach(p => { if (p.imageUrl) { if (p.imageUrl.includes('/uploads/')) { const rel = p.imageUrl.split('/uploads/')[1]; const abs = path.join(uploadsDir, rel); if (fs.existsSync(abs)) filePaths.add(abs); } } });
+    projs.forEach(p => { if (p.imageUrl) { if (p.imageUrl.includes('/uploads/')) { const rel = p.imageUrl.split('/uploads/')[1]; const abs = path.join(uploadsDir, rel); if (fs.existsSync(abs)) filePaths.add(abs); } } });
+    facs.forEach(f => { if (f.imageUrl) { if (f.imageUrl.includes('/uploads/')) { const rel = f.imageUrl.split('/uploads/')[1]; const abs = path.join(uploadsDir, rel); if (fs.existsSync(abs)) filePaths.add(abs); } } });
+
+    // Create ZIP and stream to response
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="accreditation_export_${Date.now()}.zip"`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.on('error', (err) => { throw err; });
+    archive.pipe(res);
+
+    // append files from tmp folder
+    archive.directory(tmp, false);
+
+    // append referenced uploads into a subfolder
+    for (const fp of Array.from(filePaths)) {
+      const base = path.basename(fp);
+      archive.file(fp, { name: path.join('uploads', base) });
+    }
+
+    await archive.finalize();
+  } catch (err) {
+    console.error('Export error', err);
+    res.status(500).json({ error: err.message || String(err) });
+  } finally {
+    // cleanup temporary files after a short delay to ensure stream finished
+    setTimeout(() => {
+      try { fs.rmdirSync(tmp, { recursive: true }); } catch (e) { }
+    }, 5 * 1000);
+  }
+});
+
 app.get("/api/admin/audit-log", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit || "12", 10) || 12, 50);
@@ -1893,8 +1979,8 @@ app.get("/api/publications", async (req, res) => {
     }
     if (year) where.year = year;
     if (type) where.type = type;
-    
-    const pubs = await Publication.findAll({ 
+
+    const pubs = await Publication.findAll({
       where,
       order: [["year", "DESC"], ["citation_count", "DESC"]],
       limit: limit ? parseInt(limit) : undefined,
@@ -2051,8 +2137,8 @@ app.get("/api/projects", async (req, res) => {
     }
     if (status) where.status = status;
     if (department) where.department = department;
-    
-    const projects = await ResearchProject.findAll({ 
+
+    const projects = await ResearchProject.findAll({
       where,
       order: [["startDate", "DESC"]]
     });
@@ -2189,8 +2275,8 @@ app.get("/api/faculty", async (req, res) => {
     const { department } = req.query;
     const where = {};
     if (department) where.department = department;
-    
-    const faculty = await Faculty.findAll({ 
+
+    const faculty = await Faculty.findAll({
       where,
       order: [["publications", "DESC"]]
     });
@@ -2261,13 +2347,13 @@ app.post("/api/contacts", async (req, res) => {
   try {
     // Save contact inquiry to database
     const contact = await ContactInquiry.create(req.body);
-    
+
     // Send notification email to admin
     const adminEmailSent = await sendContactFormEmail(req.body);
-    
+
     // Send auto-reply to user
     const autoReplySent = await sendContactAutoReply(req.body);
-    
+
     res.status(201).json({
       message: "Thank you for contacting us! We'll get back to you soon.",
       contact,
@@ -2358,8 +2444,8 @@ app.get("/api/news-events", async (req, res) => {
     const where = {};
     if (category) where.category = category;
     if (featured) where.featured = featured === 'true';
-    
-    const news = await NewsEvent.findAll({ 
+
+    const news = await NewsEvent.findAll({
       where,
       order: [["date", "DESC"]],
       limit: limit ? parseInt(limit) : undefined,
@@ -2487,8 +2573,8 @@ app.post("/api/auth/signup", authLimiter, async (req, res) => {
 
     // Validation
     if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ 
-        error: "First name, last name, email and password are required" 
+      return res.status(400).json({
+        error: "First name, last name, email and password are required"
       });
     }
 
@@ -2519,8 +2605,8 @@ app.post("/api/auth/signup", authLimiter, async (req, res) => {
     const token = user.generateAuthToken();
 
     res.status(201).json({
-      message: emailSent 
-        ? "User registered successfully. Please check your email to verify your account." 
+      message: emailSent
+        ? "User registered successfully. Please check your email to verify your account."
         : "User registered successfully. Email verification pending.",
       user: {
         id: user.id,
@@ -2596,7 +2682,7 @@ app.get("/api/auth/me", authenticateToken, async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password'] }
     });
-    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -2611,7 +2697,7 @@ app.get("/api/auth/me", authenticateToken, async (req, res) => {
 app.put("/api/auth/profile", authenticateToken, async (req, res) => {
   try {
     const { firstName, lastName, phone } = req.body;
-    
+
     const user = await User.findByPk(req.user.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -2693,11 +2779,11 @@ app.get("/api/auth/verify-email", async (req, res) => {
     }
 
     // Find user
-    const user = await User.findOne({ 
-      where: { 
+    const user = await User.findOne({
+      where: {
         email: decoded.email,
         verificationToken: token
-      } 
+      }
     });
 
     if (!user) {
@@ -2721,7 +2807,7 @@ app.get("/api/auth/verify-email", async (req, res) => {
       verificationTokenExpiry: null
     });
 
-    res.json({ 
+    res.json({
       message: "Email verified successfully",
       user: {
         id: user.id,
@@ -2744,7 +2830,7 @@ app.post("/api/auth/resend-verification", async (req, res) => {
     }
 
     const user = await User.findOne({ where: { email } });
-    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -2765,9 +2851,9 @@ app.post("/api/auth/resend-verification", async (req, res) => {
     // Send verification email
     const emailSent = await sendVerificationEmail(email, verificationToken, user.firstName);
 
-    res.json({ 
-      message: emailSent 
-        ? "Verification email sent successfully" 
+    res.json({
+      message: emailSent
+        ? "Verification email sent successfully"
         : "Failed to send verification email",
       emailSent
     });
@@ -2782,8 +2868,8 @@ app.post("/api/auth/change-password", authenticateToken, async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ 
-        error: "Current password and new password are required" 
+      return res.status(400).json({
+        error: "Current password and new password are required"
       });
     }
 

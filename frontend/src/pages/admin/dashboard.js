@@ -334,10 +334,10 @@ export default function AdminDashboard() {
 
       const normalizedLogs = Array.isArray(data.logs)
         ? data.logs.map((item) => ({
-            ...item,
-            title: item.title || item.action,
-            time: item.time || item.createdAt || new Date().toISOString(),
-          }))
+          ...item,
+          title: item.title || item.action,
+          time: item.time || item.createdAt || new Date().toISOString(),
+        }))
         : [];
       setAuditLog(normalizedLogs);
     } catch (error) {
@@ -405,9 +405,9 @@ export default function AdminDashboard() {
   const readinessScore = Math.min(
     100,
     (Number(stats?.publications || 0) > 0 ? 25 : 0) +
-      (Number(stats?.activeProjects || 0) > 0 ? 25 : 0) +
-      (Number(stats?.faculty || 0) > 0 ? 25 : 0) +
-      (Number(stats?.patents || 0) > 0 ? 25 : 0),
+    (Number(stats?.activeProjects || 0) > 0 ? 25 : 0) +
+    (Number(stats?.faculty || 0) > 0 ? 25 : 0) +
+    (Number(stats?.patents || 0) > 0 ? 25 : 0),
   );
 
   const readinessLabel = readinessScore >= 75 ? "Strong" : readinessScore >= 50 ? "Stable" : "Needs attention";
@@ -476,9 +476,8 @@ export default function AdminDashboard() {
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.12),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(37,99,235,0.12),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#e8eef6_100%)]" />
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-full border-r border-slate-800 bg-slate-950/96 text-white shadow-2xl backdrop-blur-xl transition-all duration-300 ${
-          sidebarOpen ? "w-72" : "w-24"
-        }`}
+        className={`fixed top-0 left-0 z-50 h-full border-r border-slate-800 bg-slate-950 text-white shadow-2xl transition-all duration-300 ${sidebarOpen ? "w-72" : "w-24"
+          }`}
       >
         <div className="flex h-full flex-col">
           <div className="border-b border-white/10 p-5">
@@ -858,9 +857,8 @@ export default function AdminDashboard() {
                                   </div>
                                   <button
                                     onClick={() => togglePublishingState(item.key)}
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                      isPublished ? "bg-emerald-500/15 text-emerald-200" : "bg-amber-500/15 text-amber-200"
-                                    }`}
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${isPublished ? "bg-emerald-500/15 text-emerald-200" : "bg-amber-500/15 text-amber-200"
+                                      }`}
                                   >
                                     {value}
                                   </button>
