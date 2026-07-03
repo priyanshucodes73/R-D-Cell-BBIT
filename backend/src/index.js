@@ -1666,10 +1666,19 @@ app.post("/api/uploads", authenticateToken, requireAdmin, upload.single("file"),
       return;
     }
 
-    // Local disk fallback
+    // Local disk fallback - return a safe relative URL by default
     const fileUrl = `/uploads/${req.file.filename}`;
+    // Prefer a configured FRONTEND_URL for an absolute URL, but return a relative path in `url` so clients
+    // can load files from the current origin without depending on env configuration.
+    const frontendUrlRaw = process.env.FRONTEND_URL || null;
+    const frontendUrl = frontendUrlRaw ? String(frontendUrlRaw).replace(/\/$/, "") : null;
+    const absoluteUrl = frontendUrl ? `${frontendUrl}${fileUrl}` : `${process.env.FRONTEND_URL || "http://localhost:3005"}${fileUrl}`;
+
     res.status(201).json({
-      url: `${process.env.FRONTEND_URL || "http://localhost:3005"}${fileUrl}`,
+      // `url` is relative and safe for use from the current origin.
+      url: fileUrl,
+      // `absoluteUrl` is provided for clients that prefer a full URL.
+      absoluteUrl,
       path: fileUrl,
       filename: req.file.filename,
       mimeType: req.file.mimetype,

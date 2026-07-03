@@ -22,8 +22,10 @@ services:
       EMAIL_USER: your-email@gmail.com
       EMAIL_PASSWORD: your-app-password-here
       FRONTEND_URL: http://localhost:3005
+      # Public frontend origin (used to build absolute upload URLs)
+      FRONTEND_URL: https://bbitrnd.me
       # Allowed CORS origins (comma-separated)
-      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3005
+      ALLOWED_ORIGINS: https://bbitrnd.me,http://localhost:3000,http://localhost:3005
       # Default admin credentials (change these!)
       ADMIN_EMAIL: admin@bbit.edu.in
       ADMIN_PASSWORD: Admin@BBIT2026
