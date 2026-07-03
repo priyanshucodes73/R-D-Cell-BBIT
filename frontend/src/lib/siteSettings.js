@@ -35,6 +35,7 @@ export const defaultPublicSettings = {
     { name: "CLUBS & GROUPS", href: "/clubs" },
     { name: "PLACEMENTS", href: "/placements" },
     { name: "RESEARCH & DEVELOPMENT", href: "/research-innovation" },
+    { name: "ACCREDITATION", href: "/accreditation-intelligence" },
   ],
   heroSlides: [
     {

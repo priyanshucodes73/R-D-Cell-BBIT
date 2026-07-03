@@ -439,6 +439,7 @@ export default function SiteSettingsPage() {
   const homepagePreview = {
     siteName: readSetting(settingMap.siteName, defaultPublicSettings.siteName),
     topAnnouncement: readSetting(settingMap.topAnnouncement, defaultPublicSettings.topAnnouncement),
+    accreditationBanner: readSetting(settingMap.accreditationBanner, defaultPublicSettings.accreditationBanner),
     admissionHelpline: readSetting(settingMap.admissionHelpline, defaultPublicSettings.admissionHelpline),
     heroTitle: readSetting(settingMap.heroTitle, defaultPublicSettings.heroTitle),
     heroSubtitle: readSetting(settingMap.heroSubtitle, defaultPublicSettings.heroSubtitle),
@@ -754,6 +755,18 @@ export default function SiteSettingsPage() {
                 <div className="px-4 py-3 text-xs bg-black/20 flex items-center justify-between">
                   <span>{homepagePreview.topAnnouncement}</span>
                   <span>{homepagePreview.admissionHelpline}</span>
+                </div>
+                <div className="px-4 py-3 border-t border-white/10 bg-white/5">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4m0 8v4m8-8h-4M4 12H0" />
+                      </svg>
+                    </div>
+                    <div className="max-w-full rounded-full bg-white/90 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-900 shadow-lg">
+                      <span className="block truncate max-w-[48ch]">{homepagePreview.accreditationBanner}</span>
+                    </div>
+                  </div>
                 </div>
                 <div className="px-4 py-4 flex items-center justify-between gap-4 border-t border-white/10">
                   <div>
