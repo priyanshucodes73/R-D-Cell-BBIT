@@ -790,12 +790,12 @@ export default function SiteSettingsPage() {
             </section>
           </div>
 
-          <aside className="space-y-6 sticky top-6">
+          <aside className="space-y-6 order-last xl:order-none xl:sticky xl:top-6">
             <section className="bg-white rounded-2xl shadow-lg p-5 border border-gray-100">
               <div className="flex items-center gap-2 mb-4 text-gray-900 font-bold text-lg">
                 <FaEye className="text-blue-600" /> Live Homepage Preview
               </div>
-              <div className="rounded-2xl overflow-hidden border bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 text-white">
+              <div className="rounded-2xl overflow-hidden border bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 text-white w-full">
                 <div className="px-4 py-3 text-xs bg-black/20 flex items-center justify-between">
                   <span>{homepagePreview.topAnnouncement}</span>
                   <span>{homepagePreview.admissionHelpline}</span>
