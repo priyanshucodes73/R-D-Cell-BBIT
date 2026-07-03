@@ -135,9 +135,32 @@ export default function Chatbot() {
         pushBotReply(reply);
         return;
       } else {
-        const text = await response.text().catch(() => "(no body)");
-        console.error("AI provider returned non-OK", response.status, text);
-        pushBotReply(`AI provider error ${response.status}: ${text}`);
+        // Try to parse provider error, but do not show raw JSON to users.
+        let parsed = null;
+        try {
+          parsed = await response.json();
+        } catch (e) {
+          try {
+            parsed = await response.text();
+          } catch (e2) {
+            parsed = null;
+          }
+        }
+        console.error("AI provider returned non-OK", response.status, parsed);
+
+        // Show concise, friendly message and fall back to helpful canned reply.
+        pushBotReply("AI is temporarily unavailable — showing a helpful fallback reply.");
+
+        // Immediately provide a helpful fallback reply based on the user's input.
+        const lower = String(text || "").toLowerCase();
+        let fallback = "I'm here to help — could you rephrase that?";
+        if (/hello|hi|hey/.test(lower)) fallback = "Hello! How can I assist you today?";
+        else if (/project/.test(lower)) fallback = "You can view projects on the Research Projects page or add projects via the admin panel.";
+        else if (/publication|paper|journal/.test(lower)) fallback = "Publications are listed under Publications. Add them via admin to show here.";
+        else if (/admin|panel/.test(lower)) fallback = "Admin panel is at /admin — sign in with your admin account to manage content.";
+        else if (/contact|email/.test(lower)) fallback = "You can reach out via the Contact page or use the site email form.";
+
+        setTimeout(() => pushBotReply(fallback), 500 + Math.random() * 300);
         return;
       }
     } catch (error) {

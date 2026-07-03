@@ -96,21 +96,22 @@ export default function DownloadAppPage() {
                         <p className="text-xs uppercase tracking-[0.3em] text-yellow-300">Why colleges want it</p>
                         <h2 className="mt-3 text-3xl font-bold">A better experience for admins, faculty, and students.</h2>
                         <div className="mt-6 space-y-4 text-white/85">
-                            [
-                            "Open quickly from the home screen.",
-                            "Looks and behaves like a proper app.",
-                            "Keeps the same accreditation and QR tools.",
-                            "Supports a more professional demo to colleges.",
-                                ].map((item) => (
-                            <div key={item} className="flex gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
-                                <FaCheckCircle className="mt-1 shrink-0 text-emerald-300 h-5 w-5" />
-                                <span className="text-sm leading-6">{item}</span>
-                            </div>
-                                ))}
+                            {[
+                                "Open quickly from the home screen.",
+                                "Looks and behaves like a proper app.",
+                                "Keeps the same accreditation and QR tools.",
+                                "Supports a more professional demo to colleges.",
+                            ].map((item) => (
+                                <div key={item} className="flex gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                                    <FaCheckCircle className="mt-1 shrink-0 text-emerald-300 h-5 w-5" />
+                                    <span className="text-sm leading-6">{item}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
-            </section>
         </div>
+            </section >
+        </div >
     );
 }
