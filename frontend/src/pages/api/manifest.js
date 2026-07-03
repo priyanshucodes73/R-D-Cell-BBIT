@@ -8,7 +8,7 @@ export default async function handler(req, res) {
         const merged = { ...defaultPublicSettings, ...(settings || {}).settings }
         // App-level overrides: prefer appName and appIconPwa when present
         const appName = merged.appName || merged.siteName || defaultPublicSettings.siteName
-        const appIcon = merged.appIconPwa || merged.siteLogoPwa || merged.appIcon || merged.siteLogo || '/icons/bbit-logo-circle.svg'
+        const appIcon = merged.appIconPwa || merged.siteLogoPwa || merged.appIcon || merged.siteLogo || '/cropped_circle-image.png'
 
         const manifest = {
             name: appName,
