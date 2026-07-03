@@ -8,6 +8,7 @@ body,
   height: 100%;
   overflow-x: hidden;
 }
+
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
     Arial;
@@ -20,6 +21,7 @@ body {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -31,6 +33,7 @@ body {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -50,6 +53,12 @@ body {
 .scrollbar-thin::-webkit-scrollbar {
   height: 6px;
   width: 6px;
+}
+
+/* Prevent SVGs from growing larger than their containers */
+svg {
+  max-width: 100%;
+  height: auto;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {

@@ -119,8 +119,9 @@ function AppInstallBar() {
       setShowIosTip(isIos && !window.matchMedia('(display-mode: standalone)').matches)
     }
 
-    // Show popup on every load/refresh (no persistent dismissal)
-    setVisible(true)
+    // Only show the install UI when the browser prompts or iOS tip applies
+    // this avoids a full-screen blocking modal on every page load
+    setVisible(false)
 
     window.addEventListener('beforeinstallprompt', handler)
     detectIos()

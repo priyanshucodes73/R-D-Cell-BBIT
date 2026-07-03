@@ -65,7 +65,7 @@ export default function DownloadAppPage() {
                         return (
                             <div key={item.title} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-950 text-white">
-                                    <Icon />
+                                    <Icon className="h-6 w-6" />
                                 </div>
                                 <h2 className="mt-5 text-xl font-bold text-slate-900">{item.title}</h2>
                                 <p className="mt-2 text-sm leading-6 text-slate-600">{item.desc}</p>
@@ -96,17 +96,17 @@ export default function DownloadAppPage() {
                         <p className="text-xs uppercase tracking-[0.3em] text-yellow-300">Why colleges want it</p>
                         <h2 className="mt-3 text-3xl font-bold">A better experience for admins, faculty, and students.</h2>
                         <div className="mt-6 space-y-4 text-white/85">
-                            {[
-                                "Open quickly from the home screen.",
-                                "Looks and behaves like a proper app.",
-                                "Keeps the same accreditation and QR tools.",
-                                "Supports a more professional demo to colleges.",
-                            ].map((item) => (
-                                <div key={item} className="flex gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
-                                    <FaCheckCircle className="mt-1 shrink-0 text-emerald-300" />
-                                    <span className="text-sm leading-6">{item}</span>
-                                </div>
-                            ))}
+                            [
+                            "Open quickly from the home screen.",
+                            "Looks and behaves like a proper app.",
+                            "Keeps the same accreditation and QR tools.",
+                            "Supports a more professional demo to colleges.",
+                                ].map((item) => (
+                            <div key={item} className="flex gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                                <FaCheckCircle className="mt-1 shrink-0 text-emerald-300 h-5 w-5" />
+                                <span className="text-sm leading-6">{item}</span>
+                            </div>
+                                ))}
                         </div>
                     </div>
                 </div>
