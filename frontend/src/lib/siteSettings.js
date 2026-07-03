@@ -6,6 +6,7 @@ export const getApiBase = () =>
 export const defaultPublicSettings = {
   siteName: "BBIT R&D Cell",
   topAnnouncement: "Register Now for Admission at BBIT - Budge Budge Institute of Technology",
+  accreditationBanner: "Accreditation Intelligence System for Institutional Excellence (NBA & NAAC Compliant Web Platform)",
   admissionHelpline: "8420123333/9836888444",
   upperNavLinks: [
     { name: "CAMPUSES", href: "/campuses" },

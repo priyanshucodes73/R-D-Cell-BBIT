@@ -1,64 +1,84 @@
 module.exports.up = async (queryInterface, Sequelize) => {
   const tableName = "AuditLogs";
-  const SequelizeLib = Sequelize || require("sequelize");
-  const DataTypes = SequelizeLib.DataTypes || SequelizeLib;
-  try {
-    await queryInterface.createTable(tableName, {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false,
-      },
-      action: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      scope: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: "Content",
-      },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      entityType: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      entityId: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      actorEmail: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      actorRole: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      metadata: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-    });
-  } catch (error) {
-    if (!/already exists/i.test(error.message || "")) {
-      throw error;
-    }
+  const sequelize = queryInterface.sequelize;
+  const dialect = sequelize && typeof sequelize.getDialect === "function" ? sequelize.getDialect() : "sqlite";
+
+  if (dialect === "sqlite") {
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS ${tableName} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        action TEXT NOT NULL,
+        scope TEXT NOT NULL DEFAULT 'Content',
+        description TEXT NOT NULL,
+        entityType TEXT,
+        entityId TEXT,
+        actorEmail TEXT,
+        actorRole TEXT,
+        metadata TEXT,
+        createdAt DATETIME NOT NULL,
+        updatedAt DATETIME NOT NULL
+      );
+    `);
+    return;
   }
+
+  await queryInterface.createTable(tableName, {
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    action: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    scope: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "Content",
+    },
+    description: {
+      type: Sequelize.TEXT,
+      allowNull: false,
+    },
+    entityType: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    entityId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    actorEmail: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    actorRole: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    metadata: {
+      type: Sequelize.TEXT,
+      allowNull: true,
+    },
+    createdAt: {
+      type: Sequelize.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: Sequelize.DATE,
+      allowNull: false,
+    },
+  });
 };
 
 module.exports.down = async (queryInterface /*, Sequelize */) => {
+  const sequelize = queryInterface.sequelize;
+  const dialect = sequelize && typeof sequelize.getDialect === "function" ? sequelize.getDialect() : "sqlite";
+  if (dialect === "sqlite") {
+    await sequelize.query("DROP TABLE IF EXISTS AuditLogs;");
+    return;
+  }
   await queryInterface.dropTable("AuditLogs");
 };

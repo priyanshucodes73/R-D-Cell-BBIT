@@ -21,6 +21,13 @@ const homepageTextBlocks = [
     type: "text",
   },
   {
+    key: "accreditationBanner",
+    label: "Accreditation Banner",
+    description: "Small rounded banner shown on every page to highlight accreditation system.",
+    section: "header",
+    type: "text",
+  },
+  {
     key: "admissionHelpline",
     label: "Admission Helpline",
     description: "Phone numbers displayed in the header.",
@@ -1561,8 +1568,8 @@ function SlugPagesEditor({ block, setting, defaultValue, saving, onSave, onPubli
         typeof page.content === "string"
           ? page.content
           : page.content
-          ? JSON.stringify(page.content, null, 2)
-          : "<p>Write page content here.</p>",
+            ? JSON.stringify(page.content, null, 2)
+            : "<p>Write page content here.</p>",
     });
   }, [selectedSlug, draft]);
 
@@ -1759,7 +1766,7 @@ function SlugPagesEditor({ block, setting, defaultValue, saving, onSave, onPubli
 
               <div className="rounded-lg border bg-gray-50 p-4">
                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Preview</div>
-                <div className={`rounded-xl bg-gradient-to-r ${pageForm.gradient} p-5 text-white`}> 
+                <div className={`rounded-xl bg-gradient-to-r ${pageForm.gradient} p-5 text-white`}>
                   <h4 className="text-2xl font-bold">{pageForm.title || "Untitled Page"}</h4>
                   <p className="mt-1 text-sm opacity-90">{pageForm.subtitle || ""}</p>
                 </div>
