@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { FaSave, FaUpload, FaPlus, FaTrash } from 'react-icons/fa'
 import { fetchWithAuth } from '../../lib/auth'
 import { defaultPublicSettings } from '../../lib/siteSettings'
+import { idbGet, idbSet } from '../../lib/idb'
 
 const NAAC_CRITERIA = [
     'Institutional Vision, Mission & Goals',
@@ -92,7 +93,13 @@ export default function AccreditationDashboard() {
             setEvidence(typeof parsed === 'string' ? JSON.parse(parsed || '{}') : parsed)
         } catch (err) {
             console.error(err)
-            setEvidence({})
+            // Try loading cached draft from IndexedDB when offline
+            const cached = await idbGet('accreditationEvidence')
+            if (cached) {
+                setEvidence(typeof cached === 'string' ? JSON.parse(cached) : cached)
+            } else {
+                setEvidence({})
+            }
         } finally {
             setLoading(false)
         }
@@ -161,9 +168,13 @@ export default function AccreditationDashboard() {
                 throw new Error(d.error || 'Save failed')
             }
             alert('Saved draft')
+            // update local cache
+            idbSet('accreditationEvidence', evidence)
         } catch (err) {
             console.error(err)
-            alert(err.message || 'Failed to save')
+            // Save locally when offline
+            await idbSet('accreditationEvidence', evidence)
+            alert('Saved locally (offline). It will sync when online.')
         } finally {
             setSaving(false)
         }

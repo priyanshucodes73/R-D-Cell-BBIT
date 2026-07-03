@@ -3,9 +3,12 @@ const URLS_TO_CACHE = [
     '/',
     '/accreditation-intelligence',
     '/qr-verification',
+    '/download-app',
+    '/admin/accreditation-dashboard',
     '/manifest.json',
     '/icons/icon-192.svg',
     '/icons/icon-512.svg',
+    '/offline.html',
 ];
 
 self.addEventListener('install', (event) => {
@@ -23,6 +26,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
+    // Navigation requests: try network first, fallback to cache then offline page
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then((res) => {
+                    // put a copy in cache
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => { });
+                    return res;
+                })
+                .catch(() => caches.match(event.request).then((r) => r || caches.match('/offline.html')))
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) return cachedResponse;
@@ -33,7 +51,7 @@ self.addEventListener('fetch', (event) => {
                     caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone)).catch(() => { });
                     return networkResponse;
                 })
-                .catch(() => caches.match('/'));
+                .catch(() => caches.match('/offline.html'));
         })
     );
 });
