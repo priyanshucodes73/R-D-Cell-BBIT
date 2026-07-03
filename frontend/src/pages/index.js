@@ -55,6 +55,7 @@ import {
   FaCaretDown,
   FaCaretUp,
   FaInfoCircle,
+  FaDownload,
 } from "react-icons/fa";
 
 const navLinks = [
@@ -407,6 +408,12 @@ export default function Home({ fallback }) {
 
               {/* Right: Social Links */}
               <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
+                <Link href="/download-app">
+                  <a className="group relative mr-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-yellow-400 text-blue-950 font-semibold hover:bg-yellow-300 transition-all duration-200" aria-label="Download App">
+                    <FaDownload className="w-4 h-4" />
+                    <span className="hidden sm:inline text-xs">Download</span>
+                  </a>
+                </Link>
                 {editableSocialLinks.map((item) => (
                   <a
                     key={item.name}

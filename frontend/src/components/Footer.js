@@ -119,6 +119,12 @@ export default function Footer() {
                 </span>
               </a>
             ))}
+            <Link href="/download-app">
+              <a className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-yellow-400 text-blue-950 font-semibold hover:bg-yellow-300 transition" aria-label="Download App">
+                <FaDownload className="w-4 h-4" />
+                <span className="hidden sm:inline">Download</span>
+              </a>
+            </Link>
           </div>
         </div>
 
