@@ -109,16 +109,20 @@ function AppInstallBar() {
     const handler = (event) => {
       try { event.preventDefault() } catch (e) { }
       setPromptEvent(event)
+      setVisible(true)
     }
 
     const detectIos = () => {
       const ua = window.navigator.userAgent || ''
       const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream
-      setShowIosTip(isIos && !window.matchMedia('(display-mode: standalone)').matches)
+      const showTip = isIos && !window.matchMedia('(display-mode: standalone)').matches
+      setShowIosTip(showTip)
+      if (showTip) setVisible(true)
     }
 
     // Only show the install UI when the browser prompts or iOS tip applies
-    // this avoids a full-screen blocking modal on every page load
+    // this avoids a full-screen blocking modal on every page load. Visible
+    // will be enabled by the `beforeinstallprompt` handler or iOS detection.
     setVisible(false)
 
     window.addEventListener('beforeinstallprompt', handler)
