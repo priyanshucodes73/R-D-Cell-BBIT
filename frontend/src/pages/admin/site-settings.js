@@ -212,6 +212,13 @@ const jsonBlocks = [
     type: "json",
   },
   {
+    key: "openRouterApiKey",
+    label: "OpenRouter API Key",
+    description: "Server-side OpenRouter API key used by the AI proxy (secret). Only admins should edit this.",
+    section: "advanced",
+    type: "password",
+  },
+  {
     key: "libraryPage",
     label: "Library Page",
     description: "Library facilities, resources, and services.",
@@ -882,12 +889,21 @@ function TextSettingCard({ block, setting, defaultValue, saving, onSave, onPubli
           <p className="text-xs text-gray-500">{block.description}</p>
         </div>
       </div>
-      <textarea
-        rows="3"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-      />
+      {block.type === 'password' ? (
+        <input
+          type="password"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+        />
+      ) : (
+        <textarea
+          rows="3"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+        />
+      )}
       <div className="flex gap-3 flex-wrap mt-3">
         <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60">
           <FaSave /> {saving ? "Saving..." : "Save Draft"}

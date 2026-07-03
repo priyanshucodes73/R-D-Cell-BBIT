@@ -3103,7 +3103,16 @@ app.get("/", (req, res) => {
 // ===== AI Proxy Endpoint =====
 // POST /api/ai/chat { message: string }
 app.post("/api/ai/chat", async (req, res) => {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  let apiKey = process.env.OPENROUTER_API_KEY;
+  // If API key is not set in env, allow using an admin-published SiteSetting key 'openRouterApiKey'
+  if (!apiKey) {
+    try {
+      const siteKey = await SiteSetting.findOne({ where: { key: 'openRouterApiKey' } });
+      apiKey = siteKey?.publishedValue || siteKey?.draftValue || siteKey?.value || null;
+    } catch (e) {
+      console.warn('Could not read openRouterApiKey from SiteSetting', e && e.message ? e.message : e);
+    }
+  }
   const message = (req.body && req.body.message) ? String(req.body.message) : null;
   const history = Array.isArray(req.body?.history) ? req.body.history : [];
   if (!message) return res.status(400).json({ error: "Missing 'message' in request body" });
