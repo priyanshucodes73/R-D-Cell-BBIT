@@ -5,6 +5,7 @@ import AccreditationBanner from '../components/AccreditationBanner'
 import MobileBottomNav from '../components/MobileBottomNav'
 import { idbGet, idbDelete } from '../lib/idb'
 import { fetchWithAuth } from '../lib/auth'
+import { FaCut } from 'react-icons/fa'
 
 export default function MyApp({ Component, pageProps }) {
   const [isOnline, setIsOnline] = useState(true)
@@ -148,7 +149,7 @@ function AppInstallBar() {
             <p className="mt-1 text-xs leading-5 text-slate-600">Save the site to your home screen for quick access on mobile.</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <button aria-label="dismiss" title="Dismiss" onClick={() => { setVisible(false) }} className="rounded-full p-2 text-slate-600 hover:bg-slate-100">✂️</button>
+            <button aria-label="dismiss" title="Dismiss" onClick={() => { setVisible(false) }} className="rounded-full p-2 text-slate-600 hover:bg-slate-100"><FaCut /></button>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-950 text-white">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l4-4m-4 4l-4-4M4 20h16" />
