@@ -3,7 +3,6 @@ import Head from 'next/head'
 import '../styles/globals.css'
 import AccreditationBanner from '../components/AccreditationBanner'
 import MobileBottomNav from '../components/MobileBottomNav'
-import MobileLoginButton from '../components/MobileLoginButton'
 import { idbGet, idbDelete } from '../lib/idb'
 import { fetchWithAuth } from '../lib/auth'
 import { FaCut } from 'react-icons/fa'
@@ -95,7 +94,6 @@ export default function MyApp({ Component, pageProps }) {
       )}
       <AccreditationBanner />
       <Component {...pageProps} />
-      <MobileLoginButton />
       <MobileBottomNav />
     </>
   )

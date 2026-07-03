@@ -322,6 +322,11 @@ const sendVerificationEmail = async (email, verificationToken, firstName) => {
   };
 
   try {
+    // Ensure fetch is available in Node (node 18+ has global fetch)
+    if (typeof fetch === 'undefined') {
+      // eslint-disable-next-line global-require
+      global.fetch = require('node-fetch');
+    }
     await emailTransporter.sendMail(mailOptions);
     console.log(`Verification email sent to ${email}`);
     return true;
