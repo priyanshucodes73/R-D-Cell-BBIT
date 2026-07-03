@@ -15,6 +15,7 @@ export const defaultPublicSettings = {
     { name: "STUDENT SERVICES", href: "/student-services" },
     { name: "CAREER", href: "/career" },
     { name: "CONTACT US", href: "/contact-us" },
+    { name: "DOWNLOAD APP", href: "/download-app" },
   ],
   socialLinks: [
     { name: "Whatsapp", href: "#" },
