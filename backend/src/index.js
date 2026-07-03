@@ -3217,14 +3217,35 @@ app.post("/api/ai/chat", async (req, res) => {
 });
 
 // AI health endpoint
-app.get('/api/ai/health', (req, res) => {
-  const hasKey = Boolean(process.env.OPENROUTER_API_KEY);
-  res.json({ ok: true, hasKey });
+app.get('/api/ai/health', async (req, res) => {
+  try {
+    let hasKey = Boolean(process.env.OPENROUTER_API_KEY);
+    if (!hasKey) {
+      try {
+        const siteKey = await SiteSetting.findOne({ where: { key: 'openRouterApiKey' } });
+        const found = siteKey?.publishedValue || siteKey?.draftValue || siteKey?.value || null;
+        hasKey = Boolean(found);
+      } catch (e) {
+        console.warn('Health: could not read openRouterApiKey from SiteSetting', e && e.message ? e.message : e);
+      }
+    }
+    res.json({ ok: true, hasKey });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 // Lightweight provider connectivity check (performs a small test request)
 app.get('/api/ai/check-provider', async (req, res) => {
-  const apiKey = process.env.OPENROUTER_API_KEY
+  let apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    try {
+      const siteKey = await SiteSetting.findOne({ where: { key: 'openRouterApiKey' } });
+      apiKey = siteKey?.publishedValue || siteKey?.draftValue || siteKey?.value || null;
+    } catch (e) {
+      console.warn('check-provider: could not read openRouterApiKey from SiteSetting', e && e.message ? e.message : e);
+    }
+  }
   if (!apiKey) return res.status(500).json({ ok: false, error: 'OPENROUTER_API_KEY not configured' })
 
   try {
