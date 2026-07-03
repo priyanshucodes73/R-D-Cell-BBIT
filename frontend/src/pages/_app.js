@@ -101,7 +101,7 @@ export default function MyApp({ Component, pageProps }) {
 function AppInstallBar() {
   const [promptEvent, setPromptEvent] = useState(null)
   const [showIosTip, setShowIosTip] = useState(false)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -116,9 +116,8 @@ function AppInstallBar() {
       setShowIosTip(isIos && !window.matchMedia('(display-mode: standalone)').matches)
     }
 
-    // If user previously dismissed the promo, don't show
-    const dismissed = !!localStorage.getItem('hideInstallPromo')
-    setVisible(!dismissed)
+    // Show popup on every load/refresh (no persistent dismissal)
+    setVisible(true)
 
     window.addEventListener('beforeinstallprompt', handler)
     detectIos()
@@ -149,7 +148,7 @@ function AppInstallBar() {
             <p className="mt-1 text-xs leading-5 text-slate-600">Save the site to your home screen for quick access on mobile.</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <button aria-label="dismiss" title="Dismiss" onClick={() => { localStorage.setItem('hideInstallPromo', '1'); setVisible(false) }} className="rounded-full p-2 text-slate-600 hover:bg-slate-100">✂️</button>
+            <button aria-label="dismiss" title="Dismiss" onClick={() => { setVisible(false) }} className="rounded-full p-2 text-slate-600 hover:bg-slate-100">✂️</button>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-950 text-white">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l4-4m-4 4l-4-4M4 20h16" />

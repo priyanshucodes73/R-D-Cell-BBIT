@@ -703,60 +703,7 @@ export default function Home({ fallback }) {
           </div>
         </section>
 
-        {/* Accreditation Intelligence Section */}
-        <section className="max-w-6xl mx-auto mt-20 px-4">
-          <div className="rounded-[2rem] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] overflow-hidden">
-            <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white p-8 md:p-10">
-                <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">Accreditation Intelligence System</p>
-                <h2 className="mt-4 text-3xl md:text-4xl font-bold leading-tight">
-                  NBA & NAAC compliant website platform for college sales and institutional excellence.
-                </h2>
-                <p className="mt-4 text-white/80 leading-7 max-w-2xl">
-                  A turnkey website plus accreditation workflow colleges can purchase, brand, edit, and use independently.
-                  It combines public content, criterion-wise evidence, audit trails, and submission-ready exports in one system.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-3 text-sm">
-                  <span className="rounded-full bg-white/10 px-4 py-2">Editable by any college</span>
-                  <span className="rounded-full bg-white/10 px-4 py-2">Draft + publish workflow</span>
-                  <span className="rounded-full bg-white/10 px-4 py-2">Evidence ZIP export</span>
-                  <span className="rounded-full bg-white/10 px-4 py-2">Audit logs</span>
-                </div>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Link href="/accreditation-intelligence">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-5 py-3 font-bold text-blue-950 shadow-lg hover:bg-yellow-300 transition cursor-pointer">
-                      Explore all features
-                      <FaArrowRight />
-                    </span>
-                  </Link>
-                  <Link href="/admin/accreditation-dashboard">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 font-semibold text-white hover:bg-white/15 transition cursor-pointer">
-                      Open admin dashboard
-                    </span>
-                  </Link>
-                </div>
-              </div>
-              <div className="p-8 md:p-10 bg-slate-50">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    ["Public website", "Homepage, about, programs, faculty, research, news"],
-                    ["Criterion mapping", "Vision, governance, teaching, research, resources, support"],
-                    ["Admin control", "Edit text, upload files, save draft, publish"],
-                    ["Submission bundle", "Auto-export JSON + uploads in ZIP format"],
-                  ].map(([title, desc]) => (
-                    <div key={title} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                      <p className="text-sm font-bold text-slate-900">{title}</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">{desc}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-5 text-sm leading-6 text-slate-700">
-                  Colleges can purchase this as a branded institutional website with an accreditation-ready workflow, then customize every section themselves.
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Accreditation Intelligence Section removed per request */}
 
         {/* BBIT Achievements Banner */}
         <section className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-16 mt-0">
