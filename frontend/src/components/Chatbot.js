@@ -20,6 +20,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [panelVisible, setPanelVisible] = useState(false);
   const chatEndRef = useRef(null);
   const loadingTimerRef = useRef(null);
 
@@ -59,6 +60,15 @@ export default function Chatbot() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (open) setPanelVisible(true);
+    else {
+      // delay hiding to allow close animation
+      const t = setTimeout(() => setPanelVisible(false), 220);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open && chatEndRef.current) {
@@ -111,7 +121,7 @@ export default function Chatbot() {
     setTyping(true);
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005";
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const history = toApiHistory(messages);
       const response = await fetch(`${apiBase}/api/ai/chat`, {
         method: "POST",
@@ -123,6 +133,11 @@ export default function Chatbot() {
         const payload = await response.json();
         const reply = payload?.reply || (payload.raw ? JSON.stringify(payload.raw).slice(0, 1000) : "(no reply)");
         pushBotReply(reply);
+        return;
+      } else {
+        const text = await response.text().catch(() => "(no body)");
+        console.error("AI provider returned non-OK", response.status, text);
+        pushBotReply(`AI provider error ${response.status}: ${text}`);
         return;
       }
     } catch (error) {
@@ -149,19 +164,29 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed z-60 right-4 bottom-20 md:bottom-6 flex flex-col items-end">
+    <div className="fixed z-60 right-4 bottom-28 md:bottom-6 flex flex-col items-end">
       {!open && (
-        <button
-          className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black rounded-full p-3 shadow-2xl ring-8 ring-yellow-300/60 hover:scale-105 transform transition lg:animate-pulse"
-          onClick={() => setOpen(true)}
-          aria-label="Open chatbot"
-        >
-          <FaRobot className="w-7 h-7 text-white drop-shadow-md" />
-        </button>
+        <div className="relative flex items-center justify-end">
+          <button
+            className="group relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black rounded-full p-3 shadow-2xl hover:scale-105 transform transition-all duration-200"
+            onClick={() => setOpen(true)}
+            aria-label="Open AI chat"
+          >
+            <div className="absolute -top-12 right-0 hidden sm:flex items-center">
+              <div className="bg-white/90 text-xs text-slate-800 font-semibold px-3 py-1 rounded-full shadow-sm transform transition-all duration-200 opacity-0 group-hover:opacity-100">
+                AI Chat
+              </div>
+            </div>
+
+            <span className="absolute inset-0 rounded-full bg-yellow-400 opacity-20 blur-lg"></span>
+            <span className="absolute -inset-1 rounded-full opacity-30 animate-ping" style={{ animationDuration: '1.8s' }} />
+            <FaRobot className="w-7 h-7 text-white drop-shadow-md relative z-10" />
+          </button>
+        </div>
       )}
 
-      {open && (
-        <div className="w-96 max-w-sm bg-white rounded-2xl shadow-[0_20px_60px_rgba(250,204,21,0.14)] border border-yellow-300 flex flex-col overflow-hidden">
+      {panelVisible && (
+        <div className={`w-96 max-w-sm bg-white rounded-2xl shadow-[0_20px_60px_rgba(250,204,21,0.14)] border border-yellow-300 flex flex-col overflow-hidden transform transition-all duration-220 ${open ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'}`}>
           <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 text-black flex items-center justify-between px-4 py-3 font-semibold text-lg">
             <div className="flex items-center gap-3">
               <img
