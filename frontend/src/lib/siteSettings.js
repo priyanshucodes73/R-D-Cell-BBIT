@@ -36,6 +36,7 @@ export const defaultPublicSettings = {
     { name: "PLACEMENTS", href: "/placements" },
     { name: "RESEARCH & DEVELOPMENT", href: "/research-innovation" },
     { name: "ACCREDITATION", href: "/accreditation-intelligence" },
+    { name: "QR VERIFY", href: "/qr-verification" },
   ],
   heroSlides: [
     {

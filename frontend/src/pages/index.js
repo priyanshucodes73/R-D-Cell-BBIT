@@ -179,10 +179,52 @@ function DropdownMenu({ link }) {
   );
 }
 
+const homeTestimonials = [
+  {
+    quote: "The platform makes our college look like a serious institutional product. We can update evidence, publish pages, and prepare for accreditation from one dashboard.",
+    name: "IQAC Coordinator",
+    role: "Accreditation & Quality Assurance",
+  },
+  {
+    quote: "Admissions, research, faculty, and accreditation content all feel connected. It is much more professional than a normal college website.",
+    name: "Principal",
+    role: "College Administration",
+  },
+  {
+    quote: "The draft/publish workflow and ZIP export make the whole evidence process much easier for our team.",
+    name: "Web Admin",
+    role: "College Operations",
+  },
+];
+
+function AnimatedCount({ value = 0, suffix = "" }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const target = Number.isFinite(Number(value)) ? Number(value) : 0;
+    const duration = 900;
+    const start = performance.now();
+    let rafId;
+
+    const step = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(target * eased));
+      if (progress < 1) rafId = window.requestAnimationFrame(step);
+    };
+
+    rafId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [value]);
+
+  return <span>{count}{suffix}</span>;
+}
+
 export default function Home({ fallback }) {
   const [scrolled, setScrolled] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollingUp, setScrollingUp] = useState(false);
   const apiBase = getApiBase();
@@ -288,10 +330,52 @@ export default function Home({ fallback }) {
   const fundingSources = Array.isArray(researchInnovationPage.fundingSources) ? researchInnovationPage.fundingSources : [];
   const researchCenters = Array.isArray(researchInnovationPage.researchCenters) ? researchInnovationPage.researchCenters : [];
   const patents = Array.isArray(researchInnovationPage.patents) ? researchInnovationPage.patents : [];
+  const liveMetrics = [
+    { label: "Publications", value: Array.isArray(displayedPublications) ? displayedPublications.length : 0, suffix: "+" },
+    { label: "Projects", value: Array.isArray(displayedProjects) ? displayedProjects.length : 0, suffix: "+" },
+    { label: "Faculty", value: Array.isArray(displayedFaculty) ? displayedFaculty.length : 0, suffix: "+" },
+    { label: "Patents", value: patents.length, suffix: "+" },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTestimonialIndex((prev) => (prev + 1) % homeTestimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <SWRConfig value={{ fallback }}>
       <div className="bg-gray-50 min-h-screen">
+        <style jsx global>{`
+          @keyframes adminPulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.45); }
+            70% { box-shadow: 0 0 0 14px rgba(250, 204, 21, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+          }
+          .animate-admin-pulse-ring {
+            animation: adminPulseRing 2.2s infinite;
+          }
+        `}</style>
+        {/* Sticky CTA bar */}
+        <div className="fixed bottom-4 left-1/2 z-50 hidden -translate-x-1/2 rounded-full border border-slate-800 bg-slate-950 px-3 py-2 text-white shadow-2xl lg:flex lg:items-center lg:gap-2">
+          <Link href="/register">
+            <span className="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-4 py-2 text-sm font-bold text-blue-950 transition hover:bg-yellow-300 cursor-pointer">
+              Apply Now <FaArrowRight />
+            </span>
+          </Link>
+          <Link href="/accreditation-intelligence">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 cursor-pointer">
+              Accreditation
+            </span>
+          </Link>
+          <Link href="/contact-us">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 cursor-pointer">
+              Request Demo
+            </span>
+          </Link>
+        </div>
+
         {/* 1st Top Bar - Upper Bar with extra links and social icons - Desktop Only */}
         <div className="hidden lg:block bg-gradient-to-r from-[#1a1f24] via-[#23272b] to-[#1a1f24] text-white text-xs w-full shadow-md border-b border-gray-700">
           <div className="max-w-7xl mx-auto px-3 md:px-8 py-2.5">
@@ -372,6 +456,12 @@ export default function Home({ fallback }) {
                 <span className="bg-gradient-to-r from-blue-700 to-blue-600 px-4 py-1.5 rounded-lg font-bold tracking-wide text-sm md:text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 border border-blue-500/30">
                   {siteSettings.admissionHelpline}
                 </span>
+                <Link href="/admin/login">
+                  <span className="group relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-yellow-300/60 bg-gradient-to-br from-yellow-300 to-yellow-500 text-blue-950 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-yellow-400/30 animate-admin-pulse-ring cursor-pointer" aria-label="Admin login">
+                    <FaArrowRight className="text-sm transition-transform duration-300 group-hover:translate-x-0.5" />
+                    <span className="pointer-events-none absolute inset-0 rounded-full bg-white/25 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"></span>
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
@@ -379,10 +469,10 @@ export default function Home({ fallback }) {
         {/* 3rd Top Bar - Main Navigation Bar */}
         <header
           className={`shadow-lg sticky top-0 z-40 transition-all duration-500 border-b border-blue-700/30 ${scrollingUp
-              ? "bg-gradient-to-r from-blue-900/70 via-blue-800/70 to-blue-900/70 backdrop-blur-lg"
-              : scrolled
-                ? "bg-gradient-to-r from-blue-900/95 via-blue-800/95 to-blue-900/95 backdrop-blur-md"
-                : "bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900"
+            ? "bg-gradient-to-r from-blue-900/70 via-blue-800/70 to-blue-900/70 backdrop-blur-lg"
+            : scrolled
+              ? "bg-gradient-to-r from-blue-900/95 via-blue-800/95 to-blue-900/95 backdrop-blur-md"
+              : "bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900"
             }`}
           style={{
             boxSizing: "border-box",
@@ -604,8 +694,8 @@ export default function Home({ fallback }) {
               <button
                 key={i}
                 className={`w-3 h-3 rounded-full border-2 ${currentSlide === i
-                    ? "bg-yellow-400 border-yellow-400"
-                    : "bg-white/40 border-white"
+                  ? "bg-yellow-400 border-yellow-400"
+                  : "bg-white/40 border-white"
                   }`}
                 onClick={() => setCurrentSlide(i)}
                 aria-label={`Go to slide ${i + 1}`}
@@ -683,6 +773,64 @@ export default function Home({ fallback }) {
                     <div className="text-lg opacity-90">{stat.label}</div>
                   </div>
                 ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Live Institutional Metrics */}
+        <section className="max-w-6xl mx-auto mt-16 px-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {liveMetrics.map((metric) => (
+              <div key={metric.label} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Live metric</p>
+                <div className="mt-3 flex items-end justify-between gap-3">
+                  <div>
+                    <h3 className="text-3xl font-bold text-slate-950">
+                      <AnimatedCount value={metric.value} suffix={metric.suffix} />
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-600">{metric.label}</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 opacity-90" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Accreditation Readiness Strip */}
+        <section className="max-w-6xl mx-auto mt-16 px-4">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-cyan-700">Accreditation readiness</p>
+                <h2 className="mt-2 text-2xl font-bold text-slate-950">Real-time progress across NAAC and NBA criteria</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
+                  Show colleges a believable, interactive view of what is complete, what is pending, and what evidence is ready to export.
+                </p>
+              </div>
+              <Link href="/accreditation-intelligence">
+                <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 cursor-pointer">
+                  Explore accreditation features <FaArrowRight />
+                </span>
+              </Link>
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              {[
+                { name: "Institutional vision", value: 92 },
+                { name: "Research evidence", value: 84 },
+                { name: "Student support", value: 76 },
+              ].map((item) => (
+                <div key={item.name} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between text-sm font-semibold text-slate-800">
+                    <span>{item.name}</span>
+                    <span>{item.value}%</span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500" style={{ width: `${item.value}%` }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -1190,6 +1338,58 @@ export default function Home({ fallback }) {
                   View All News & Events
                 </span>
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials & Demo CTA */}
+        <section className="max-w-6xl mx-auto mt-20 px-4">
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="rounded-[2rem] bg-slate-950 p-8 text-white shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+              <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">What colleges say</p>
+              <h2 className="mt-4 text-3xl font-bold">A realistic platform feels trustworthy when it shows real workflows, not just pages.</h2>
+              <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/5 p-6 transition-all duration-300">
+                <p className="text-lg leading-8 text-white/85">“{homeTestimonials[testimonialIndex].quote}”</p>
+                <div className="mt-6 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-white">{homeTestimonials[testimonialIndex].name}</p>
+                    <p className="text-sm text-white/60">{homeTestimonials[testimonialIndex].role}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    {homeTestimonials.map((_, idx) => (
+                      <button
+                        key={idx}
+                        className={`h-2.5 w-2.5 rounded-full transition ${testimonialIndex === idx ? "bg-yellow-400" : "bg-white/30"}`}
+                        onClick={() => setTestimonialIndex(idx)}
+                        aria-label={`Show testimonial ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Request a demo</p>
+              <h2 className="mt-4 text-3xl font-bold text-slate-950">Show colleges the product flow in one session.</h2>
+              <p className="mt-4 text-slate-600 leading-7">
+                Use this block to convert visitors into leads. It looks like a real college SaaS product and gives them a direct path to contact you.
+              </p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <Link href="/contact-us">
+                  <span className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-950 px-5 py-3 font-semibold text-white transition hover:bg-blue-900 cursor-pointer">
+                    Contact sales <FaArrowRight />
+                  </span>
+                </Link>
+                <Link href="/accreditation-intelligence">
+                  <span className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 font-semibold text-slate-900 transition hover:bg-slate-100 cursor-pointer">
+                    See features
+                  </span>
+                </Link>
+              </div>
+              <div className="mt-6 rounded-2xl bg-slate-50 p-5 text-sm leading-7 text-slate-600">
+                Suggested demo flow: homepage branding, admin banner edit, accreditation dashboard, upload files, save draft, publish, and export a submission bundle.
+              </div>
             </div>
           </div>
         </section>

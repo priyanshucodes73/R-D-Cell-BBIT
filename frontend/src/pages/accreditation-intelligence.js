@@ -1,5 +1,6 @@
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { FaArrowRight, FaCheckCircle, FaCloudUploadAlt, FaDownload, FaEdit, FaFileExport, FaGlobe, FaShieldAlt, FaSortAmountDownAlt, FaSyncAlt, FaUniversity, FaUsers, FaTasks } from "react-icons/fa";
+import { FaArrowRight, FaCheckCircle, FaCloudUploadAlt, FaGlobe, FaShieldAlt, FaUniversity, FaUsers, FaTasks, FaRegDotCircle } from "react-icons/fa";
 
 const featureGroups = [
     {
@@ -30,6 +31,7 @@ const featureGroups = [
             "Evidence title and description fields",
             "Automated ZIP bundle generation",
             "Published links for supporting proof",
+            "QR verification for certificates and notices",
         ],
     },
     {
@@ -76,6 +78,10 @@ const criteria = [
 ];
 
 export default function AccreditationIntelligencePage() {
+    const [activeFocus, setActiveFocus] = useState(featureGroups[0].title);
+    const activeGroup = useMemo(() => featureGroups.find((group) => group.title === activeFocus) || featureGroups[0], [activeFocus]);
+    const ActiveIcon = activeGroup.icon;
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
             <section className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
@@ -98,6 +104,64 @@ export default function AccreditationIntelligencePage() {
                                 Back to website
                             </span>
                         </Link>
+                    </div>
+                </div>
+            </section>
+
+            <section className="mx-auto max-w-7xl px-4 pb-4 md:px-8">
+                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Feature spotlight</p>
+                            <h2 className="mt-2 text-2xl font-bold text-slate-950">Pick a module to preview how the platform feels.</h2>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {featureGroups.map((group) => (
+                                <button
+                                    key={group.title}
+                                    type="button"
+                                    onClick={() => setActiveFocus(group.title)}
+                                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeFocus === group.title ? "bg-blue-950 text-white shadow" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                                >
+                                    {group.title}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+                        <div className="rounded-[1.5rem] bg-slate-950 p-6 text-white">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
+                                    <ActiveIcon />
+                                </div>
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">Selected module</p>
+                                    <h3 className="text-xl font-bold">{activeGroup.title}</h3>
+                                </div>
+                            </div>
+                            <div className="mt-5 space-y-3 text-sm leading-7 text-white/80">
+                                {activeGroup.items.map((item) => (
+                                    <div key={item} className="flex gap-3 rounded-2xl bg-white/5 px-4 py-3">
+                                        <FaRegDotCircle className="mt-1 shrink-0 text-cyan-300" />
+                                        <span>{item}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {[
+                                ["Admin-ready", "Non-technical staff can edit and publish content."],
+                                ["Submission focused", "Evidence can be exported into one bundle."],
+                                ["Interactive", "Hover cards, progress, and live-state UI."],
+                                ["Sales-friendly", "Looks like a real institutional product."],
+                            ].map(([title, desc]) => (
+                                <div key={title} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                                    <p className="font-bold text-slate-900">{title}</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600">{desc}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -174,6 +238,25 @@ export default function AccreditationIntelligencePage() {
                     <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
                         <div>
                             <p className="text-xs uppercase tracking-[0.3em] text-yellow-300">Why colleges buy it</p>
+
+                    <section className="mx-auto max-w-7xl px-4 pb-16 md:px-8">
+                        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Trust layer</p>
+                                    <h2 className="mt-2 text-3xl font-bold text-slate-950">QR verification for official documents</h2>
+                                    <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
+                                        Put QR codes on notices, certificates, and accreditation evidence so anyone can verify them from a public page.
+                                    </p>
+                                </div>
+                                <Link href="/qr-verification">
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 font-semibold text-white transition hover:bg-slate-800 cursor-pointer">
+                                        Open QR page <FaArrowRight />
+                                    </span>
+                                </Link>
+                            </div>
+                        </div>
+                    </section>
                             <h2 className="mt-4 text-3xl font-bold">A website they can purchase, customize, and use as an accreditation-ready institutional platform.</h2>
                             <p className="mt-4 max-w-3xl text-white/85 leading-7">
                                 It is not just a site theme. It is a ready-made college web system with accreditation intelligence, evidence workflows, admin controls, and a professional public presence.
