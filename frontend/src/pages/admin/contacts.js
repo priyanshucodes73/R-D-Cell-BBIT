@@ -123,61 +123,63 @@ export default function ContactsManager() {
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredContacts.map((contact) => (
-              <div key={contact.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {contact.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-800">{contact.name}</h3>
-                        <p className="text-sm text-gray-600">{contact.subject}</p>
-                      </div>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <FaEnvelope className="text-blue-600" />
-                        <span>{contact.email}</span>
-                      </div>
-                      {contact.phone && (
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <FaPhone className="text-green-600" />
-                          <span>{contact.phone}</span>
+          <div className="table-wrap">
+            <div className="space-y-4 responsive-cards">
+              {filteredContacts.map((contact) => (
+                <div key={contact.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          {contact.name.charAt(0).toUpperCase()}
                         </div>
-                      )}
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-800">{contact.name}</h3>
+                          <p className="text-sm text-gray-600">{contact.subject}</p>
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <FaEnvelope className="text-blue-600" />
+                          <span>{contact.email}</span>
+                        </div>
+                        {contact.phone && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <FaPhone className="text-green-600" />
+                            <span>{contact.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-3 line-clamp-2">{contact.message}</p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        Submitted: {new Date(contact.createdAt).toLocaleString()}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500 mt-3 line-clamp-2">{contact.message}</p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Submitted: {new Date(contact.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => setSelectedContact(contact)}
-                      className="p-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
-                      title="View Details"
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(contact.id)}
-                      className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                      title="Delete"
-                    >
-                      <FaTrash />
-                    </button>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => setSelectedContact(contact)}
+                        className="p-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
+                        title="View Details"
+                      >
+                        <FaEye />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(contact.id)}
+                        className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                        title="Delete"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {filteredContacts.length === 0 && (
-              <div className="rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-lg text-slate-500">No contact inquiries found</p>
-              </div>
-            )}
+              ))}
+              {filteredContacts.length === 0 && (
+                <div className="rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                  <p className="text-lg text-slate-500">No contact inquiries found</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

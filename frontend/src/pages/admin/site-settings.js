@@ -705,77 +705,79 @@ export default function SiteSettingsPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4">
-                {heroSlidesDraft.map((slide, index) => (
-                  <div key={`${slide.title || "slide"}-${index}`} className="rounded-2xl border bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm">
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Slide {index + 1}</h3>
-                        <p className="text-xs text-gray-500">Edit the image and CTA used in the homepage carousel.</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeHeroSlide(index)}
-                        className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-sm"
-                      >
-                        <FaTrash /> Remove
-                      </button>
-                    </div>
-
-                    <div className="grid lg:grid-cols-[230px_1fr] gap-4">
-                      <div className="space-y-3">
-                        <div className="aspect-[4/3] rounded-xl bg-white border overflow-hidden flex items-center justify-center shadow-inner">
-                          {slide.image ? (
-                            <img src={slide.image} alt={slide.title || `Slide ${index + 1}`} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="text-center text-gray-400 px-4">
-                              <FaImage className="mx-auto mb-2 text-2xl" />
-                              No image selected
-                            </div>
-                          )}
+              <div className="table-wrap">
+                <div className="grid gap-4 responsive-cards">
+                  {heroSlidesDraft.map((slide, index) => (
+                    <div key={`${slide.title || "slide"}-${index}`} className="rounded-2xl border bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">Slide {index + 1}</h3>
+                          <p className="text-xs text-gray-500">Edit the image and CTA used in the homepage carousel.</p>
                         </div>
-                        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium w-full justify-center">
-                          <FaUpload /> {uploadingIndex === index ? "Uploading..." : "Upload Image"}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            disabled={uploadingIndex === index}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0] || null;
-                              if (!file) return;
-                              try {
-                                setUploadingIndex(index);
-                                const url = await uploadMedia(file);
-                                updateHeroSlide(index, "image", url);
-                              } catch (error) {
-                                alert(error.message || "Failed to upload image");
-                              } finally {
-                                setUploadingIndex(null);
-                              }
-                            }}
-                          />
-                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removeHeroSlide(index)}
+                          className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-sm"
+                        >
+                          <FaTrash /> Remove
+                        </button>
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <InputField label="Image URL" value={slide.image || ""} onChange={(value) => updateHeroSlide(index, "image", value)} placeholder="/slides/hero-1.jpg" />
-                        <InputField label="Title" value={slide.title || ""} onChange={(value) => updateHeroSlide(index, "title", value)} placeholder="Slide title" />
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Subtitle</label>
-                          <textarea
-                            rows="3"
-                            value={slide.subtitle || ""}
-                            onChange={(e) => updateHeroSlide(index, "subtitle", e.target.value)}
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                          />
+                      <div className="grid lg:grid-cols-[230px_1fr] gap-4">
+                        <div className="space-y-3">
+                          <div className="aspect-[4/3] rounded-xl bg-white border overflow-hidden flex items-center justify-center shadow-inner">
+                            {slide.image ? (
+                              <img src={slide.image} alt={slide.title || `Slide ${index + 1}`} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="text-center text-gray-400 px-4">
+                                <FaImage className="mx-auto mb-2 text-2xl" />
+                                No image selected
+                              </div>
+                            )}
+                          </div>
+                          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium w-full justify-center">
+                            <FaUpload /> {uploadingIndex === index ? "Uploading..." : "Upload Image"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={uploadingIndex === index}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0] || null;
+                                if (!file) return;
+                                try {
+                                  setUploadingIndex(index);
+                                  const url = await uploadMedia(file);
+                                  updateHeroSlide(index, "image", url);
+                                } catch (error) {
+                                  alert(error.message || "Failed to upload image");
+                                } finally {
+                                  setUploadingIndex(null);
+                                }
+                              }}
+                            />
+                          </label>
                         </div>
-                        <InputField label="CTA Label" value={slide.ctaLabel || ""} onChange={(value) => updateHeroSlide(index, "ctaLabel", value)} placeholder="Read More" />
-                        <InputField label="CTA Link" value={slide.ctaHref || ""} onChange={(value) => updateHeroSlide(index, "ctaHref", value)} placeholder="/innovation-entrepreneurship" />
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <InputField label="Image URL" value={slide.image || ""} onChange={(value) => updateHeroSlide(index, "image", value)} placeholder="/slides/hero-1.jpg" />
+                          <InputField label="Title" value={slide.title || ""} onChange={(value) => updateHeroSlide(index, "title", value)} placeholder="Slide title" />
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Subtitle</label>
+                            <textarea
+                              rows="3"
+                              value={slide.subtitle || ""}
+                              onChange={(e) => updateHeroSlide(index, "subtitle", e.target.value)}
+                              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <InputField label="CTA Label" value={slide.ctaLabel || ""} onChange={(value) => updateHeroSlide(index, "ctaLabel", value)} placeholder="Read More" />
+                          <InputField label="CTA Link" value={slide.ctaHref || ""} onChange={(value) => updateHeroSlide(index, "ctaHref", value)} placeholder="/innovation-entrepreneurship" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               <button

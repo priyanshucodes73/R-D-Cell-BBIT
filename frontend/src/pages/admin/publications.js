@@ -360,11 +360,12 @@ export default function PublicationsManager() {
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredPublications.map((pub) => (
-              <div key={pub.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+          <div className="table-wrap">
+            <div className="space-y-4 responsive-cards">
+              {filteredPublications.map((pub) => (
+                <div key={pub.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
                       <div className="flex items-start gap-4">
                         {pub.imageUrl ? (
                           <img src={pub.imageUrl} alt={pub.title} className="h-20 w-20 object-cover rounded-md mr-4" />
@@ -377,37 +378,38 @@ export default function PublicationsManager() {
                           {pub.impactFactor && <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-semibold">IF: {pub.impactFactor}</span>}
                         </div>
                       </div>
-                    <p className="text-gray-600 mb-2"><strong>Authors:</strong> {pub.authors}</p>
-                    <p className="text-gray-600 mb-2"><strong>Journal:</strong> {pub.journal}</p>
-                    <div className="flex gap-4 text-sm text-gray-500">
-                      <span>📅 {pub.year}</span>
-                      <span>📊 {pub.type}</span>
-                      {pub.doi && <span>🔗 DOI: {pub.doi}</span>}
-                      <span>📈 Citations: {pub.citation_count}</span>
+                      <p className="text-gray-600 mb-2"><strong>Authors:</strong> {pub.authors}</p>
+                      <p className="text-gray-600 mb-2"><strong>Journal:</strong> {pub.journal}</p>
+                      <div className="flex gap-4 text-sm text-gray-500">
+                        <span>📅 {pub.year}</span>
+                        <span>📊 {pub.type}</span>
+                        {pub.doi && <span>🔗 DOI: {pub.doi}</span>}
+                        <span>📈 Citations: {pub.citation_count}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEdit(pub)}
+                        className="p-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(pub.id)}
+                        className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(pub)}
-                      className="p-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(pub.id)}
-                      className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))}
-            {filteredPublications.length === 0 && (
-              <div className="rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-lg text-slate-500">No publications found</p>
-              </div>
-            )}
+              ))}
+              {filteredPublications.length === 0 && (
+                <div className="rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                  <p className="text-lg text-slate-500">No publications found</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

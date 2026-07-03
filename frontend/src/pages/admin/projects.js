@@ -364,63 +364,64 @@ export default function ProjectsManager() {
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {filteredProjects.map((proj) => (
-              <div key={proj.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4">
-                    {proj.imageUrl ? (
-                      <img src={proj.imageUrl} alt={proj.title} className="h-16 w-16 object-cover rounded-md mr-2" />
-                    ) : (
-                      <div className="h-16 w-16 bg-gray-100 rounded-md mr-2 flex items-center justify-center text-xs text-gray-400">No Img</div>
-                    )}
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800">{proj.title}</h3>
-                      {proj.featured && <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">Featured</span>}
+          <div className="table-wrap">
+            <div className="grid md:grid-cols-2 gap-4 responsive-cards">
+              {filteredProjects.map((proj) => (
+                <div key={proj.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start gap-4">
+                      {proj.imageUrl ? (
+                        <img src={proj.imageUrl} alt={proj.title} className="h-16 w-16 object-cover rounded-md mr-2" />
+                      ) : (
+                        <div className="h-16 w-16 bg-gray-100 rounded-md mr-2 flex items-center justify-center text-xs text-gray-400">No Img</div>
+                      )}
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-800">{proj.title}</h3>
+                        {proj.featured && <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">Featured</span>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(proj)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(proj.id)}
+                        className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(proj)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(proj.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
+                  <p className="text-gray-600 text-sm mb-2">
+                    <strong>PI:</strong> {proj.principal_investigator}
+                  </p>
+                  <p className="text-gray-600 text-sm mb-2">
+                    <strong>Agency:</strong> {proj.funding_agency}
+                  </p>
+                  <p className="text-gray-600 text-sm mb-2">
+                    <strong>Amount:</strong> {proj.amount}
+                  </p>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${proj.status === "Ongoing"
+                        ? "bg-green-100 text-green-800"
+                        : proj.status === "Completed"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                  >
+                    {proj.status}
+                  </span>
                 </div>
-                <p className="text-gray-600 text-sm mb-2">
-                  <strong>PI:</strong> {proj.principal_investigator}
-                </p>
-                <p className="text-gray-600 text-sm mb-2">
-                  <strong>Agency:</strong> {proj.funding_agency}
-                </p>
-                <p className="text-gray-600 text-sm mb-2">
-                  <strong>Amount:</strong> {proj.amount}
-                </p>
-                <span
-                  className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                    proj.status === "Ongoing"
-                      ? "bg-green-100 text-green-800"
-                      : proj.status === "Completed"
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {proj.status}
-                </span>
-              </div>
-            ))}
-            {filteredProjects.length === 0 && (
-              <div className="col-span-2 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-lg text-slate-500">No projects found</p>
-              </div>
-            )}
+              ))}
+              {filteredProjects.length === 0 && (
+                <div className="col-span-2 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                  <p className="text-lg text-slate-500">No projects found</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

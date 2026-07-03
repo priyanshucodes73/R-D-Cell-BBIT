@@ -275,63 +275,64 @@ export default function PatentsManager() {
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filteredPatents.map((patent) => (
-              <div key={patent.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        patent.status === "Granted"
-                          ? "bg-green-100 text-green-800"
-                          : patent.status === "Published"
-                          ? "bg-blue-100 text-blue-800"
-                          : patent.status === "Filed"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {patent.status}
-                    </span>
-                    <h3 className="text-lg font-bold text-gray-800 mt-3">{patent.title}</h3>
-                    <p className="text-sm text-gray-600 mt-2">
-                      <strong>Inventors:</strong> {patent.inventors}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Application No:</strong> {patent.application_number}
-                    </p>
-                    {patent.patent_number && (
-                      <p className="text-sm text-gray-600">
-                        <strong>Patent No:</strong> {patent.patent_number}
+          <div className="table-wrap">
+            <div className="grid gap-4 md:grid-cols-2 responsive-cards">
+              {filteredPatents.map((patent) => (
+                <div key={patent.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${patent.status === "Granted"
+                            ? "bg-green-100 text-green-800"
+                            : patent.status === "Published"
+                              ? "bg-blue-100 text-blue-800"
+                              : patent.status === "Filed"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
+                          }`}
+                      >
+                        {patent.status}
+                      </span>
+                      <h3 className="text-lg font-bold text-gray-800 mt-3">{patent.title}</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        <strong>Inventors:</strong> {patent.inventors}
                       </p>
-                    )}
-                    <div className="flex gap-4 text-xs text-gray-500 mt-3">
-                      <span>📅 Filed: {patent.filing_date}</span>
-                      {patent.grant_date && <span>✅ Granted: {patent.grant_date}</span>}
+                      <p className="text-sm text-gray-600">
+                        <strong>Application No:</strong> {patent.application_number}
+                      </p>
+                      {patent.patent_number && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Patent No:</strong> {patent.patent_number}
+                        </p>
+                      )}
+                      <div className="flex gap-4 text-xs text-gray-500 mt-3">
+                        <span>📅 Filed: {patent.filing_date}</span>
+                        {patent.grant_date && <span>✅ Granted: {patent.grant_date}</span>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEdit(patent)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(patent.id)}
+                        className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(patent)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(patent.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))}
-            {filteredPatents.length === 0 && (
-              <div className="col-span-2 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-lg text-slate-500">No patents found</p>
-              </div>
-            )}
+              ))}
+              {filteredPatents.length === 0 && (
+                <div className="col-span-2 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                  <p className="text-lg text-slate-500">No patents found</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

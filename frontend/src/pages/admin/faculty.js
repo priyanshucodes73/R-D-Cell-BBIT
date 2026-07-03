@@ -323,44 +323,46 @@ export default function FacultyManager() {
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-purple-600" />
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredFaculty.map((f) => (
-              <div key={f.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                    {f.name.charAt(0)}
+          <div className="table-wrap">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 responsive-cards">
+              {filteredFaculty.map((f) => (
+                <div key={f.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                      {f.name.charAt(0)}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(f)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(f.id)}
+                        className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(f)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(f.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                    >
-                      <FaTrash />
-                    </button>
+                  <h3 className="text-lg font-bold text-gray-800">{f.name}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{f.designation}</p>
+                  <p className="text-sm text-gray-600 mb-2">{f.department}</p>
+                  <p className="text-sm text-blue-600 mb-2">{f.email}</p>
+                  <div className="flex gap-4 text-xs text-gray-500 mt-3">
+                    <span>📚 {f.publications || f.publications_count || 0} Pubs</span>
+                    <span>📊 {f.projects || f.projects_count || 0} Projects</span>
+                    <span>⏱️ {f.experience || f.experience_years || 0}y Exp</span>
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800">{f.name}</h3>
-                <p className="text-sm text-gray-600 mb-2">{f.designation}</p>
-                <p className="text-sm text-gray-600 mb-2">{f.department}</p>
-                <p className="text-sm text-blue-600 mb-2">{f.email}</p>
-                <div className="flex gap-4 text-xs text-gray-500 mt-3">
-                  <span>📚 {f.publications || f.publications_count || 0} Pubs</span>
-                  <span>📊 {f.projects || f.projects_count || 0} Projects</span>
-                  <span>⏱️ {f.experience || f.experience_years || 0}y Exp</span>
+              ))}
+              {filteredFaculty.length === 0 && (
+                <div className="col-span-3 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                  <p className="text-lg text-slate-500">No faculty members found</p>
                 </div>
-              </div>
-            ))}
-            {filteredFaculty.length === 0 && (
-              <div className="col-span-3 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-lg text-slate-500">No faculty members found</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -263,56 +263,57 @@ export default function NewsEventsManager() {
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-orange-600" />
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filteredItems.map((item) => (
-              <div key={item.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          item.type === "News"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {item.type}
-                      </span>
-                      {item.featured && (
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                          ⭐ Featured
+          <div className="table-wrap">
+            <div className="grid gap-4 md:grid-cols-2 responsive-cards">
+              {filteredItems.map((item) => (
+                <div key={item.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${item.type === "News"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-green-100 text-green-800"
+                            }`}
+                        >
+                          {item.type}
                         </span>
-                      )}
+                        {item.featured && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                            ⭐ Featured
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-800">{item.title}</h3>
+                      <p className="text-sm text-gray-600 mt-2">{item.description}</p>
+                      <div className="flex gap-4 text-xs text-gray-500 mt-3">
+                        <span>📅 {item.date}</span>
+                        {item.location && <span>📍 {item.location}</span>}
+                      </div>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800">{item.title}</h3>
-                    <p className="text-sm text-gray-600 mt-2">{item.description}</p>
-                    <div className="flex gap-4 text-xs text-gray-500 mt-3">
-                      <span>📅 {item.date}</span>
-                      {item.location && <span>📍 {item.location}</span>}
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                    >
-                      <FaTrash />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
-            {filteredItems.length === 0 && (
-              <div className="col-span-2 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-lg text-slate-500">No news or events found</p>
-              </div>
-            )}
+              ))}
+              {filteredItems.length === 0 && (
+                <div className="col-span-2 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                  <p className="text-lg text-slate-500">No news or events found</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

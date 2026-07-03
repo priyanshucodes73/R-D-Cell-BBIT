@@ -146,58 +146,60 @@ export default function RegistrationsManager() {
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredRegistrations.map((reg) => (
-              <div key={reg.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                      {reg.student_name.charAt(0).toUpperCase()}
+          <div className="table-wrap">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 responsive-cards">
+              {filteredRegistrations.map((reg) => (
+                <div key={reg.id} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-xl">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                        {reg.student_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-800">{reg.student_name}</h3>
+                        <p className="text-sm text-gray-600">{reg.program}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800">{reg.student_name}</h3>
-                      <p className="text-sm text-gray-600">{reg.program}</p>
+                  </div>
+                  <div className="space-y-2 text-sm mb-4">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <FaEnvelope className="text-blue-600" />
+                      <span className="truncate">{reg.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <FaPhone className="text-green-600" />
+                      <span>{reg.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <FaGraduationCap className="text-purple-600" />
+                      <span>{reg.department} - Year {reg.year_of_study}</span>
                     </div>
                   </div>
-                </div>
-                <div className="space-y-2 text-sm mb-4">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <FaEnvelope className="text-blue-600" />
-                    <span className="truncate">{reg.email}</span>
+                  <p className="text-xs text-gray-400 mb-4">
+                    Registered: {new Date(reg.createdAt).toLocaleDateString()}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedReg(reg)}
+                      className="flex-1 flex items-center justify-center gap-2 p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 font-semibold text-sm"
+                    >
+                      <FaEye /> View
+                    </button>
+                    <button
+                      onClick={() => handleDelete(reg.id)}
+                      className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                    >
+                      <FaTrash />
+                    </button>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <FaPhone className="text-green-600" />
-                    <span>{reg.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <FaGraduationCap className="text-purple-600" />
-                    <span>{reg.department} - Year {reg.year_of_study}</span>
-                  </div>
                 </div>
-                <p className="text-xs text-gray-400 mb-4">
-                  Registered: {new Date(reg.createdAt).toLocaleDateString()}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSelectedReg(reg)}
-                    className="flex-1 flex items-center justify-center gap-2 p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 font-semibold text-sm"
-                  >
-                    <FaEye /> View
-                  </button>
-                  <button
-                    onClick={() => handleDelete(reg.id)}
-                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                  >
-                    <FaTrash />
-                  </button>
+              ))}
+              {filteredRegistrations.length === 0 && (
+                <div className="col-span-3 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                  <p className="text-lg text-slate-500">No registrations found</p>
                 </div>
-              </div>
-            ))}
-            {filteredRegistrations.length === 0 && (
-              <div className="col-span-3 rounded-[1.75rem] border border-slate-200 bg-white px-6 py-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-lg text-slate-500">No registrations found</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>
