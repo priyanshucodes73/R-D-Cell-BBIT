@@ -149,10 +149,10 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed z-50 right-6 bottom-6 flex flex-col items-end">
+    <div className="fixed z-60 right-4 bottom-20 md:bottom-6 flex flex-col items-end">
       {!open && (
         <button
-          className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black rounded-full p-3 shadow-2xl ring-8 ring-yellow-300/50 hover:scale-105 transform transition animate-pulse"
+          className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black rounded-full p-3 shadow-2xl ring-8 ring-yellow-300/60 hover:scale-105 transform transition lg:animate-pulse"
           onClick={() => setOpen(true)}
           aria-label="Open chatbot"
         >

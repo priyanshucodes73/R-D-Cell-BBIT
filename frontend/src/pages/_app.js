@@ -3,6 +3,7 @@ import Head from 'next/head'
 import '../styles/globals.css'
 import AccreditationBanner from '../components/AccreditationBanner'
 import MobileBottomNav from '../components/MobileBottomNav'
+import MobileLoginButton from '../components/MobileLoginButton'
 import { idbGet, idbDelete } from '../lib/idb'
 import { fetchWithAuth } from '../lib/auth'
 import { FaCut } from 'react-icons/fa'
@@ -83,8 +84,8 @@ export default function MyApp({ Component, pageProps }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BBIT R&D" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/bbit-logo-circle.svg" />
+        <link rel="manifest" href="/api/manifest.json" />
+        <link rel="apple-touch-icon" href="/api/site-logo" />
       </Head>
       <AppInstallBar />
       {!isOnline && (
@@ -94,6 +95,7 @@ export default function MyApp({ Component, pageProps }) {
       )}
       <AccreditationBanner />
       <Component {...pageProps} />
+      <MobileLoginButton />
       <MobileBottomNav />
     </>
   )

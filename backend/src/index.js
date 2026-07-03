@@ -1799,6 +1799,67 @@ app.post("/api/site-settings/:key/publish", authenticateToken, requireAdmin, asy
     await SiteSetting.update({ publishedValue: publishValue }, { where: { key } });
     const updated = await SiteSetting.findOne({ where: { key } });
 
+    // If site logo or app icon was published, attempt to generate PWA-friendly PNG icons (192x192, 512x512)
+    if (key === 'siteLogo' || key === 'appIcon') {
+      try {
+        const sharp = require('sharp')
+        const axios = require('axios')
+
+        // Determine the source URL or local file path
+        let logoUrl = publishValue
+        if (!logoUrl) logoUrl = ''
+
+        let buffer = null
+
+        if (/^https?:\/\//i.test(logoUrl)) {
+          // Fetch remote URL
+          const r = await axios.get(logoUrl, { responseType: 'arraybuffer', timeout: 15000 })
+          buffer = Buffer.from(r.data)
+        } else if (typeof logoUrl === 'string' && logoUrl.startsWith('/uploads/')) {
+          // Local upload path served by this server
+          const localPath = path.join(__dirname, '..', logoUrl)
+          if (fs.existsSync(localPath)) {
+            buffer = fs.readFileSync(localPath)
+          }
+        } else if (typeof logoUrl === 'string' && logoUrl.startsWith(process.env.FRONTEND_URL || 'http://localhost:3005')) {
+          // URL points to frontend uploads; try to map to local uploads
+          const rel = logoUrl.replace(process.env.FRONTEND_URL || 'http://localhost:3005', '')
+          const localPath = path.join(__dirname, '..', rel)
+          if (fs.existsSync(localPath)) {
+            buffer = fs.readFileSync(localPath)
+          } else {
+            // fallback: try HTTP fetch
+            const r = await axios.get(logoUrl, { responseType: 'arraybuffer', timeout: 15000 })
+            buffer = Buffer.from(r.data)
+          }
+        } else if (typeof logoUrl === 'string' && logoUrl.startsWith('/')) {
+          const localPath = path.join(__dirname, '..', logoUrl)
+          if (fs.existsSync(localPath)) buffer = fs.readFileSync(localPath)
+        }
+
+        if (buffer) {
+          const slug = key === 'appIcon' ? 'app-icon' : 'site-logo'
+          const out192 = path.join(uploadsDir, `${slug}-192.png`)
+          const out512 = path.join(uploadsDir, `${slug}-512.png`)
+
+          await sharp(buffer).resize(192, 192, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } }).png().toFile(out192)
+          await sharp(buffer).resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } }).png().toFile(out512)
+
+          const publicBase = process.env.FRONTEND_URL || 'http://localhost:3005'
+          const pwaUrl = `${publicBase}/uploads/${slug}-512.png`
+
+          // Upsert a helper setting `siteLogoPwa` or `appIconPwa` so frontends and manifest can use it
+          const pwaKey = key === 'appIcon' ? 'appIconPwa' : 'siteLogoPwa'
+          const [pwaSetting, created] = await SiteSetting.findOrCreate({ where: { key: pwaKey }, defaults: { key: pwaKey, draftValue: pwaUrl, publishedValue: pwaUrl, section: 'branding', type: 'image', isPublic: true, description: 'Auto-generated PWA icon (512x512)' } });
+          if (!created) {
+            await pwaSetting.update({ draftValue: pwaUrl, publishedValue: pwaUrl })
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to generate PWA icons for site/app icon:', err && err.message ? err.message : err)
+      }
+    }
+
     await recordAuditLog({
       action: "publish_setting",
       scope: "Site settings",
@@ -2765,56 +2826,20 @@ app.post("/api/auth/logout", authenticateToken, async (req, res) => {
 app.get("/api/auth/verify-email", async (req, res) => {
   try {
     const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token required' });
 
-    if (!token) {
-      return res.status(400).json({ error: "Verification token is required" });
-    }
+    const user = await User.findOne({ where: { verificationToken: token } });
+    if (!user) return res.status(404).json({ error: 'User not found or token invalid' });
 
-    // Verify token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET);
-    } catch (err) {
-      return res.status(400).json({ error: "Invalid or expired verification token" });
-    }
+    if (user.isVerified) return res.json({ message: 'Email already verified' });
 
-    // Find user
-    const user = await User.findOne({
-      where: {
-        email: decoded.email,
-        verificationToken: token
-      }
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found or token invalid" });
-    }
-
-    // Check if already verified
-    if (user.isVerified) {
-      return res.json({ message: "Email already verified" });
-    }
-
-    // Check token expiry
     if (user.verificationTokenExpiry && new Date() > user.verificationTokenExpiry) {
-      return res.status(400).json({ error: "Verification token has expired" });
+      return res.status(400).json({ error: 'Verification token has expired' });
     }
 
-    // Verify user
-    await user.update({
-      isVerified: true,
-      verificationToken: null,
-      verificationTokenExpiry: null
-    });
+    await user.update({ isVerified: true, verificationToken: null, verificationTokenExpiry: null });
 
-    res.json({
-      message: "Email verified successfully",
-      user: {
-        id: user.id,
-        email: user.email,
-        isVerified: true
-      }
-    });
+    res.json({ message: 'Email verified successfully', user: { id: user.id, email: user.email, isVerified: true } });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

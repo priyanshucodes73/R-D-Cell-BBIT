@@ -14,6 +14,27 @@ const homepageTextBlocks = [
     type: "text",
   },
   {
+    key: "appName",
+    label: "App Name",
+    description: "Name shown to users when they install the PWA/native app.",
+    section: "branding",
+    type: "text",
+  },
+  {
+    key: "siteLogo",
+    label: "Site Logo",
+    description: "Primary logo image used in header and PWA. Upload a circular PNG/SVG.",
+    section: "branding",
+    type: "image",
+  },
+  {
+    key: "appIcon",
+    label: "App Icon",
+    description: "Icon used for PWA/home-screen; upload a square SVG/PNG. Will be resized to required sizes on publish.",
+    section: "branding",
+    type: "image",
+  },
+  {
     key: "topAnnouncement",
     label: "Top Announcement",
     description: "Scrolling/announcement text in the top bar.",
@@ -438,6 +459,7 @@ export default function SiteSettingsPage() {
 
   const homepagePreview = {
     siteName: readSetting(settingMap.siteName, defaultPublicSettings.siteName),
+    siteLogo: readSetting(settingMap.siteLogo, defaultPublicSettings.siteLogo || "/icons/bbit-logo-circle.svg"),
     topAnnouncement: readSetting(settingMap.topAnnouncement, defaultPublicSettings.topAnnouncement),
     accreditationBanner: readSetting(settingMap.accreditationBanner, defaultPublicSettings.accreditationBanner),
     admissionHelpline: readSetting(settingMap.admissionHelpline, defaultPublicSettings.admissionHelpline),
@@ -552,15 +574,28 @@ export default function SiteSettingsPage() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 {filteredHomepageTextBlocks.map((block) => (
-                  <TextSettingCard
-                    key={block.key}
-                    block={block}
-                    setting={settingMap[block.key]}
-                    defaultValue={defaultPublicSettings[block.key]}
-                    saving={savingKey === block.key}
-                    onSave={saveDraft}
-                    onPublish={publishNow}
-                  />
+                  block.type === 'image' ? (
+                    <ImageSettingCard
+                      key={block.key}
+                      block={block}
+                      setting={settingMap[block.key]}
+                      defaultValue={defaultPublicSettings[block.key]}
+                      saving={savingKey === block.key}
+                      onSave={saveDraft}
+                      onPublish={publishNow}
+                      uploadMedia={uploadMedia}
+                    />
+                  ) : (
+                    <TextSettingCard
+                      key={block.key}
+                      block={block}
+                      setting={settingMap[block.key]}
+                      defaultValue={defaultPublicSettings[block.key]}
+                      saving={savingKey === block.key}
+                      onSave={saveDraft}
+                      onPublish={publishNow}
+                    />
+                  )
                 ))}
               </div>
 
@@ -758,10 +793,8 @@ export default function SiteSettingsPage() {
                 </div>
                 <div className="px-4 py-3 border-t border-white/10 bg-white/5">
                   <div className="flex items-center justify-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4m0 8v4m8-8h-4M4 12H0" />
-                      </svg>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 overflow-hidden shadow-sm">
+                      <img src={homepagePreview.siteLogo || '/icons/bbit-logo-circle.svg'} alt="logo" className="h-12 w-12 object-contain rounded-full" />
                     </div>
                     <div className="max-w-full rounded-full bg-white/90 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-900 shadow-lg">
                       <span className="block truncate max-w-[48ch]">{homepagePreview.accreditationBanner}</span>
@@ -925,6 +958,62 @@ function LinkSettingCard({ block, setting, defaultValue, saving, onSave, onPubli
       </div>
     </div>
   );
+}
+
+function ImageSettingCard({ block, setting, defaultValue, saving, onSave, onPublish, uploadMedia }) {
+  const [url, setUrl] = useState("")
+  const [uploading, setUploading] = useState(false)
+
+  useEffect(() => {
+    setUrl(readSetting(setting, defaultValue))
+  }, [setting, defaultValue])
+
+  const save = async () => {
+    await onSave(block.key, url, { section: block.section, description: block.description, type: 'image' })
+  }
+
+  const handleFile = async (file) => {
+    if (!file) return
+    try {
+      setUploading(true)
+      const uploaded = await uploadMedia(file)
+      setUrl(uploaded)
+    } catch (err) {
+      alert(err.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border bg-gray-50 p-4 lg:col-span-1">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 className="font-semibold text-gray-900">{block.label}</h3>
+          <p className="text-xs text-gray-500">{block.description}</p>
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <div className="h-24 w-24 rounded-full bg-white overflow-hidden border flex items-center justify-center">
+          {url ? <img src={url} alt="logo" className="h-full w-full object-contain" /> : <div className="text-xs text-gray-400">No logo</div>}
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border cursor-pointer hover:bg-gray-50 text-sm font-medium">
+          <FaUpload /> {uploading ? 'Uploading...' : 'Upload Logo'}
+          <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => handleFile(e.target.files?.[0])} />
+        </label>
+        <button type="button" onClick={save} disabled={saving || uploading} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60">
+          <FaSave /> {saving ? 'Saving...' : 'Save Draft'}
+        </button>
+        <button type="button" onClick={async () => { await save(); await onPublish(block.key); }} disabled={saving || uploading} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60">
+          Publish
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function JsonSettingCard({ block, setting, defaultValue, saving, onSave, onPublish }) {
