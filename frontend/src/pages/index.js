@@ -406,35 +406,36 @@ export default function Home({ fallback }) {
                 ))}
               </div>
 
-              {/* Right: Social Links */}
-              <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
+              {/* Right: Social Links (compact) */}
+              <div className="flex items-center justify-center gap-2">
                 <Link href="/download-app">
-                  <a className="group relative mr-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-yellow-400 text-blue-950 font-semibold hover:bg-yellow-300 transition-all duration-200" aria-label="Download App">
-                    <FaDownload className="w-4 h-4" />
+                  <a
+                    className="group inline-flex items-center gap-2 px-2 py-1 rounded-md bg-yellow-400 text-blue-950 font-semibold text-xs hover:bg-yellow-300 transition-all duration-200"
+                    aria-label="Download App"
+                  >
+                    <span className="inline-flex items-center justify-center w-4 h-4">
+                      <FaDownload />
+                    </span>
                     <span className="hidden sm:inline text-xs">Download</span>
                   </a>
                 </Link>
+
                 {editableSocialLinks.map((item) => (
                   <a
                     key={item.name}
                     href={item.href}
-                    className="group relative p-2 rounded-full hover:bg-[#2d3539] transition-all duration-300 hover:scale-110 hover:text-yellow-400"
+                    className="group inline-flex items-center gap-2 px-2 py-1 rounded-md hover:bg-[#2d3539] transition-all duration-200 text-white text-xs"
                     aria-label={item.name}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <span className="relative z-10 flex items-center gap-1">
+                    <span className="inline-flex items-center justify-center w-4 h-4">
                       <SocialIcon name={item.name} />
-                      {item.name === "360" ? <span>360°</span> : null}
-                      {item.name === "Whatsapp" ? <span>Whatsapp</span> : null}
-                      {item.name === "Call" ? <span>Call Us</span> : null}
-                      {item.name === "Facebook" ? <span className="sr-only">Facebook</span> : null}
-                      {item.name === "Twitter" ? <span className="sr-only">Twitter</span> : null}
-                      {item.name === "LinkedIn" ? <span className="sr-only">LinkedIn</span> : null}
-                      {item.name === "Instagram" ? <span className="sr-only">Instagram</span> : null}
-                      {item.name === "YouTube" ? <span className="sr-only">YouTube</span> : null}
                     </span>
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/30 group-hover:to-purple-500/30 rounded-full transition-all duration-300"></div>
+                    {/* Small label shown on sm+ screens only */}
+                    {item.name === "360" ? <span className="hidden sm:inline">360°</span> : null}
+                    {item.name === "Whatsapp" ? <span className="hidden sm:inline">Whatsapp</span> : null}
+                    {item.name === "Call" ? <span className="hidden sm:inline">Call</span> : null}
                   </a>
                 ))}
               </div>
