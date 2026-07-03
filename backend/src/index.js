@@ -10,6 +10,7 @@ const multer = require("multer");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const cookieParser = require("cookie-parser");
 const fs = require("fs");
+const sharp = require('sharp');
 const path = require("path");
 const dnsPromises = require('dns').promises;
 
