@@ -1,5 +1,6 @@
 import React from "react";
 import useSWR from "swr";
+import Link from "next/link";
 import {
   FaWhatsapp,
   FaPhoneAlt,
@@ -9,6 +10,7 @@ import {
   FaInstagram,
   FaYoutube,
   FaCompass,
+  FaDownload,
 } from "react-icons/fa";
 import { defaultPublicSettings, fetcher, getApiBase, normalizeSiteSettings } from "../lib/siteSettings";
 
