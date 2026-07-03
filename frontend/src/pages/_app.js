@@ -102,7 +102,7 @@ export default function MyApp({ Component, pageProps }) {
 function AppInstallBar() {
   const [promptEvent, setPromptEvent] = useState(null)
   const [showIosTip, setShowIosTip] = useState(false)
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -123,7 +123,6 @@ function AppInstallBar() {
     // Only show the install UI when the browser prompts or iOS tip applies
     // this avoids a full-screen blocking modal on every page load. Visible
     // will be enabled by the `beforeinstallprompt` handler or iOS detection.
-    setVisible(false)
 
     window.addEventListener('beforeinstallprompt', handler)
     detectIos()
