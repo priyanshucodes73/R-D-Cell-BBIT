@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 import '../styles/globals.css'
 import AccreditationBanner from '../components/AccreditationBanner'
@@ -110,23 +111,65 @@ export default function MyApp({ Component, pageProps }) {
 }
 
 function SplashLoader() {
+  const router = useRouter()
   const [show, setShow] = useState(true)
+  const [ready, setReady] = useState(false)
+  const [progress, setProgress] = useState(6)
 
   useEffect(() => {
-    // Keep splash for at least 900ms, then fade out
+    let mounted = true
     const minMs = 900
-    const t = setTimeout(() => setShow(false), minMs)
-    return () => clearTimeout(t)
-  }, [])
+    const start = Date.now()
+
+    const onLoad = () => setReady(true)
+    window.addEventListener('load', onLoad)
+
+    const onRoute = () => setReady(true)
+    router.events.on('routeChangeComplete', onRoute)
+
+    // Progress simulation
+    let raf
+    const tick = () => {
+      setProgress((p) => {
+        const next = Math.min(95, p + Math.random() * 6)
+        return next
+      })
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+
+    const check = () => {
+      if (!mounted) return
+      if (Date.now() - start >= minMs && ready) {
+        setProgress(100)
+        setTimeout(() => {
+          setShow(false)
+        }, 260) // allow small fade
+      } else {
+        setTimeout(check, 80)
+      }
+    }
+    check()
+
+    return () => {
+      mounted = false
+      window.removeEventListener('load', onLoad)
+      router.events.off('routeChangeComplete', onRoute)
+      cancelAnimationFrame(raf)
+    }
+  }, [router.events, ready])
 
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center splash-root">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center splash-root" style={{ transition: 'opacity 260ms ease' }}>
       <div className="absolute inset-0 animated-bg" />
       <div className="relative z-20 flex flex-col items-center gap-4">
         <img src="/api/site-logo.png?size=192" alt="logo" className="w-20 h-20 animate-pulse-logo" />
         <div className="text-white text-sm font-semibold">BBIT R&D Cell</div>
+        <div className="w-48 mt-3 bg-white/20 rounded-full overflow-hidden h-2">
+          <div className="bg-yellow-400 h-2 transition-all" style={{ width: `${progress}%` }} />
+        </div>
       </div>
       <style jsx>{`
         .splash-root { background: transparent; }
