@@ -84,9 +84,10 @@ export default function MyApp({ Component, pageProps }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BBIT R&D" />
         <link rel="manifest" href="/api/manifest.json" />
-        <link rel="apple-touch-icon" href="/api/site-logo" />
+        <link rel="apple-touch-icon" href="/api/site-logo.png?size=192" />
       </Head>
       <AppInstallBar />
+      <SplashLoader />
       {!isOnline && (
         <div className="sticky top-0 z-[60] border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-900 shadow-sm">
           You are offline. The installed app can still open cached pages when available.
@@ -96,6 +97,49 @@ export default function MyApp({ Component, pageProps }) {
       <Component {...pageProps} />
       <MobileBottomNav />
     </>
+  )
+}
+
+function SplashLoader() {
+  const [show, setShow] = useState(true)
+
+  useEffect(() => {
+    // Keep splash for at least 900ms, then fade out
+    const minMs = 900
+    const t = setTimeout(() => setShow(false), minMs)
+    return () => clearTimeout(t)
+  }, [])
+
+  if (!show) return null
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center splash-root">
+      <div className="absolute inset-0 animated-bg" />
+      <div className="relative z-20 flex flex-col items-center gap-4">
+        <img src="/api/site-logo.png?size=192" alt="logo" className="w-20 h-20 animate-pulse-logo" />
+        <div className="text-white text-sm font-semibold">BBIT R&D Cell</div>
+      </div>
+      <style jsx>{`
+        .splash-root { background: transparent; }
+        .animated-bg {
+          background: radial-gradient(circle at 10% 20%, rgba(255,205,86,0.12), transparent 10%),
+                      linear-gradient(135deg, #062e7a 0%, #0b4aa8 40%, #0b3b8a 100%);
+          filter: saturate(1.05) contrast(1.02);
+          position: absolute; inset: 0; z-index: 10; opacity: 1;
+          animation: splash-shift 3.6s ease-in-out infinite alternate;
+        }
+        @keyframes splash-shift {
+          0% { transform: scale(1) translateY(0px); }
+          100% { transform: scale(1.02) translateY(-6px); }
+        }
+        .animate-pulse-logo { animation: splash-logo 1.6s ease-in-out infinite; }
+        @keyframes splash-logo {
+          0% { transform: translateY(0) scale(1); opacity: 1 }
+          50% { transform: translateY(-6px) scale(1.03); opacity: 0.95 }
+          100% { transform: translateY(0) scale(1); opacity: 1 }
+        }
+      `}</style>
+    </div>
   )
 }
 
