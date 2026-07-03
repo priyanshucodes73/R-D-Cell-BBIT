@@ -205,6 +205,14 @@ export default function AccreditationDashboard() {
         return Math.round((done / list.length) * 100)
     }
 
+    const overallProgress = () => {
+        const all = [...NAAC_CRITERIA, ...NBA_CRITERIA]
+        const vals = all.map((c) => progressFor(c))
+        if (!vals.length) return 0
+        const sum = vals.reduce((a, b) => a + b, 0)
+        return Math.round(sum / vals.length)
+    }
+
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading…</div>
 
     const allCriteria = [...NAAC_CRITERIA, ...NBA_CRITERIA]
@@ -213,10 +221,34 @@ export default function AccreditationDashboard() {
         <div className="min-h-screen p-6 bg-slate-50">
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Accreditation Dashboard</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-2xl font-bold">Accreditation Dashboard</h1>
+                        <div className="text-sm px-3 py-1 rounded-full bg-slate-100 border text-slate-700">Overall progress: {overallProgress()}%</div>
+                    </div>
                     <div className="flex gap-3">
                         <button onClick={saveDraft} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded">{saving ? 'Saving…' : <><FaSave className="inline mr-2" />Save Draft</>}</button>
                         <button onClick={publishNow} disabled={saving} className="px-4 py-2 bg-green-600 text-white rounded">Publish</button>
+                        <button onClick={async () => {
+                            try {
+                                const res = await fetchWithAuth('/api/accreditation/export')
+                                if (!res.ok) throw new Error('Export failed')
+                                const blob = await res.blob()
+                                const url = window.URL.createObjectURL(blob)
+                                const a = document.createElement('a')
+                                a.href = url
+                                const disposition = res.headers.get('content-disposition') || ''
+                                const match = /filename="?([^;\"]+)"?/.exec(disposition)
+                                const filename = match ? match[1] : `accreditation_export_${Date.now()}.zip`
+                                a.download = filename
+                                document.body.appendChild(a)
+                                a.click()
+                                a.remove()
+                                window.URL.revokeObjectURL(url)
+                            } catch (err) {
+                                console.error(err)
+                                alert(err.message || 'Export failed')
+                            }
+                        }} className="px-4 py-2 bg-indigo-600 text-white rounded">Export ZIP</button>
                     </div>
                 </div>
 

@@ -495,9 +495,9 @@ export default function Home({ fallback }) {
                 >
                   <div className="relative">
                     <img
-                      src="/cropped_circle-image.png"
+                      src="/icons/bbit-logo-circle.svg"
                       alt="BBIT Logo"
-                      className="h-12 w-12 md:h-14 md:w-14 object-contain drop-shadow-xl flex-shrink-0 group-hover:drop-shadow-2xl transition-all duration-300"
+                      className="h-12 w-12 md:h-14 md:w-14 object-contain drop-shadow-xl flex-shrink-0 group-hover:drop-shadow-2xl transition-all duration-300 rounded-full"
                     />
                     <div className="absolute inset-0 bg-yellow-400/0 group-hover:bg-yellow-400/20 rounded-full blur-xl transition-all duration-300"></div>
                   </div>
