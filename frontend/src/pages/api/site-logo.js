@@ -8,6 +8,13 @@ export default async function handler(req, res) {
         const merged = { ...defaultPublicSettings, ...(settings || {}).settings }
         const siteLogo = merged.appIconPwa || merged.siteLogoPwa || merged.appIcon || merged.siteLogo || '/icons/bbit-logo-circle.svg'
 
+        // If requesting a PNG (size query param), proxy to backend PNG endpoint so server can rasterize
+        if (req.query.size) {
+            const size = parseInt(req.query.size, 10) || 192
+            const apiLogoPng = `${apiBase.replace(/\/$/, '')}/api/site-logo.png?size=${size}`
+            return res.redirect(apiLogoPng)
+        }
+
         // If logo URL is absolute, redirect directly. If relative, prefix apiBase.
         if (/^https?:\/\//i.test(siteLogo)) {
             return res.redirect(siteLogo)
