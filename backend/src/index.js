@@ -3143,47 +3143,76 @@ app.post("/api/ai/chat", async (req, res) => {
     };
 
     // Use axios for server-side requests (more robust error messages)
-    // Retry once on network/5xx errors with a short backoff
+    // Try multiple base endpoints as a short-term fallback for DNS issues.
     // eslint-disable-next-line global-require
     const axios = require('axios')
     let providerRes = null
+    const endpoints = [
+      process.env.OPENROUTER_ENDPOINT || 'https://api.openrouter.ai/api/v1/chat/completions',
+      'https://openrouter.ai/api/v1/chat/completions',
+    ]
     const maxAttempts = 2
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        providerRes = await axios.post('https://openrouter.ai/api/v1/chat/completions', payload, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': process.env.OPENROUTER_REFERER || process.env.FRONTEND_URL || 'http://localhost:3000',
-            'X-Title': process.env.OPENROUTER_TITLE || 'BBIT R&D Cell Assistant',
-          },
-          timeout: 15000,
-          validateStatus: () => true,
-        })
 
-        if (!providerRes || typeof providerRes.status === 'undefined') {
-          throw new Error('No response from AI provider')
-        }
+    let lastErr = null
+    for (const endpoint of endpoints) {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          console.log(`AI proxy: trying endpoint=${endpoint} attempt=${attempt}`)
+          providerRes = await axios.post(endpoint, payload, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+              'HTTP-Referer': process.env.OPENROUTER_REFERER || process.env.FRONTEND_URL || 'http://localhost:3000',
+              'X-Title': process.env.OPENROUTER_TITLE || 'BBIT R&D Cell Assistant',
+            },
+            timeout: 15000,
+            validateStatus: () => true,
+          })
 
-        if (providerRes.status >= 200 && providerRes.status < 300) {
-          break
-        }
+          if (!providerRes || typeof providerRes.status === 'undefined') {
+            throw new Error('No response from AI provider')
+          }
 
-        // If server error, retry once
-        if (providerRes.status >= 500 && attempt < maxAttempts) {
+          if (providerRes.status >= 200 && providerRes.status < 300) {
+            // success
+            lastErr = null
+            break
+          }
+
+          // If server error, retry on same endpoint
+          if (providerRes.status >= 500 && attempt < maxAttempts) {
+            await sleep(400 * attempt)
+            continue
+          }
+
+          // Non-retriable status
+          console.error('AI provider error', providerRes.status, providerRes.data)
+          throw new Error(`AI provider error ${providerRes.status}`)
+        } catch (err) {
+          lastErr = err
+          // If network DNS ENOTFOUND or similar, break to try next endpoint
+          const code = err && err.code ? err.code : (err && err.response && err.response.status) ? String(err.response.status) : null
+          if (code === 'ENOTFOUND' || (err && err.message && /ENOTFOUND|getaddrinfo/i.test(err.message))) {
+            console.warn(`Endpoint ${endpoint} DNS lookup failed: ${err.message}`)
+            break
+          }
+
+          if (attempt >= maxAttempts) {
+            // give up this endpoint and try next
+            break
+          }
+          // network error on this attempt - wait and retry
           await sleep(400 * attempt)
-          continue
         }
-
-        // Non-retriable status
-        console.error('AI provider error', providerRes.status, providerRes.data)
-        throw new Error(`AI provider error ${providerRes.status}`)
-      } catch (err) {
-        if (attempt >= maxAttempts) throw err
-        // network error, wait and retry
-        await sleep(400 * attempt)
       }
+
+      // if providerRes is successful, stop trying further endpoints
+      if (providerRes && providerRes.status >= 200 && providerRes.status < 300) break
+    }
+
+    if (!providerRes || typeof providerRes.status === 'undefined' || providerRes.status >= 300) {
+      throw lastErr || new Error('AI provider requests failed')
     }
 
     const data = providerRes.data
@@ -3249,6 +3278,7 @@ app.get('/api/ai/check-provider', async (req, res) => {
   if (!apiKey) return res.status(500).json({ ok: false, error: 'OPENROUTER_API_KEY not configured' })
 
   try {
+    // Try multiple endpoints to handle transient DNS or egress issues
     // eslint-disable-next-line global-require
     const axios = require('axios')
     const payload = {
@@ -3257,14 +3287,28 @@ app.get('/api/ai/check-provider', async (req, res) => {
       max_tokens: 1,
       temperature: 0,
     }
-    const r = await axios.post('https://openrouter.ai/api/v1/chat/completions', payload, {
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      timeout: 8000,
-      validateStatus: () => true,
-    })
 
-    if (!r) return res.status(502).json({ ok: false, error: 'No response from provider' })
-    return res.json({ ok: r.status >= 200 && r.status < 300, status: r.status, data: r.data })
+    const endpoints = [process.env.OPENROUTER_ENDPOINT || 'https://api.openrouter.ai/api/v1/chat/completions', 'https://openrouter.ai/api/v1/chat/completions']
+    let lastR = null
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`check-provider: testing endpoint ${endpoint}`)
+        const r = await axios.post(endpoint, payload, {
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+          timeout: 8000,
+          validateStatus: () => true,
+        })
+        lastR = r
+        if (r && r.status >= 200 && r.status < 300) return res.json({ ok: true, status: r.status, data: r.data })
+        // if not success, continue to next endpoint
+      } catch (err) {
+        console.warn('check-provider endpoint failed', endpoint, err && err.message ? err.message : err)
+        lastR = lastR || { status: 0, data: { error: err && err.message ? err.message : String(err) } }
+      }
+    }
+
+    if (!lastR) return res.status(502).json({ ok: false, error: 'No response from provider' })
+    return res.json({ ok: lastR.status >= 200 && lastR.status < 300, status: lastR.status, data: lastR.data })
   } catch (err) {
     console.error('Provider check failed', err && err.message ? err.message : err)
     return res.status(502).json({ ok: false, error: err.message })
