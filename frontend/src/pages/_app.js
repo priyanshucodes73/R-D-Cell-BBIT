@@ -227,80 +227,101 @@ function SplashLoader() {
     </>
   );
 }
-
 function AppInstallBar() {
   const [promptEvent, setPromptEvent] = useState(null)
-  const [showIosTip, setShowIosTip] = useState(false)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const handler = (event) => {
-      try { event.preventDefault() } catch (e) { }
-      setPromptEvent(event)
-      setVisible(true)
+    if (typeof window === "undefined") return
+
+    setVisible(true)
+
+    const handler = (e) => {
+      e.preventDefault()
+      setPromptEvent(e)
     }
 
-    const detectIos = () => {
-      const ua = window.navigator.userAgent || ''
-      const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream
-      const showTip = isIos && !window.matchMedia('(display-mode: standalone)').matches
-      setShowIosTip(showTip)
-      if (showTip) setVisible(true)
-    }
-
-    // Only show the install UI when the browser prompts or iOS tip applies
-    // this avoids a full-screen blocking modal on every page load. Visible
-    // will be enabled by the `beforeinstallprompt` handler or iOS detection.
-
-    window.addEventListener('beforeinstallprompt', handler)
-    detectIos()
+    window.addEventListener("beforeinstallprompt", handler)
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler)
+      window.removeEventListener("beforeinstallprompt", handler)
     }
   }, [])
 
   const handleInstall = async () => {
-    if (!promptEvent) return
-    promptEvent.prompt()
-    await promptEvent.userChoice
-    setPromptEvent(null)
+    if (promptEvent) {
+      promptEvent.prompt()
+      await promptEvent.userChoice
+      setPromptEvent(null)
+      setVisible(false)
+    } else {
+      alert(
+        "To install this app:\n\nDesktop:\nOpen Chrome menu (⋮) → Install App\n\nMobile:\nOpen browser menu → Add to Home Screen."
+      )
+    }
   }
 
   if (!visible) return null
 
-  // Modal-like blocking popup with dismiss (cut) button
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={() => { /* close on backdrop click optional */ }} />
-      <div className="relative z-90 max-w-md w-[92%] rounded-2xl bg-white p-6 shadow-2xl">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Download App</p>
-            <h2 className="mt-1 text-sm font-bold text-slate-950">Install the website like a mobile app</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-600">Save the site to your home screen for quick access on mobile.</p>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <button aria-label="dismiss" title="Dismiss" onClick={() => { setVisible(false) }} className="rounded-full p-2 text-slate-600 hover:bg-slate-100"><FaCut /></button>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-950 text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l4-4m-4 4l-4-4M4 20h16" />
-              </svg>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fadeIn">
+
+      <div className="relative w-[92%] max-w-md rounded-3xl bg-white p-7 shadow-2xl">
+
+        <button
+          onClick={() => setVisible(false)}
+          className="absolute right-4 top-4 h-10 w-10 rounded-full bg-gray-100 hover:bg-red-500 hover:text-white transition"
+        >
+          ✕
+        </button>
+
+        <div className="flex justify-center mb-5">
+          <img
+            src="/cropped_circle-image.png"
+            className="w-20 h-20 rounded-full animate-bounce"
+          />
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {promptEvent ? (
-            <button type="button" onClick={handleInstall} className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">Install App</button>
-          ) : showIosTip ? (
-            <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">Open in Safari/Chrome menu to add to Home Screen</span>
-          ) : (
-            <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">Available to install from browser menu</span>
-          )}
-        </div>
+        <h2 className="text-2xl font-bold text-center text-blue-900">
+          Install BBIT R&D
+        </h2>
+
+        <p className="text-center text-gray-600 mt-2">
+          Install this website like a mobile application for faster access and a
+          better experience.
+        </p>
+
+        <button
+          onClick={handleInstall}
+          className="mt-7 w-full rounded-xl bg-gradient-to-r from-blue-700 to-blue-500 py-3 text-lg font-bold text-white shadow-lg hover:scale-105 transition"
+        >
+          📲 Install App
+        </button>
+
+        <button
+          onClick={() => setVisible(false)}
+          className="mt-3 w-full rounded-xl border py-3 font-semibold hover:bg-gray-100 transition"
+        >
+          Maybe Later
+        </button>
+
       </div>
+
+      <style jsx>{`
+        .animate-fadeIn {
+          animation: fadeIn .4s ease;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity:0;
+          }
+          to {
+            opacity:1;
+          }
+        }
+      `}</style>
+
     </div>
   )
 }
