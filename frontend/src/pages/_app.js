@@ -234,8 +234,6 @@ function AppInstallBar() {
   useEffect(() => {
     if (typeof window === "undefined") return
 
-    setVisible(true)
-
     const handler = (e) => {
       e.preventDefault()
       setPromptEvent(e)
@@ -253,10 +251,9 @@ function AppInstallBar() {
       promptEvent.prompt()
       await promptEvent.userChoice
       setPromptEvent(null)
-      setVisible(false)
     } else {
       alert(
-        "To install this app:\n\nDesktop:\nOpen Chrome menu (⋮) → Install App\n\nMobile:\nOpen browser menu → Add to Home Screen."
+        "Open Chrome menu (⋮) and click 'Install App' or 'Add to Home Screen'."
       )
     }
   }
@@ -264,64 +261,164 @@ function AppInstallBar() {
   if (!visible) return null
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fadeIn">
+    <>
+      <div className="install-overlay">
+        <div className="install-card">
 
-      <div className="relative w-[92%] max-w-md rounded-3xl bg-white p-7 shadow-2xl">
+          <button
+            className="close-btn"
+            onClick={() => setVisible(false)}
+          >
+            ✕
+          </button>
 
-        <button
-          onClick={() => setVisible(false)}
-          className="absolute right-4 top-4 h-10 w-10 rounded-full bg-gray-100 hover:bg-red-500 hover:text-white transition"
-        >
-          ✕
-        </button>
-
-        <div className="flex justify-center mb-5">
           <img
             src="/cropped_circle-image.png"
-            className="w-20 h-20 rounded-full animate-bounce"
+            alt="BBIT"
+            className="install-logo"
           />
+
+          <h2>Install BBIT R&D</h2>
+
+          <p>
+            Install this website like a mobile application for a faster and
+            smoother experience.
+          </p>
+
+          <button
+            className="install-btn"
+            onClick={handleInstall}
+          >
+            📲 Install App
+          </button>
+
+          <button
+            className="later-btn"
+            onClick={() => setVisible(false)}
+          >
+            Maybe Later
+          </button>
+
         </div>
-
-        <h2 className="text-2xl font-bold text-center text-blue-900">
-          Install BBIT R&D
-        </h2>
-
-        <p className="text-center text-gray-600 mt-2">
-          Install this website like a mobile application for faster access and a
-          better experience.
-        </p>
-
-        <button
-          onClick={handleInstall}
-          className="mt-7 w-full rounded-xl bg-gradient-to-r from-blue-700 to-blue-500 py-3 text-lg font-bold text-white shadow-lg hover:scale-105 transition"
-        >
-          📲 Install App
-        </button>
-
-        <button
-          onClick={() => setVisible(false)}
-          className="mt-3 w-full rounded-xl border py-3 font-semibold hover:bg-gray-100 transition"
-        >
-          Maybe Later
-        </button>
-
       </div>
 
       <style jsx>{`
-        .animate-fadeIn {
-          animation: fadeIn .4s ease;
+        .install-overlay{
+          position:fixed;
+          inset:0;
+          background:rgba(0,0,0,.65);
+          display:flex;
+          justify-content:center;
+          align-items:center;
+          z-index:99999;
+          backdrop-filter:blur(8px);
+          animation:fade .35s ease;
         }
 
-        @keyframes fadeIn {
-          from {
+        .install-card{
+          width:380px;
+          max-width:92%;
+          background:#ffffff;
+          border-radius:24px;
+          padding:32px;
+          text-align:center;
+          position:relative;
+          box-shadow:0 20px 60px rgba(0,0,0,.35);
+          animation:popup .4s ease;
+        }
+
+        .close-btn{
+          position:absolute;
+          top:15px;
+          right:15px;
+          width:36px;
+          height:36px;
+          border:none;
+          border-radius:50%;
+          background:#f2f2f2;
+          cursor:pointer;
+          font-size:18px;
+        }
+
+        .close-btn:hover{
+          background:#ef4444;
+          color:white;
+        }
+
+        .install-logo{
+          width:90px;
+          height:90px;
+          object-fit:contain;
+          margin:auto;
+          animation:float 2s ease-in-out infinite;
+        }
+
+        h2{
+          margin:20px 0 10px;
+          color:#0f172a;
+          font-size:30px;
+        }
+
+        p{
+          color:#555;
+          line-height:1.6;
+          margin-bottom:24px;
+        }
+
+        .install-btn{
+          width:100%;
+          border:none;
+          padding:15px;
+          border-radius:14px;
+          cursor:pointer;
+          background:linear-gradient(90deg,#2563eb,#1d4ed8);
+          color:white;
+          font-size:17px;
+          font-weight:700;
+          margin-bottom:12px;
+          transition:.3s;
+        }
+
+        .install-btn:hover{
+          transform:translateY(-2px);
+          box-shadow:0 10px 25px rgba(37,99,235,.35);
+        }
+
+        .later-btn{
+          width:100%;
+          border:2px solid #ddd;
+          padding:14px;
+          border-radius:14px;
+          cursor:pointer;
+          background:white;
+          font-size:16px;
+        }
+
+        .later-btn:hover{
+          background:#f7f7f7;
+        }
+
+        @keyframes float{
+          0%,100%{transform:translateY(0);}
+          50%{transform:translateY(-10px);}
+        }
+
+        @keyframes popup{
+          from{
+            transform:scale(.8);
             opacity:0;
           }
-          to {
+          to{
+            transform:scale(1);
             opacity:1;
           }
         }
-      `}</style>
 
-    </div>
+        @keyframes fade{
+          from{opacity:0;}
+          to{opacity:1;}
+        }
+      `}</style>
+    </>
   )
 }
