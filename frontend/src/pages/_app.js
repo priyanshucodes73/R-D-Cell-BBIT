@@ -111,88 +111,121 @@ export default function MyApp({ Component, pageProps }) {
 }
 
 function SplashLoader() {
-  const router = useRouter()
-  const [show, setShow] = useState(true)
-  const [ready, setReady] = useState(false)
-  const [progress, setProgress] = useState(6)
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
-    let mounted = true
-    const minMs = 900
-    const start = Date.now()
+    const timer = setTimeout(() => {
+      setShow(false);
+    }, 2500); // Splash duration
 
-    const onLoad = () => setReady(true)
-    window.addEventListener('load', onLoad)
+    return () => clearTimeout(timer);
+  }, []);
 
-    const onRoute = () => setReady(true)
-    router.events.on('routeChangeComplete', onRoute)
-
-    // Progress simulation
-    let raf
-    const tick = () => {
-      setProgress((p) => {
-        const next = Math.min(95, p + Math.random() * 6)
-        return next
-      })
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-
-    const check = () => {
-      if (!mounted) return
-      if (Date.now() - start >= minMs && ready) {
-        setProgress(100)
-        setTimeout(() => {
-          setShow(false)
-        }, 260) // allow small fade
-      } else {
-        setTimeout(check, 80)
-      }
-    }
-    check()
-
-    return () => {
-      mounted = false
-      window.removeEventListener('load', onLoad)
-      router.events.off('routeChangeComplete', onRoute)
-      cancelAnimationFrame(raf)
-    }
-  }, [router.events, ready])
-
-  if (!show) return null
+  if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center splash-root" style={{ transition: 'opacity 260ms ease' }}>
-      <div className="absolute inset-0 animated-bg" />
-      <div className="relative z-20 flex flex-col items-center gap-4">
-        <img src="/api/site-logo.png?size=192" alt="logo" className="w-20 h-20 animate-pulse-logo" />
-        <div className="text-white text-sm font-semibold">BBIT R&D Cell</div>
-        <div className="w-48 mt-3 bg-white/20 rounded-full overflow-hidden h-2">
-          <div className="bg-yellow-400 h-2 transition-all" style={{ width: `${progress}%` }} />
+    <>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center splash-root">
+        <div className="animated-bg"></div>
+
+        <div className="relative z-20 flex flex-col items-center">
+          <div className="logo-wrapper">
+            <div className="loader-ring"></div>
+
+            <img
+              src="/cropped_circle-image.png"
+              alt="BBIT Logo"
+              className="logo"
+            />
+          </div>
+
+          <h2 className="title">BBIT R&D CELL</h2>
         </div>
       </div>
+
       <style jsx>{`
-        .splash-root { background: transparent; }
+        .splash-root {
+          background: linear-gradient(135deg, #004aad 0%, #0b2d73 100%);
+        }
+
         .animated-bg {
-          background: radial-gradient(circle at 10% 20%, rgba(255,205,86,0.12), transparent 10%),
-                      linear-gradient(135deg, #062e7a 0%, #0b4aa8 40%, #0b3b8a 100%);
-          filter: saturate(1.05) contrast(1.02);
-          position: absolute; inset: 0; z-index: 10; opacity: 1;
-          animation: splash-shift 3.6s ease-in-out infinite alternate;
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at top left, rgba(255,255,255,.12), transparent 35%),
+            radial-gradient(circle at bottom right, rgba(255,255,255,.08), transparent 35%);
+          animation: bgMove 5s ease-in-out infinite alternate;
         }
-        @keyframes splash-shift {
-          0% { transform: scale(1) translateY(0px); }
-          100% { transform: scale(1.02) translateY(-6px); }
+
+        @keyframes bgMove {
+          from {
+            transform: scale(1);
+          }
+          to {
+            transform: scale(1.08);
+          }
         }
-        .animate-pulse-logo { animation: splash-logo 1.6s ease-in-out infinite; }
-        @keyframes splash-logo {
-          0% { transform: translateY(0) scale(1); opacity: 1 }
-          50% { transform: translateY(-6px) scale(1.03); opacity: 0.95 }
-          100% { transform: translateY(0) scale(1); opacity: 1 }
+
+        .logo-wrapper {
+          position: relative;
+          width: 120px;
+          height: 120px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .loader-ring {
+          position: absolute;
+          width: 118px;
+          height: 118px;
+          border: 4px dotted #ffd54f;
+          border-radius: 50%;
+          animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .logo {
+          width: 80px;
+          height: 80px;
+          object-fit: contain;
+          border-radius: 50%;
+          animation: pulse 1.4s ease-in-out infinite;
+          box-shadow: 0 0 25px rgba(255,255,255,.35);
+          background: white;
+          padding: 6px;
+        }
+
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.08);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
+        .title {
+          margin-top: 24px;
+          color: white;
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: 2px;
         }
       `}</style>
-    </div>
-  )
+    </>
+  );
 }
 
 function AppInstallBar() {
